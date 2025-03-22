@@ -1,8 +1,8 @@
 <?php
 $servername = "localhost";
 $username = "root";
-$password = "-";
-$dbname = "AgriMarket";
+$password = "";
+$dbname = "agrimarket";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -10,27 +10,38 @@ if ($conn->connect_error) {
     die("Connection Failed: " . $conn->connect_error);
 }
 
-function generateUserID()
+function getUserRole($user_id)
 {
     global $conn;
 
-    $searchUserIDDQL = "SELECT userID FROM user ORDER BY userID DESC LIMIT 1";
-    $result = $conn->query($searchUserIDDQL);
+    $getUserRoleSQL = "SELECT role FROM user WHERE user_id = ?";
+    $stmt = $conn->prepare($getUserRoleSQL);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        $lastUserID = $row['userID'];
+    $row = $result->fetch_assoc();
+    return $row['role'];
 
-        $numericPart = (int) substr($lastUserID, 1);
-        $nextNumericPart = $numericPart + 1;
-
-        $nextUserID = 'U' . str_pad($nextNumericPart, 3, '0', STR_PAD_LEFT);
-    } else {
-        $nextUserID = 'U001';
-    }
-
-    return $nextUserID;
 }
 
+function insertUser($first_name, $last_name, $email, $password, $role, $phone_number, $home_address)
+{
+    global $conn;
+
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+
+    $sql = "INSERT INTO user (first_name, last_name, email, password, role, phone_number, home_address) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssssss", $first_name, $last_name, $email, $password_hash, $role, $phone_number, $home_address);
+
+    if ($stmt->execute()) {
+        return $stmt->insert_id;
+    } else {
+        return false; 
+    }
+}
 
 ?>
