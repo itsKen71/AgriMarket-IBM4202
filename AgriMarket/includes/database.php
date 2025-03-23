@@ -46,9 +46,11 @@ function insertUser($first_name, $last_name, $email, $password, $role, $phone_nu
 function getVendorList(){
     global $conn;
 
-    $sql="SELECT v.store_name, s.plan_name,v.subscription_end_date,v.staff_assisstance
-           FROM vendor v JOIN subscription s
-           ON v.subscription_id=s.subscription_id";
+    $sql="SELECT v.store_name, s.plan_name, v.subscription_end_date, 
+          IFNULL(CONCAT(u.first_name, ' ', u.last_name), '-') AS staff_assistance
+          FROM vendor v
+          LEFT JOIN user u ON u.user_id = v.staff_assisstance_id
+          JOIN subscription s ON v.subscription_id = s.subscription_id";
 
     $result= $conn->query($sql);
 

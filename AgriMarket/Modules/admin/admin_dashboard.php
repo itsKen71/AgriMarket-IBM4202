@@ -47,7 +47,7 @@ $staffList = getStaffList();
                             <div class="Vendor-Listing-Container-Content">
                                 <p>Subscription Type: <?= $vendor['plan_name']; ?></p>
                                 <p>Expiration Date: <?= $vendor['subscription_end_date']; ?></p>
-                                <p>Staff Assisstance: <?= ($vendor['staff_assisstance'] != '-') ? $vendor['staff_assisstance'] : "No Staff Assigned"; ?></p>
+                                <p>Staff Assistance: <?= htmlspecialchars($vendor['staff_assistance']); ?></p>
                             </div>
 
                             <!--Button for Add Assigned Assistance-->
