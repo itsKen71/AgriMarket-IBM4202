@@ -58,6 +58,7 @@ CREATE TABLE vendor (
     store_name VARCHAR(255) NOT NULL,
     subscription_start_date DATE,
     subscription_end_date DATE,
+    staff_assisstance_id INT NULL,
     FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
     FOREIGN KEY (subscription_id) REFERENCES subscription(subscription_id) ON DELETE SET NULL
 );
