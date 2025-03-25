@@ -1,5 +1,118 @@
+/* Body Styling */
 body.admin_dashboard {
     background-color: #f5f1eb;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Heading */
+.Vendor-Listing h1,
+.Staff-Listing h1 {
+    text-align: center;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+#toggleVendor,
+#toggleStaff{
+    background-color: transparent; 
+    border: none; 
+    font-size: 30px; 
+    cursor: pointer; 
+}
+
+/* Main Container (Vendor Listing/ Staff Listing) */
+.Vendor-Listing,
+.Staff-Listing {
+    background-color: white;
+    padding: 50px;
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 80px;
+}
+
+/*Staff Header*/
+.Staff-Heading{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
+
+.Staff-Heading-Title {
+    font-size: 39px;
+}
+
+.add-staff {
+    position: absolute;
+    right: 0;
+}
+
+.add-staff a img{
+    width: 50px;
+    height: auto;
+    cursor: pointer;
+}
+
+/* Cards (Vendor Listing/ Staff Listing) */
+.Vendor-Card,
+.Staff-Card {
+    border: 3px solid black;
+    padding: 15px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column; 
+}
+
+/* Card Header (Store Name / Staff Full Name) */
+.Vendor-Listing-Container-Header,
+.Staff-Listing-Container-Header {
+    width: 100%; 
+    text-align: left; 
+    margin-bottom: 10px; 
+}
+
+.Vendor-Listing-Container-Header h2,
+.Staff-Listing-Container-Header h2 {
+    font-size: 35px;
+    margin-bottom: 20px;
+}
+
+/* Card Content */
+.Vendor-Listing-Container-Content {
+    display: grid;
+    grid-template-columns: 200px 20px auto; 
+    gap: 5px 15px;
+    align-items: center;
+    flex: 1;
+}
+
+.Listing-Container-Aligned{
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    width: 100%;
+}
+
+/* Card Footer*/
+.Vendor-Listing-Container-Footer {
+    display: flex;
+    align-items: center;
+}
+
+.Vendor-Listing-Container-Footer img {
+    width: 50px;
+    height: auto;
+    cursor: pointer;
 }
 
 
+/* No Data Messages */
+.Staff-Listing h3,
+.Vendor-Listing h3 {
+    font-size: 20px;
+    text-align: center;
+    color: #aca8a8;
+}
