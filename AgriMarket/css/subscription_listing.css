@@ -1,3 +1,9 @@
 body.subscription_listing {
     background-color: #f5f1eb; 
 }
+
+h2.subscription-title {
+    text-align: center; 
+    margin-bottom: 60px;
+}
+
