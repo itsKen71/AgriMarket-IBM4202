@@ -19,7 +19,6 @@ session_start();
     <?php include '../../includes/header.php'; ?>
     <div class="container mt-5">
         <!-- Content Start Here -->
-         
         <h2 class="subscription-title">Subscription Plans</h2>
         <div class="row">
             <!-- Tier I -->
@@ -119,7 +118,7 @@ session_start();
                                 <label class="form-label">Select Subscription Duration (months):</label>
                                 <input type="number" id="subscriptionMonths" class="form-control" min="1" max="12" value="1" required>
                             </div>
-                              <!-- Display Subscription Details -->
+                            <!-- Display Subscription Details -->
                                <div class="mb-3">
                                 <h5>Subscription Details</h5>
                                 <p><strong>Start Date:</strong> <span id="startDate"></span></p>
@@ -130,14 +129,14 @@ session_start();
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-primary">Confirm Payment</button>
+                                <button type="button" class="btn btn-primary" id="confirmPaymentButton">Confirm Payment</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Success Modal for Tier I -->
+            <!-- Success Modal -->
              <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
@@ -145,9 +144,10 @@ session_start();
                             <h5 class="modal-title" id="successModalLabel">Subscription Successful</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body">
-                            You have successfully subscribed to <strong>Tier I</strong>!
-                        </div>
+                        <div class="modal-body" id="subscriptionSuccessText">
+                            <!-- Success message -->
+                            </div>
+
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
                         </div>
@@ -155,6 +155,25 @@ session_start();
                 </div>
             </div>
 
+</div>
+
+<!-- Warning Modal for Missing Payment Method -->
+<div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="warningModalLabel">Payment Method Required</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Please select a payment method before confirming your subscription.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

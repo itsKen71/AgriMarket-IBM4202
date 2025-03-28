@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // Attach event listeners to subscription buttons
+    // Event listeners to subscription buttons
     document.getElementById("tier1Button").addEventListener("click", function () {
         selectSubscription("tier1");
     });
@@ -12,13 +12,13 @@ document.addEventListener("DOMContentLoaded", function () {
         selectSubscription("tier3");
     });
 
-    // Attach event listener to update price and end date when duration changes
+    // Event listener to update price and end date when duration changes
     document.getElementById("subscriptionMonths").addEventListener("input", function () {
         updateSubscriptionDetails();
     });
 
-    // Attach event listener for payment confirmation
-    document.getElementById("confirmPayment").addEventListener("click", confirmPayment);
+    // Event listener for payment confirmation
+    document.getElementById("confirmPaymentButton").addEventListener("click", confirmPayment);
 });
 
 let selectedPlan = null;
@@ -28,7 +28,12 @@ function selectSubscription(plan) {
     selectedPlan = plan;
 
     if (plan === "tier1") {
-        // Show success modal for Tier I (free plan)
+        // Update the success message for Tier I
+        document.getElementById("subscriptionSuccessText").innerHTML = `
+            You have successfully subscribed to <strong>Tier I</strong>.
+        `;
+
+        // Show success modal for Tier I
         let successModal = new bootstrap.Modal(document.getElementById("successModal"));
         successModal.show();
     } else {
@@ -44,7 +49,8 @@ function selectSubscription(plan) {
     }
 }
 
-// Function to update subscription price and end date dynamically
+
+// Function to calculate subscription price and end date dynamically
 function updateSubscriptionDetails() {
     let monthsInput = document.getElementById("subscriptionMonths");
     let startDateElement = document.getElementById("startDate");
@@ -76,8 +82,6 @@ function updateSubscriptionDetails() {
     // Format as YYYY-MM-DD
     startDateElement.textContent = startDate.toISOString().split("T")[0];
     endDateElement.textContent = endDate.toISOString().split("T")[0];
-
-    console.log(`Updated Subscription: ${selectedPlan} - ${months} months`);
 }
 
 // Function to confirm payment
@@ -86,13 +90,40 @@ function confirmPayment() {
     let months = parseInt(document.getElementById("subscriptionMonths").value);
 
     if (!paymentMethod) {
-        alert("Please select a payment method.");
+        let warningModal = new bootstrap.Modal(document.getElementById("warningModal"));
+        warningModal.show();
         return;
     }
 
-    alert(`Payment successful! You are now subscribed to ${selectedPlan.toUpperCase()} for ${months} month(s).`);
+    if (!selectedPlan) {
+        console.error("No subscription plan selected.");
+        return;
+    }
 
-    // Close the payment modal after payment confirmation
+    // Determine the plan name
+    let planName = "";
+    if (selectedPlan === "tier1") {
+        planName = "Tier I ";
+    } else if (selectedPlan === "tier2") {
+        planName = "Tier II ";
+    } else if (selectedPlan === "tier3") {
+        planName = "Tier III ";
+    }
+
+    // Update the success message dynamically
+    document.getElementById("subscriptionSuccessText").innerHTML = `
+        You have successfully subscribed to <strong>${planName}</strong> for <strong>${months} month(s)</strong>.
+    `;
+
+    // Close payment modal
     let paymentModal = bootstrap.Modal.getInstance(document.getElementById("paymentModal"));
-    paymentModal.hide();
+    if (paymentModal) {
+        paymentModal.hide();
+    }
+
+    // Show the success modal
+    let successModal = new bootstrap.Modal(document.getElementById("successModal"));
+    successModal.show();
 }
+
+
