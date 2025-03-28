@@ -12,7 +12,7 @@ $homeLink = "#";
 if ($role === "Customer") {
     $homeLink = "../customer/main_page.php";
 } elseif ($role === "Vendor") {
-    $homeLink = "../vendor/product_listings.php";
+    $homeLink = "../customer/main_page.php";
 } elseif ($role === "Staff") {
     $homeLink = "../staff/staff_dashboard.php";
 } elseif ($role === "Admin") {
@@ -67,8 +67,8 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     <!-- Vendor-Only Links -->
                     <?php if ($role === "Vendor"): ?>
                         <li class="nav-item">
-                            <a class="nav-link <?php echo ($currentPage == 'main_page.php') ? 'active' : ''; ?>"
-                                href="../customer/main_page.php">Main Page</a>
+                            <a class="nav-link <?php echo ($currentPage == 'product_listings.php') ? 'active' : ''; ?>"
+                                href="../vendor/product_listings.php">Product Listings</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?php echo ($currentPage == 'analytics_dashboard.php') ? 'active' : ''; ?>"
@@ -79,6 +79,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     <!-- Staff Links -->
                     <?php if ($role === "Staff"): ?>
                         <li class="nav-item">
+                            <a class="nav-link <?php echo ($currentPage == 'staff_dashboard.php') ? 'active' : ''; ?>"
+                                href="../staff/staff_dashboard.php">Staff Dashboard</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link <?php echo ($currentPage == 'main_page.php') ? 'active' : ''; ?>"
                                 href="../customer/main_page.php">Main Page</a>
                         </li>
@@ -86,6 +90,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 
                     <!-- Admin Links -->
                     <?php if ($role === "Admin"): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo ($currentPage == 'admin_dashboard.php') ? 'active' : ''; ?>"
+                                href="../admin/admin_dashboard.php">Admin Dashboard</a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link <?php echo ($currentPage == 'analytics_dashboard.php') ? 'active' : ''; ?>"
                                 href="../admin/analytics_dashboard.php">Analytics Dashboard</a>
