@@ -1,3 +1,20 @@
 body.product_listings {
     background-color: #f5f1eb; 
 }
+
+.add-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 40px; 
+    height: 40px;
+    cursor: pointer;
+    z-index: 1000;
+    transition: transform 0.2s ease-in-out;
+}
+
+.add-btn:hover {
+    transform: scale(1.1); 
+}
+
+
