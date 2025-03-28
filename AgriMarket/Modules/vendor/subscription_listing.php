@@ -12,7 +12,7 @@ session_start();
     <link rel="icon" type="image/png" href="..\..\assets\img\temp-logo.png">
     <!-- Put CSS & JS Link Here-->
     <link rel="stylesheet" href="../../css/subscription_listing.css">
-
+    <script src="../../js/subscription.js"></script>
 </head>
 
 <body class="subscription_listing">
@@ -38,9 +38,9 @@ session_start();
                         </div>
                     </div>
                     <div class="card-footer">
-                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                            Subscribe
-                        </button>
+                    <button type="button" class="btn btn-primary" id="tier1Button">
+                        Subscribe
+                    </button>
                     </div>
                 </div>
             </div>
@@ -62,9 +62,9 @@ session_start();
                         </div>
                     </div>
                     <div class="card-footer">
-                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                            Subscribe
-                        </button>
+                    <button type="button" class="btn btn-success" id="tier2Button">
+                        Subscribe
+                    </button>
                     </div>
                 </div>
             </div>
@@ -85,9 +85,9 @@ session_start();
                         </div>
                     </div>
                     <div class="card-footer">
-                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                            Subscribe
-                        </button>
+                    <button type="button" class="btn btn-warning" id="tier3Button">
+                        Subscribe
+                    </button>
                     </div>
                 </div>
             </div>
@@ -102,6 +102,31 @@ session_start();
                         </div>
                         <div class="modal-body">
                             <!-- Content  -->
+                            <form id="paymentForm">
+                                <!-- Select Payment Method -->
+                                 <div class="mb-3">
+                                    <label class="form-label">Select Payment Method:</label>
+                                    <select class="form-select" id="paymentMethod" required>
+                                        <option value="" disabled selected>Select a payment method</option>
+                                        <option value="touchngo">Touch 'n Go</option>
+                                        <option value="creditcard">Credit Card</option>
+                                        <option value="onlinebanking">Online Banking</option>
+                                    </select>
+                                </div>
+
+                            <!-- Select Subscription Duration -->
+                            <div class="mb-3">
+                                <label class="form-label">Select Subscription Duration (months):</label>
+                                <input type="number" id="subscriptionMonths" class="form-control" min="1" max="12" value="1" required>
+                            </div>
+                              <!-- Display Subscription Details -->
+                               <div class="mb-3">
+                                <h5>Subscription Details</h5>
+                                <p><strong>Start Date:</strong> <span id="startDate"></span></p>
+                                <p><strong> End Date :</strong> <span id="endDate"></span></p>
+                                <p><strong>Total Price:</strong> $ <span id="totalPrice">0.00</span></p>
+                            </div>
+                            </form>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -110,7 +135,26 @@ session_start();
                         </div>
                     </div>
                 </div>
-    </div>
+            </div>
+            
+            <!-- Success Modal for Tier I -->
+             <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="successModalLabel">Subscription Successful</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            You have successfully subscribed to <strong>Tier I</strong>!
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
