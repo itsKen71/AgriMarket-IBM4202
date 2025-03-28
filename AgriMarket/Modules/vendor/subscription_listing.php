@@ -37,7 +37,7 @@ session_start();
                         </div>
                     </div>
                     <div class="card-footer">
-                    <button type="button" class="btn btn-primary" id="tier1Button">
+                    <button type="button" class="btn btn-outline-dark" id="tier1Button">
                         Subscribe
                     </button>
                     </div>
@@ -61,7 +61,7 @@ session_start();
                         </div>
                     </div>
                     <div class="card-footer">
-                    <button type="button" class="btn btn-success" id="tier2Button">
+                    <button type="button" class="btn btn-outline-dark" id="tier2Button">
                         Subscribe
                     </button>
                     </div>
@@ -84,7 +84,7 @@ session_start();
                         </div>
                     </div>
                     <div class="card-footer">
-                    <button type="button" class="btn btn-warning" id="tier3Button">
+                    <button type="button" class="btn btn-outline-dark" id="tier3Button">
                         Subscribe
                     </button>
                     </div>
