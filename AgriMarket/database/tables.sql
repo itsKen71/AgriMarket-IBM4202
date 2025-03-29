@@ -76,6 +76,7 @@ CREATE TABLE product (
     vendor_id INT,
     category_id INT NOT NULL,
     product_name VARCHAR(255) NOT NULL,
+    product_image VARCHAR(255) NOT NULL,
     description VARCHAR(255) NOT NULL,
     stock_quantity INT NOT NULL,
     weight DECIMAL(10,2),
