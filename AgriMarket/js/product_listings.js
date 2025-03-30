@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editDescription").value = this.dataset.description;
             document.getElementById("editStock").value = this.dataset.stock;
             document.getElementById("editWeight").value = this.dataset.weight;
-            document.getElementById("editPackaging").value = this.dataset.packaging;
             document.getElementById("editPrice").value = this.dataset.price;
         });
     });
