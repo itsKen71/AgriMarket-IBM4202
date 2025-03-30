@@ -70,7 +70,7 @@ $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
                                                 <td><?php echo htmlspecialchars($product['description']); ?></td>
                                                 <td><?php echo $product['stock_quantity']; ?></td>
                                                 <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
-                                                <td><?php echo htmlspecialchars($product['packaging_type']); ?></td>
+                                                <td><?php echo isset($product['packaging_type']) ? htmlspecialchars($product['packaging_type']) : 'N/A'; ?></td>
                                                 <td>$<?php echo number_format($product['unit_price'], 2); ?></td>
                                                 <td class="text-center align-middle">
                                                     <button class="btn btn-primary btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editProductModal"
@@ -79,7 +79,7 @@ $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
                                                         data-description="<?php echo htmlspecialchars($product['description']); ?>"
                                                         data-stock="<?php echo $product['stock_quantity']; ?>"
                                                         data-weight="<?php echo $product['weight']; ?>"
-                                                        data-packaging="<?php echo $product['packaging_type']; ?>"
+                                                        data-packaging="<?php echo htmlspecialchars($product['packaging_type'] ?? 'N/A'); ?>"
                                                         data-price="<?php echo $product['unit_price']; ?>">
                                                         Edit
                                                     </button>
@@ -126,7 +126,7 @@ $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
                                                 <td><?php echo htmlspecialchars($product['description']); ?></td>
                                                 <td><?php echo $product['stock_quantity']; ?></td>
                                                 <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
-                                                <td><?php echo htmlspecialchars($product['packaging_type']); ?></td>
+                                                <td><?php echo isset($product['packaging_type']) ? htmlspecialchars($product['packaging_type']) : 'N/A'; ?></td>
                                                 <td>$<?php echo number_format($product['unit_price'], 2); ?></td>
                                             </tr>
                                         <?php endwhile; ?>
@@ -170,7 +170,7 @@ $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
                                                 <td><?php echo htmlspecialchars($product['description']); ?></td>
                                                 <td><?php echo $product['stock_quantity']; ?></td>
                                                 <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
-                                                <td><?php echo htmlspecialchars($product['packaging_type']); ?></td>
+                                                <td><?php echo isset($product['packaging_type']) ? htmlspecialchars($product['packaging_type']) : 'N/A'; ?></td>
                                                 <td>$<?php echo number_format($product['unit_price'], 2); ?></td>
                                             </tr>
                                         <?php endwhile; ?>

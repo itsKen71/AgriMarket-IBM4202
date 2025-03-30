@@ -39,7 +39,7 @@ function insertUser($first_name, $last_name, $email, $password, $role, $phone_nu
     if ($stmt->execute()) {
         return $stmt->insert_id;
     } else {
-        return false; 
+        return false;
     }
 }
 
@@ -49,10 +49,10 @@ function getApprovedProducts()
 
     $sql = "SELECT * FROM product WHERE product_status='Approved' ORDER BY RAND()";
     $result = $conn->query($sql);
-    
+
     $products = array();
     if ($result->num_rows > 0) {
-        while($row = $result->fetch_assoc()) {
+        while ($row = $result->fetch_assoc()) {
             $products[] = $row;
         }
     }
@@ -60,37 +60,39 @@ function getApprovedProducts()
 }
 
 /*Staff Dashboard*/
-function update_Promotion_Discount( $discountCode,$promotionTitle,$promotionMessage,$startDate,$endDate, $discountPercentage,$minPurchaseAmount,$isActive,$created_by){
+function update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by)
+{
     global $conn;
 
     //Insert into Discount Table
-    $sqlDiscount="INSERT INTO discount (discount_code, discount_percentage,min_amount_purchase) VALUES (?,?,?)";
+    $sqlDiscount = "INSERT INTO discount (discount_code, discount_percentage,min_amount_purchase) VALUES (?,?,?)";
 
-    $stmtDiscount =$conn->prepare($sqlDiscount);
-    $stmtDiscount->bind_param("sdd" , $discountCode, $discountPercentage,$minPurchaseAmount);
+    $stmtDiscount = $conn->prepare($sqlDiscount);
+    $stmtDiscount->bind_param("sdd", $discountCode, $discountPercentage, $minPurchaseAmount);
 
-    if($stmtDiscount->execute()){
+    if ($stmtDiscount->execute()) {
         //Get Last Row Discount ID
-        $discount_id=$stmtDiscount->insert_id;
+        $discount_id = $stmtDiscount->insert_id;
 
         //Insert into Promotion table
-        $sqlPromotion="INSERT INTO promotion(discount_id,promotion_title,promotion_message,promotion_start_date, promotion_end_date, is_active, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $sqlPromotion = "INSERT INTO promotion(discount_id,promotion_title,promotion_message,promotion_start_date, promotion_end_date, is_active, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        $stmtPromotion = $conn->prepare($sqlPromotion); 
-        $stmtPromotion->bind_param("issssii", $discount_id, $promotionTitle, $promotionMessage, $startDate, $endDate, $isActive, $created_by); 
+        $stmtPromotion = $conn->prepare($sqlPromotion);
+        $stmtPromotion->bind_param("issssii", $discount_id, $promotionTitle, $promotionMessage, $startDate, $endDate, $isActive, $created_by);
 
-        if($stmtPromotion->execute()){
+        if ($stmtPromotion->execute()) {
             return $stmtPromotion->insert_id;
-        }else{
+        } else {
             return false;
         }
-    }else{
+    } else {
         //Discount Record Insert Failed
-        return false; 
+        return false;
     }
 }
 
-function getVendorList() {
+function getVendorList()
+{
     global $conn;
 
     $sql = "SELECT v.vendor_id, v.store_name, s.plan_name, v.subscription_end_date, 
@@ -105,7 +107,8 @@ function getVendorList() {
 }
 
 
-function updateVendorAssistance($vendor_id, $staff_id) {
+function updateVendorAssistance($vendor_id, $staff_id)
+{
     global $conn;
 
     $sql = "UPDATE vendor SET staff_assisstance_id = ? WHERE vendor_id = ?";
@@ -116,7 +119,8 @@ function updateVendorAssistance($vendor_id, $staff_id) {
 }
 
 /*Admin Dashboard*/
-function getStaffList(){
+function getStaffList()
+{
     global $conn;
 
     $sql = "SELECT 
@@ -135,80 +139,85 @@ function getStaffList(){
 
     $result = $conn->query($sql);
 
-    if($result->num_rows > 0){
+    if ($result->num_rows > 0) {
         return $result->fetch_all(MYSQLI_ASSOC);
-    }else{
+    } else {
         return [];
     }
 }
 
-function getPendingRequestList(){
+function getPendingRequestList()
+{
     global $conn;
 
-    $sql="SELECT v.store_name, c.category_name,p.product_name, p.description, p.stock_quantity,p.weight, p.unit_price, p.product_id
+    $sql = "SELECT v.store_name, c.category_name,p.product_name, p.description, p.stock_quantity,p.weight, p.unit_price, p.product_id
           FROM vendor v JOIN product p
           ON v.vendor_id = p.vendor_id
           JOIN category c 
           ON p.category_id=c.category_id
           WHERE p.product_status='Pending'";
 
-          $result=$conn ->query($sql);
+    $result = $conn->query($sql);
 
-          if($result ->num_rows>0){
-            return $result-> fetch_all(MYSQLI_ASSOC);
-          }else{
-            return [];
-          }
+    if ($result->num_rows > 0) {
+        return $result->fetch_all(MYSQLI_ASSOC);
+    } else {
+        return [];
+    }
 }
 
-function updatePendingRequestStatus($product_id,$status){
-        global $conn;
-
-        $sql="UPDATE product SET product_status=? WHERE product_id=?";
-
-        $stmt=$conn->prepare($sql);
-        $stmt->bind_param("si",$status,$product_id);
-
-        return $stmt->execute();
-}
-
-function getVendorAssisstanceList($user_id){
+function updatePendingRequestStatus($product_id, $status)
+{
     global $conn;
 
-    $sql="SELECT v.store_name,r.request_description, r.request_type,r.request_date, r.request_id
+    $sql = "UPDATE product SET product_status=? WHERE product_id=?";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("si", $status, $product_id);
+
+    return $stmt->execute();
+}
+
+function getVendorAssisstanceList($user_id)
+{
+    global $conn;
+
+    $sql = "SELECT v.store_name,r.request_description, r.request_type,r.request_date, r.request_id
           FROM request r JOIN vendor v
           ON r.vendor_id = v.vendor_id
           WHERE v.staff_assisstance_id=? AND r.is_completed=FALSE
           ORDER BY r.request_date ASC";
 
-    $stmt =$conn->prepare($sql);
-    $stmt ->bind_param("i",$user_id);
-    $stmt ->execute();
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
 
-    $result= $stmt->get_result();
+    $result = $stmt->get_result();
     return $result->fetch_all(MYSQLI_ASSOC);
 }
 
-function updateAssisstanceRequestStatus($request_id,$status){
+function updateAssisstanceRequestStatus($request_id, $status)
+{
     global $conn;
 
-    $sql="UPDATE request SET is_completed=? WHERE request_id= ?";
-    $stmt= $conn->prepare($sql);
+    $sql = "UPDATE request SET is_completed=? WHERE request_id= ?";
+    $stmt = $conn->prepare($sql);
 
     //Convert Boolean to Integer 
-    $status =(int)$status;
+    $status = (int) $status;
 
-    $stmt->bind_param("ii",$status,$request_id);
+    $stmt->bind_param("ii", $status, $request_id);
 
-    if($stmt->execute()){
+    if ($stmt->execute()) {
         return true;
-    }else {
+    } else {
         return false;
     }
 }
 
 /* Analytics Dashboard */
-function getActiveUser($conn){
+function getActiveUser($conn)
+{
     $oneMonthAgo = date("Y-m-d H:i:s", strtotime("-1 month"));
 
     // Get Active Customers
@@ -228,7 +237,8 @@ function getActiveUser($conn){
     return $data;
 }
 
-function getRefundPercentage($conn){
+function getRefundPercentage($conn)
+{
     $currentYear = date("Y");
 
     $sqlRefunds = "SELECT COUNT(*) AS totalRefunds FROM refund WHERE YEAR(refund_date) = '$currentYear'";
@@ -241,17 +251,27 @@ function getRefundPercentage($conn){
     $totalOrders = mysqli_fetch_assoc($resultOrders)['totalOrders'];
 
     $refundPercentage = ($totalOrders > 0) ? ($totalRefunds / $totalOrders) * 100 : 0;
-    
+
     return ["totalRefundPercentage" => round($refundPercentage, 2)];
 }
 
-function getRevenue($conn) {
+function getRevenue($conn)
+{
     $currentYear = date("Y");
 
     $months = [
-        1 => "Jan", 2 => "Feb", 3 => "Mar", 4 => "Apr",
-        5 => "May", 6 => "Jun", 7 => "Jul", 8 => "Aug",
-        9 => "September", 10 => "October", 11 => "November", 12 => "December"
+        1 => "Jan",
+        2 => "Feb",
+        3 => "Mar",
+        4 => "Apr",
+        5 => "May",
+        6 => "Jun",
+        7 => "Jul",
+        8 => "Aug",
+        9 => "September",
+        10 => "October",
+        11 => "November",
+        12 => "December"
     ];
 
     $sql = "SELECT MONTH(order_date) AS month, SUM(price) AS revenue 
@@ -274,13 +294,23 @@ function getRevenue($conn) {
     return array_values($data);
 }
 
-function getOrders($conn) {
+function getOrders($conn)
+{
     $currentYear = date("Y");
 
     $months = [
-        1 => "Jan", 2 => "Feb", 3 => "Mar", 4 => "Apr",
-        5 => "May", 6 => "Jun", 7 => "Jul", 8 => "Aug",
-        9 => "Sep", 10 => "Oct", 11 => "Nov", 12 => "Dec"
+        1 => "Jan",
+        2 => "Feb",
+        3 => "Mar",
+        4 => "Apr",
+        5 => "May",
+        6 => "Jun",
+        7 => "Jul",
+        8 => "Aug",
+        9 => "Sep",
+        10 => "Oct",
+        11 => "Nov",
+        12 => "Dec"
     ];
 
     $sql = "SELECT MONTH(order_date) AS month, COUNT(order_id) AS totalOrder 
@@ -303,7 +333,8 @@ function getOrders($conn) {
     return array_values($data);
 }
 
-function getSubscription($conn) {
+function getSubscription($conn)
+{
     $sql = "SELECT s.plan_name, COUNT(v.vendor_id) AS totalUsers 
             FROM vendor v JOIN subscription s 
             ON v.subscription_id = s.subscription_id
@@ -327,7 +358,8 @@ function getSubscription($conn) {
     return $data;
 }
 
-function getTopFiveCategory($conn) {
+function getTopFiveCategory($conn)
+{
     $sql = "SELECT c.category_name, SUM(p.sold_quantity) AS totalSold 
             FROM product p 
             JOIN category c ON p.category_id = c.category_id
@@ -351,9 +383,11 @@ function getTopFiveCategory($conn) {
     return $data;
 }
 
-function getProductsByStatus($conn, $vendor_id, $status) {
+function getProductsByStatus($conn, $vendor_id, $status)
+{
     $stmt = $conn->prepare("SELECT * FROM product WHERE vendor_id = ? AND product_status = ?");
     $stmt->bind_param("is", $vendor_id, $status);
     $stmt->execute();
     return $stmt->get_result();
+}
 ?>
