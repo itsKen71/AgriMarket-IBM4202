@@ -43,21 +43,51 @@ function insertUser($first_name, $last_name, $email, $password, $role, $phone_nu
     }
 }
 
-function getApprovedProducts()
+function getCategories()
 {
     global $conn;
 
-    $sql = "SELECT * FROM product WHERE product_status='Approved' ORDER BY RAND()";
+    $sql = "SELECT * FROM category ORDER BY category_id";
     $result = $conn->query($sql);
 
-    $products = array();
     if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $products[] = $row;
-        }
+        return $result->fetch_all(MYSQLI_ASSOC);
+    } else {
+        return [];
     }
+}
+
+function getApprovedProducts($category_id = null)
+{
+    global $conn;
+
+    $sql = "SELECT * FROM product WHERE product_status='Approved'";
+    $params = [];
+    $types = "";
+
+    if ($category_id !== 'all') {
+        $sql .= " AND category_id = ?";
+        $params[] = $category_id;
+        $types .= "i";
+    }
+
+    $sql .= " ORDER BY RAND()";
+
+    $stmt = $conn->prepare($sql);
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $products = [];
+    while ($row = $result->fetch_assoc()) {
+        $products[] = $row;
+    }
+
     return $products;
 }
+
 
 /*Staff Dashboard*/
 function update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by)

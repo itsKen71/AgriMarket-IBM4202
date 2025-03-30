@@ -1,7 +1,12 @@
 <?php
 session_start();
-include '..\..\includes\database.php';
-$products = getApprovedProducts();
+include '../../includes/database.php';
+
+$categories = getCategories();
+
+$selected_category_id = $_GET['category_id'] ?? ($categories[0]['category_id'] ?? null);
+
+$products = getApprovedProducts($selected_category_id);
 ?>
 
 <!DOCTYPE html>
@@ -11,17 +16,35 @@ $products = getApprovedProducts();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriMarket - Main Page</title>
-    <link rel="icon" type="image/png" href="..\..\assets\img\temp-logo.png">
-    <!-- Bootstrap CSS -->
+    <link rel="icon" type="image/png" href="../../assets/img/temp-logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../css/main_page.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body class="main_page">
     <?php include '../../includes/header.php'; ?>
+
     <div class="container mt-5">
-        <h2 class="mb-3">Products</h2>
-        <div class="row">
+        <!-- Category Navigation -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <button class="btn btn-outline-success" id="prevCategory">&lt;</button>
+            <div class="d-flex category-container">
+                <?php foreach (['all' => 'All Products'] + array_column($categories, 'category_name', 'category_id') as $category_id => $category_name): ?>
+                    <button
+                        class="btn btn-outline-success category-btn <?php echo ($selected_category_id == $category_id || ($category_id === 'all' && $selected_category_id === null)) ? 'active' : ''; ?>"
+                        data-category="<?php echo $category_id === 'all' ? 'all' : htmlspecialchars($category_id); ?>">
+                        <?php echo htmlspecialchars($category_name); ?>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+            <button class="btn btn-outline-success" id="nextCategory">&gt;</button>
+        </div>
+
+        <h2 class="mb-3 product-title">Discovery</h2>
+
+        <!-- Products Section -->
+        <div class="row" id="productContainer">
             <?php foreach ($products as $product): ?>
                 <div class="col-md-3 mb-4">
                     <form action="product_page.php" method="POST" class="h-100">
@@ -48,6 +71,7 @@ $products = getApprovedProducts();
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/main_page.js"></script>
 </body>
 
 </html>

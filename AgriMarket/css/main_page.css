@@ -47,3 +47,31 @@ body.main_page {
 .d-flex.justify-content-between {
     margin-top: auto; 
 }
+
+.product-title{
+    margin-top: 30px;
+    font-size: 1.7rem; 
+}
+
+.category-btn {
+    flex: 1; 
+    text-align: center; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    min-width: 250px;
+}
+
+.d-flex.align-items-center.justify-content-between {
+    gap: 20px; 
+}
+
+#prevCategory,
+#nextCategory {
+    margin: 0;
+}
+
+.category-container {
+    flex-grow: 1; 
+    display: flex;
+    justify-content: center;
+}
