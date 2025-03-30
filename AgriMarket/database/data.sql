@@ -1,10 +1,136 @@
---Insert Fake Data Here
-USE agrimarket
+USE agrimarket;
 
---Subscription plan
-INSERT INTO subscription (plan_name, subscription_price, upload_limit, has_low_stock_alert, has_staff_support, has_analytics_access)  
-VALUES 
+-- User Data
+INSERT INTO user (first_name, last_name, email, password, role, phone_number, home_address, last_online) VALUES 
+    ('Hau', 'Tien', 'idk@gmail,com', SHA2('password', 256), 'Customer', '6012-3456789', '123 Jalan Kebun, Kuala Lumpur, Malaysia', NOW()),
+    ('Hau', 'Zhen', 'kenjichong88@gmail.com', SHA2('password', 256), 'Vendor', '6017-9876543', '456 Lorong Tani, Penang, Malaysia', NOW()),
+	('Hau', 'Chong', 'kenjichong11@gmail.com', SHA2('password', 256), 'Vendor', '6017-9876543', '123 Mont Austin, Johor, Malaysia', NOW()),
+    ('Hau', 'Xing', 'kenjichong22@gmail.com', SHA2('password', 256), 'Vendor', '6017-9876543', '34 Desa India, Johor, Malaysia', NOW()),
+    ('Hau', 'An', 'idk2@gmail,com', SHA2('password', 256), 'Staff', '6019-5554321', '789 Kampung Sejahtera, Johor Bahru, Malaysia', NOW()),
+    ('Hau', 'Chun', 'idk3@gmail,com', SHA2('password', 256), 'Admin', '6011-2223334', '101 Taman Bukit Indah, Selangor, Malaysia', NOW());
+
+-- Subscription Plan
+INSERT INTO subscription (plan_name, subscription_price, upload_limit, has_low_stock_alert, has_staff_support, has_analytics_access) VALUES 
     ('Tier_I', 0.00, 1, FALSE, FALSE, FALSE),
     ('Tier_II', 9.99, 5, TRUE, FALSE, FALSE),
     ('Tier_III', 39.99, 100, TRUE, TRUE, TRUE);
 
+-- Vendor Data
+INSERT vendor (user_id, subscription_id, store_name, subscription_start_date, subscription_end_date, staff_assisstance_id) 
+VALUES 
+    (2, 3, 'Hau Zhen Store', '2024-03-29', '2025-04-29', NULL),
+	(3, 3, 'Hau Chong Store', '2024-03-29', '2025-04-29', NULL),
+    (4, 3, 'Hau Xing Store', '2024-03-29', '2025-04-29', NULL);
+
+-- Product Category Data 
+INSERT INTO category (category_name) VALUES 
+    ('Livestock'),
+    ('Crops'),
+    ('Edible Forestry Products'),
+    ('Dairy'),
+    ('Fish Farming'),
+    ('Miscellaneous Products');
+
+-- Products Data
+INSERT INTO product (vendor_id, category_id, product_name, product_image, description, stock_quantity, weight, unit_price, product_status, sold_quantity) 
+VALUES  
+	(1, 1, 'Dairy Cow', 'Assets/img/product_img/dairy_cow.png', 'High-yield dairy cow, ideal for milk production.', 10, 500.00, 1200.00, 'Approved', 0),
+	(1, 1, 'Free-Range Chicken', 'Assets/img/product_img/free_range_chicken.png', 'Healthy free-range chickens, excellent for meat or egg production.', 50, 2.50, 15.00, 'Approved', 0),
+	(1, 1, 'Boer Goat', 'Assets/img/product_img/boer_goat.png', 'Strong and healthy Boer goats, perfect for meat production.', 15, 70.00, 300.00, 'Approved', 0),
+	(1, 1, 'Piglet', 'Assets/img/product_img/piglet.png', 'Well-fed piglets, ideal for pig farming and meat production.', 20, 25.00, 150.00, 'Approved', 0),
+	(2, 1, 'Angus Cattle', 'Assets/img/product_img/angus_cattle.png', 'Premium Angus cattle, known for high-quality beef.', 8, 600.00, 1500.00, 'Approved', 0),
+	(2, 1, 'Turkey', 'Assets/img/product_img/turkey.png', 'Large farm-raised turkeys, perfect for meat production.', 30, 6.00, 40.00, 'Approved', 0),
+	(2, 1, 'Sheep', 'Assets/img/product_img/sheep.png', 'Healthy sheep, great for wool and meat production.', 12, 80.00, 250.00, 'Approved', 0),
+	(2, 1, 'Duck', 'Assets/img/product_img/duck.png', 'Farm-raised ducks, excellent for meat and egg production.', 25, 4.00, 25.00, 'Approved', 0),
+	(3, 1, 'Boer Goat', 'Assets/img/product_img/boer_goat_2.png', 'Hardy Boer goats, bred for fast growth and quality meat.', 10, 75.00, 320.00, 'Approved', 0),
+	(3, 1, 'Duck', 'Assets/img/product_img/duck_2.png', 'Organic farm-raised ducks, known for tender and flavorful meat.', 20, 4.50, 27.00, 'Approved', 0), 
+    (1, 2, 'Corn', 'Assets/img/product_img/corn.png', 'Freshly harvested yellow corn, great for grilling or making flour.', 200, 2.00, 3.99, 'Approved', 0),
+    (1, 2, 'Soybeans', 'Assets/img/product_img/soybeans.png', 'High-quality soybeans, perfect for tofu or soy milk production.', 180, 1.50, 4.50, 'Approved', 0),
+    (1, 2, 'Wheat', 'Assets/img/product_img/wheat.png', 'Whole grain wheat, ideal for milling into flour.', 250, 2.50, 2.99, 'Approved', 0),
+    (1, 2, 'Rice', 'Assets/img/product_img/rice.png', 'Organic white rice, grown with sustainable farming practices.', 300, 1.00, 5.49, 'Approved', 0),
+    (1, 2, 'Barley', 'Assets/img/product_img/barley.png', 'Nutritious barley grains, used in soups, baking, and brewing.', 160, 2.00, 3.75, 'Approved', 0),
+    (1, 2, 'Hay', 'Assets/img/product_img/hay.png', 'Fresh-cut hay, perfect for livestock feed and bedding.', 500, 10.00, 7.99, 'Approved', 0),
+    (2, 2, 'Oats', 'Assets/img/product_img/oats.png', 'Healthy whole grain oats, great for breakfast cereals.', 220, 2.00, 4.25, 'Approved', 0),
+    (2, 2, 'Millet', 'Assets/img/product_img/millet.png', 'Nutritious millet grains, a staple food in many cultures.', 150, 1.50, 3.49, 'Approved', 0),
+    (2, 2, 'Sorghum', 'Assets/img/product_img/sorghum.png', 'Drought-resistant sorghum grains used for food and livestock feed.', 180, 2.00, 4.99, 'Approved', 0),
+    (2, 2, 'Peanuts', 'Assets/img/product_img/peanuts.png', 'Raw peanuts, rich in protein and perfect for snacking or peanut butter.', 140, 1.00, 3.79, 'Approved', 0),
+    (2, 2, 'Flaxseeds', 'Assets/img/product_img/flaxseeds.png', 'High-fiber flaxseeds, great for baking and healthy diets.', 100, 0.50, 6.50, 'Approved', 0),
+    (2, 2, 'Sunflower Seeds', 'Assets/img/product_img/sunflower_seeds.png', 'Roasted sunflower seeds, a tasty and healthy snack.', 120, 0.80, 5.25, 'Approved', 0),
+    (3, 2, 'Corn', 'Assets/img/product_img/corn_2.png', 'Sweet and tender corn, freshly harvested from organic farms.', 180, 2.00, 4.29, 'Approved', 0),
+    (3, 2, 'Soybeans', 'Assets/img/product_img/soybeans_2.png', 'Non-GMO soybeans, ideal for cooking and soy-based products.', 160, 1.50, 4.79, 'Approved', 0),
+    (3, 2, 'Rice', 'Assets/img/product_img/rice_2.png', 'Locally grown long-grain rice, perfect for daily meals.', 280, 1.00, 5.69, 'Approved', 0),
+    (3, 2, 'Peanuts', 'Assets/img/product_img/peanuts_2.png', 'Crunchy and flavorful peanuts, great for roasting or making peanut butter.', 130, 1.00, 3.99, 'Approved', 0),
+    (3, 2, 'Sunflower Seeds', 'Assets/img/product_img/sunflower_seeds_2.png', 'High-quality sunflower seeds, roasted and lightly salted.', 110, 0.80, 5.49, 'Approved', 0),
+    (1, 3, 'Almonds', 'Assets/img/product_img/almonds.png', 'Organic raw almonds sourced from sustainable farms.', 100, 1.00, 15.99, 'Approved', 0),
+    (1, 3, 'Walnuts', 'Assets/img/product_img/walnuts.png', 'High-quality walnuts rich in omega-3 fatty acids.', 150, 1.50, 12.50, 'Approved', 0),
+    (1, 3, 'Hazelnuts', 'Assets/img/product_img/hazelnuts.png', 'Fresh and crunchy hazelnuts perfect for snacks or baking.', 120, 1.20, 18.75, 'Approved', 0),
+    (1, 3, 'Pine Nuts', 'Assets/img/product_img/pine_nuts.png', 'Premium pine nuts harvested from wild pine trees.', 80, 0.80, 25.99, 'Approved', 0),
+    (1, 3, 'Chestnuts', 'Assets/img/product_img/chestnuts.png', 'Sweet and flavorful chestnuts, great for roasting or cooking.', 90, 1.30, 10.99, 'Approved', 0),
+    (2, 3, 'Wild Honey', 'Assets/img/product_img/wild_honey.png', 'Organic honey harvested from wild forest bees.', 50, 0.50, 19.99, 'Approved', 0),
+    (2, 3, 'Maple Syrup', 'Assets/img/product_img/maple_syrup.png', 'Pure maple syrup tapped from maple trees.', 40, 1.00, 29.99, 'Approved', 0),
+    (2, 3, 'Birch Syrup', 'Assets/img/product_img/birch_syrup.png', 'Sweet birch syrup, an alternative to maple syrup.', 30, 0.75, 34.99, 'Approved', 0),
+    (2, 3, 'Elderberries', 'Assets/img/product_img/elderberries.png', 'Nutrient-rich elderberries used for syrups and jams.', 90, 0.30, 12.50, 'Approved', 0),
+    (2, 3, 'Chaga Mushrooms', 'Assets/img/product_img/chaga_mushrooms.png', 'Medicinal mushrooms harvested from birch trees.', 60, 0.20, 39.99, 'Approved', 0),
+    (2, 3, 'Morel Mushrooms', 'Assets/img/product_img/morel_mushrooms.png', 'Highly sought-after gourmet mushrooms.', 40, 0.15, 49.99, 'Approved', 0),
+    (2, 3, 'Truffles', 'Assets/img/product_img/truffles.png', 'Rare and luxurious forest-grown truffles.', 25, 0.10, 199.99, 'Approved', 0),
+    (2, 3, 'Bamboo Shoots', 'Assets/img/product_img/bamboo_shoots.png', 'Tender bamboo shoots used in Asian cuisine.', 100, 0.50, 8.99, 'Approved', 0),
+    (3, 3, 'Almonds', 'Assets/img/product_img/almonds_2.png', 'Premium organic almonds with a rich, nutty flavor.', 110, 1.00, 16.49, 'Approved', 0),
+    (3, 3, 'Walnuts', 'Assets/img/product_img/walnuts_2.png', 'Locally sourced walnuts, packed with essential nutrients.', 140, 1.50, 13.00, 'Approved', 0),
+    (3, 3, 'Chaga Mushrooms', 'Assets/img/product_img/chaga_mushrooms_2.png', 'Wild-harvested Chaga mushrooms with high antioxidant content.', 55, 0.20, 42.99, 'Approved', 0),
+    (3, 3, 'Truffles', 'Assets/img/product_img/truffles_2.png', 'Rare black truffles, handpicked for a bold and earthy taste.', 20, 0.10, 210.00, 'Approved', 0),
+    (3, 3, 'Bamboo Shoots', 'Assets/img/product_img/bamboo_shoots_2.png', 'Crisp and tender bamboo shoots, freshly harvested.', 90, 0.50, 9.50, 'Approved', 0),
+    (3, 3, 'Maple Syrup', 'Assets/img/product_img/maple_syrup_2.png', 'Rich and smooth maple syrup, 100% pure and natural.', 35, 1.00, 31.50, 'Approved', 0), 
+	(1, 4, 'Fresh Cow Milk', 'Assets/img/product_img/fresh_cow_milk.png', 'Organic fresh cow milk from grass-fed cows.', 50, 1.0, 2.50, 'Approved', 0),
+	(1, 4, 'Goat Milk', 'Assets/img/product_img/goat_milk.png', 'Pure and fresh goat milk, rich in nutrients.', 40, 1.0, 3.00, 'Approved', 0),
+	(1, 4, 'Greek Yogurt', 'Assets/img/product_img/greek_yogurt.png', 'Thick and creamy Greek yogurt with probiotics.', 30, 0.5, 4.50, 'Approved', 0),
+	(1, 4, 'Cheddar Cheese', 'Assets/img/product_img/cheddar_cheese.png', 'Aged cheddar cheese with a sharp, rich taste.', 25, 0.5, 6.00, 'Approved', 0),
+	(1, 4, 'Butter', 'Assets/img/product_img/butter.png', 'Fresh, unsalted butter made from farm-fresh cream.', 35, 0.25, 3.75, 'Approved', 0),
+	(1, 4, 'Sour Cream', 'Assets/img/product_img/sour_cream.png', 'Rich and creamy sour cream, perfect for cooking.', 20, 0.5, 2.25, 'Approved', 0),
+	(1, 4, 'Mozzarella Cheese', 'Assets/img/product_img/mozzarella_cheese.png', 'Soft and fresh mozzarella cheese, ideal for pizzas.', 28, 0.5, 5.50, 'Approved', 0),
+	(2, 4, 'Almond Milk', 'Assets/img/product_img/almond_milk.png', 'Dairy-free almond milk, a great alternative to cow milk.', 45, 1.0, 3.20, 'Approved', 0),
+	(2, 4, 'Cottage Cheese', 'Assets/img/product_img/cottage_cheese.png', 'Soft and fresh cottage cheese, high in protein.', 30, 0.5, 4.00, 'Approved', 0),
+	(2, 4, 'Probiotic Yogurt', 'Assets/img/product_img/probiotic_yogurt.png', 'Yogurt packed with live probiotics for gut health.', 35, 0.5, 4.75, 'Approved', 0),
+	(2, 4, 'Cream Cheese', 'Assets/img/product_img/cream_cheese.png', 'Smooth and creamy cheese, perfect for spreads.', 25, 0.5, 5.00, 'Approved', 0),
+	(2, 4, 'Whipping Cream', 'Assets/img/product_img/whipping_cream.png', 'Rich and smooth whipping cream for desserts.', 22, 0.5, 4.50, 'Approved', 0),
+	(2, 4, 'Parmesan Cheese', 'Assets/img/product_img/parmesan_cheese.png', 'Aged Parmesan cheese, great for pasta dishes.', 20, 0.5, 7.50, 'Approved', 0),
+	(3, 4, 'Fresh Cow Milk', 'Assets/img/product_img/fresh_cow_milk_2.png', 'Rich and creamy fresh cow milk, sourced from local farms.', 45, 1.0, 2.60, 'Approved', 0),
+	(3, 4, 'Greek Yogurt', 'Assets/img/product_img/greek_yogurt_2.png', 'Authentic Greek yogurt with a smooth and tangy taste.', 28, 0.5, 4.65, 'Approved', 0),
+	(3, 4, 'Cheddar Cheese', 'Assets/img/product_img/cheddar_cheese_2.png', 'Premium aged cheddar cheese with a deep, bold flavor.', 22, 0.5, 6.20, 'Approved', 0),
+	(3, 4, 'Cream Cheese', 'Assets/img/product_img/cream_cheese_2.png', 'Rich and creamy cheese, ideal for spreading and baking.', 20, 0.5, 5.25, 'Approved', 0),
+	(3, 4, 'Parmesan Cheese', 'Assets/img/product_img/parmesan_cheese_2.png', 'Finely aged Parmesan, perfect for grating over pasta.', 18, 0.5, 7.70, 'Approved', 0),
+	(1, 5, 'Tilapia', 'Assets/img/product_img/tilapia.png', 'Fast-growing tilapia, perfect for freshwater aquaculture.', 100, 1.50, 37.00, 'Approved', 0),
+	(1, 5, 'Catfish', 'Assets/img/product_img/catfish.png', 'Healthy and resilient catfish, suitable for pond farming.', 80, 2.00, 99.50, 'Approved', 0),
+	(1, 5, 'Rainbow Trout', 'Assets/img/product_img/rainbow_trout.png', 'Premium-quality rainbow trout, known for its rich taste.', 60, 1.80, 19.00, 'Approved', 0),
+	(1, 5, 'Shrimp', 'Assets/img/product_img/shrimp.png', 'High-yield freshwater shrimp, ideal for commercial farming.', 120, 0.30, 10.00, 'Approved', 0),
+	(1, 5, 'Ornamental Koi', 'Assets/img/product_img/ornamental_koi.png', 'Beautiful ornamental koi, perfect for decorative ponds.', 50, 0.50, 250.00, 'Approved', 0),
+	(2, 5, 'Salmon', 'Assets/img/product_img/salmon.png', 'Nutritious farm-raised salmon, high in Omega-3.', 70, 2.50, 262.00, 'Approved', 0),
+	(2, 5, 'Eel', 'Assets/img/product_img/eel.png', 'Freshwater eel, known for its high market value.', 40, 1.20, 240.00, 'Approved', 0),
+	(2, 5, 'Silver Carp', 'Assets/img/product_img/silver_carp.png', 'Fast-growing silver carp, widely used in aquaculture.', 90, 2.20, 60.50, 'Approved', 0),
+	(2, 5, 'Mud Crab', 'Assets/img/product_img/mud_crab.png', 'Premium-quality mud crabs, perfect for seafood markets.', 35, 0.40, 25.00, 'Approved', 0),
+	(2, 5, 'Barramundi', 'Assets/img/product_img/barramundi.png', 'Highly sought-after barramundi, known for its delicate flavor.', 55, 2.00, 144.50, 'Approved', 0),
+	(3, 5, 'Tilapia', 'Assets/img/product_img/tilapia_2.png', 'High-quality tilapia, raised in clean and controlled water conditions.', 90, 1.50, 35.50, 'Approved', 0),
+	(3, 5, 'Shrimp', 'Assets/img/product_img/shrimp_2.png', 'Freshwater shrimp with excellent growth potential and market demand.', 110, 0.30, 10.50, 'Approved', 0),
+	(3, 5, 'Barramundi', 'Assets/img/product_img/barramundi_2.png', 'Premium barramundi, carefully bred for superior taste and texture.', 50, 2.00, 175.00, 'Approved', 0),
+	(1, 6, 'Pure Honey', 'Assets/img/product_img/pure_honey.png', 'Raw, unfiltered honey harvested from organic bee farms.', 100, 0.5, 8.99, 'Approved', 0),
+	(1, 6, 'Beeswax', 'Assets/img/product_img/beeswax.png', '100% natural beeswax, perfect for candles and skincare.', 50, 0.2, 5.50, 'Approved', 0),
+	(1, 6, 'Organic Compost', 'Assets/img/product_img/organic_compost.png', 'Nutrient-rich organic compost for better plant growth.', 80, 10.0, 12.00, 'Approved', 0),
+	(1, 6, 'Wood Chips', 'Assets/img/product_img/wood_chips.png', 'Premium wood chips for smoking meats or mulching gardens.', 100, 5.0, 6.75, 'Approved', 0),
+	(1, 6, 'Organic Fertilizer', 'Assets/img/product_img/organic_fertilizer.png', 'Eco-friendly fertilizer made from natural plant extracts.', 90, 20.0, 15.50, 'Approved', 0),
+	(1, 6, 'Dried Herbs', 'Assets/img/product_img/dried_herbs.png', 'Aromatic dried herbs, perfect for cooking and herbal teas.', 120, 0.3, 4.25, 'Approved', 0),
+	(1, 6, 'Handmade Soap', 'Assets/img/product_img/handmade_soap.png', 'Natural handmade soap infused with essential oils.', 70, 0.2, 6.00, 'Approved', 0),
+	(1, 6, 'Cocoa Powder', 'Assets/img/product_img/cocoa_powder.png', 'Rich and pure cocoa powder, great for baking and drinks.', 85, 0.5, 7.99, 'Approved', 0),
+	(1, 6, 'Dried Mushrooms', 'Assets/img/product_img/dried_mushrooms.png', 'Organic dried mushrooms, great for soups and cooking.', 65, 0.4, 9.25, 'Approved', 0),
+	(2, 6, 'Wildflower Honey', 'Assets/img/product_img/wildflower_honey.png', 'Floral wildflower honey with a unique natural taste.', 90, 0.5, 9.25, 'Approved', 0),
+	(2, 6, 'Beeswax Candles', 'Assets/img/product_img/beeswax_candles.png', 'Handmade beeswax candles, free from synthetic additives.', 40, 0.3, 7.00, 'Approved', 0),
+	(2, 6, 'Vermicompost', 'Assets/img/product_img/vermicompost.png', 'Organic vermicompost, enriched with earthworm castings.', 75, 15.0, 14.50, 'Approved', 0),
+	(2, 6, 'Charcoal Briquettes', 'Assets/img/product_img/charcoal_briquettes.png', 'Long-lasting charcoal briquettes for grilling and heating.', 95, 10.0, 8.99, 'Approved', 0),
+	(2, 6, 'Bone Meal Fertilizer', 'Assets/img/product_img/bone_meal_fertilizer.png', 'Organic bone meal fertilizer, excellent for root growth.', 85, 10.0, 13.75, 'Approved', 0),
+	(2, 6, 'Dried Lavender', 'Assets/img/product_img/dried_lavender.png', 'Fragrant dried lavender, perfect for sachets and teas.', 110, 0.3, 5.25, 'Approved', 0),
+	(2, 6, 'Herbal Shampoo Bar', 'Assets/img/product_img/herbal_shampoo_bar.png', 'Chemical-free herbal shampoo bar, gentle on hair.', 60, 0.2, 7.50, 'Approved', 0),
+	(2, 6, 'Cacao Nibs', 'Assets/img/product_img/cacao_nibs.png', 'Crunchy cacao nibs, packed with antioxidants and flavor.', 70, 0.4, 9.50, 'Approved', 0),
+	(2, 6, 'Aloe Vera Gel', 'Assets/img/product_img/aloe_vera_gel.png', 'Pure aloe vera gel, soothing for skin and hair.', 55, 0.5, 6.75, 'Approved', 0),
+	(3, 6, 'Pure Honey', 'Assets/img/product_img/pure_honey_2.png', 'Golden raw honey, harvested from local beehives.', 95, 0.5, 9.50, 'Approved', 0),
+	(3, 6, 'Beeswax', 'Assets/img/product_img/beeswax_2.png', 'Natural beeswax, great for crafts, balms, and candles.', 45, 0.2, 5.75, 'Approved', 0),
+	(3, 6, 'Organic Compost', 'Assets/img/product_img/organic_compost_2.png', 'Premium organic compost to enrich soil fertility.', 70, 10.0, 13.00, 'Approved', 0),
+	(3, 6, 'Wood Chips', 'Assets/img/product_img/wood_chips_2.png', 'Natural wood chips for barbecue smoking and landscaping.', 90, 5.0, 7.25, 'Approved', 0),
+	(3, 6, 'Dried Herbs', 'Assets/img/product_img/dried_herbs_2.png', 'A selection of organic dried herbs for culinary use.', 115, 0.3, 4.75, 'Approved', 0);

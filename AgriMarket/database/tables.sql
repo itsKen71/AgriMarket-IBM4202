@@ -81,7 +81,6 @@ CREATE TABLE product (
     stock_quantity INT NOT NULL,
     weight DECIMAL(10,2),
     unit_price DECIMAL(10,2) NOT NULL,
-    packaging_type ENUM('Normal', 'More Protection') NOT NULL,
     product_status ENUM('Approved', 'Pending', 'Rejected') NOT NULL,
     sold_quantity INT DEFAULT 0,
     FOREIGN KEY (vendor_id) REFERENCES vendor(vendor_id) ON DELETE SET NULL,
