@@ -43,6 +43,7 @@ function insertUser($first_name, $last_name, $email, $password, $role, $phone_nu
     }
 }
 
+/*Staff Dashboard*/
 function update_Promotion_Discount( $discountCode,$promotionTitle,$promotionMessage,$startDate,$endDate, $discountPercentage,$minPurchaseAmount,$isActive,$created_by){
     global $conn;
 
@@ -84,37 +85,21 @@ function getVendorList() {
 
     $result = $conn->query($sql);
 
-    if (!$result) {
-        error_log("Query failed: " . $conn->error);
-        return [];
-    }
-
     return ($result->num_rows > 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
 }
 
 
-function updateVendor($vendor_id, $staff_id) {
+function updateVendorAssistance($vendor_id, $staff_id) {
     global $conn;
 
     $sql = "UPDATE vendor SET staff_assisstance_id = ? WHERE vendor_id = ?";
     $stmt = $conn->prepare($sql);
 
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return false;
-    }
-
     $stmt->bind_param("ii", $staff_id, $vendor_id);
-
-    if (!$stmt->execute()) {
-        error_log("Execute failed: " . $stmt->error);
-        return false;
-    }
-
-    return true;
+    return $stmt->execute();
 }
 
-
+/*Admin Dashboard*/
 function getStaffList(){
     global $conn;
 
@@ -140,7 +125,6 @@ function getStaffList(){
         return [];
     }
 }
-
 
 function getPendingRequestList(){
     global $conn;
@@ -207,10 +191,153 @@ function updateAssisstanceRequestStatus($request_id,$status){
     }
 }
 
+/* Analytics Dashboard */
+function getActiveUser($conn){
+    $oneMonthAgo = date("Y-m-d H:i:s", strtotime("-1 month"));
+
+    // Get Active Customers
+    $sqlCustomers = "SELECT COUNT(*) AS totalCustomers FROM user WHERE role='Customer' AND last_online >= '$oneMonthAgo'";
+
+    // Get Active Vendors
+    $sqlVendors = "SELECT COUNT(*) AS totalVendors FROM user WHERE role='Vendor' AND last_online >= '$oneMonthAgo'";
+
+    $resultCustomers = mysqli_query($conn, $sqlCustomers);
+    $resultVendors = mysqli_query($conn, $sqlVendors);
+
+    $data = [
+        "activeCustomers" => mysqli_fetch_assoc($resultCustomers)['totalCustomers'],
+        "activeVendors" => mysqli_fetch_assoc($resultVendors)['totalVendors']
+    ];
+
+    return $data;
+}
+
+function getRefundPercentage($conn){
+    $currentYear = date("Y");
+
+    $sqlRefunds = "SELECT COUNT(*) AS totalRefunds FROM refund WHERE YEAR(refund_date) = '$currentYear'";
+    $sqlOrders = "SELECT COUNT(*) AS totalOrders FROM orders WHERE YEAR(order_date) = '$currentYear'";
+
+    $resultRefunds = mysqli_query($conn, $sqlRefunds);
+    $resultOrders = mysqli_query($conn, $sqlOrders);
+
+    $totalRefunds = mysqli_fetch_assoc($resultRefunds)['totalRefunds'];
+    $totalOrders = mysqli_fetch_assoc($resultOrders)['totalOrders'];
+
+    $refundPercentage = ($totalOrders > 0) ? ($totalRefunds / $totalOrders) * 100 : 0;
+    
+    return ["totalRefundPercentage" => round($refundPercentage, 2)];
+}
+
+function getRevenue($conn) {
+    $currentYear = date("Y");
+
+    $months = [
+        1 => "Jan", 2 => "Feb", 3 => "Mar", 4 => "Apr",
+        5 => "May", 6 => "Jun", 7 => "Jul", 8 => "Aug",
+        9 => "September", 10 => "October", 11 => "November", 12 => "December"
+    ];
+
+    $sql = "SELECT MONTH(order_date) AS month, SUM(price) AS revenue 
+            FROM orders 
+            WHERE YEAR(order_date) = '$currentYear' 
+            GROUP BY MONTH(order_date)";
+
+    $result = mysqli_query($conn, $sql);
+    $data = [];
+
+    foreach ($months as $num => $name) {
+        $data[$num] = ["month" => $name, "revenue" => 0];
+    }
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $monthName = $months[$row['month']];
+        $data[$row['month']] = ["month" => $monthName, "revenue" => $row['revenue']];
+    }
+
+    return array_values($data);
+}
+
+function getOrders($conn) {
+    $currentYear = date("Y");
+
+    $months = [
+        1 => "Jan", 2 => "Feb", 3 => "Mar", 4 => "Apr",
+        5 => "May", 6 => "Jun", 7 => "Jul", 8 => "Aug",
+        9 => "Sep", 10 => "Oct", 11 => "Nov", 12 => "Dec"
+    ];
+
+    $sql = "SELECT MONTH(order_date) AS month, COUNT(order_id) AS totalOrder 
+            FROM orders 
+            WHERE YEAR(order_date) = '$currentYear' 
+            GROUP BY MONTH(order_date)";
+
+    $result = mysqli_query($conn, $sql);
+    $data = [];
+
+    foreach ($months as $num => $name) {
+        $data[$num] = ["month" => $name, "total_orders" => 0];
+    }
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $monthName = $months[$row['month']];
+        $data[$row['month']] = ["month" => $monthName, "total_orders" => $row['totalOrder']];
+    }
+
+    return array_values($data);
+}
+
+function getSubscription($conn) {
+    $sql = "SELECT s.plan_name, COUNT(v.vendor_id) AS totalUsers 
+            FROM vendor v JOIN subscription s 
+            ON v.subscription_id = s.subscription_id
+            GROUP BY s.plan_name
+            ORDER BY totalUsers DESC";
+
+    $result = mysqli_query($conn, $sql);
+    $totalUsers = 0;
+    $data = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $totalUsers += $row['totalUsers'];
+    }
+
+    mysqli_data_seek($result, 0);
+    while ($row = mysqli_fetch_assoc($result)) {
+        $percentage = ($totalUsers > 0) ? ($row['totalUsers'] / $totalUsers) * 100 : 0;
+        $data[] = ["label" => $row['plan_name'], "y" => round($percentage, 2)];
+    }
+
+    return $data;
+}
+
+function getTopFiveCategory($conn) {
+    $sql = "SELECT c.category_name, SUM(p.sold_quantity) AS totalSold 
+            FROM product p 
+            JOIN category c ON p.category_id = c.category_id
+            GROUP BY c.category_name
+            ORDER BY totalSold DESC
+            LIMIT 5";
+
+    $result = mysqli_query($conn, $sql);
+    $totalSold = 0;
+    $data = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $totalSold += $row['totalSold'];
+    }
+
+    mysqli_data_seek($result, 0);
+    while ($row = mysqli_fetch_assoc($result)) {
+        $percentage = ($totalSold > 0) ? ($row['totalSold'] / $totalSold) * 100 : 0;
+        $data[] = ["label" => $row['category_name'], "y" => round($percentage, 2)];
+    }
+    return $data;
+}
+
 function getProductsByStatus($conn, $vendor_id, $status) {
     $stmt = $conn->prepare("SELECT * FROM product WHERE vendor_id = ? AND product_status = ?");
     $stmt->bind_param("is", $vendor_id, $status);
     $stmt->execute();
     return $stmt->get_result();
-}
 ?>

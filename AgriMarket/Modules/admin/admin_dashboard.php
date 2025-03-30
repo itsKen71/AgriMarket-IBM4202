@@ -18,7 +18,6 @@ $staffList = getStaffList();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriMarket - Admin Dashboard</title>
     <link rel="icon" type="image/png" href="..\..\assets\img\temp-logo.png">
-    <!-- Put CSS & JS Link Here-->
     <link rel="stylesheet" href="../../css/admin_dashboard.css">
     <script src="../../js/admin_dashboard.js"></script>
 
@@ -64,16 +63,15 @@ $staffList = getStaffList();
                                         </div>
 
                                         <!--Button for Assign Assistance(Tier 3 )-->
-                                        <?php if ($vendor['plan_name'] === 'Tier 3'): ?>
+                                        <?php if ($vendor['plan_name'] == 'Tier 3'): ?>
                                             <div class="Vendor-Listing-Container-Button">
                                                 <img src="../../Assets/img/edit.png" alt="Add Assistance Button"
-
                                                     data-vendor-id="<?= htmlspecialchars($vendor['vendor_id']); ?>"
                                                     data-store="<?= htmlspecialchars($vendor['store_name']); ?>"
                                                     data-subscription-type="<?= htmlspecialchars($vendor['plan_name']); ?>"
                                                     data-expiration-date="<?= htmlspecialchars($vendor['subscription_end_date']); ?>"
-                                                    data-staff-assistance="<?= htmlspecialchars($vendor['staff_assistance']); ?>"
-                                                    data-staff-assistance-id="<?= htmlspecialchars($vendor['staff_assisstance_id']); ?>"
+                                                    data-assistance-name="<?= htmlspecialchars($vendor['staff_assistance']); ?>"
+                                                    data-assistance-id="<?= htmlspecialchars($vendor['staff_assisstance_id']); ?>"
                                                     onclick="editVendorListing(this)">
                                             </div>
                                         <?php endif; ?>
@@ -105,13 +103,14 @@ $staffList = getStaffList();
 
                             <!-- Staff selection -->
                             <div id="staff-selection-container">
-                                <p><strong>New Assistance
-                                        <select id="staff-select" class="form-control">
-                                            <?php foreach ($staffList as $staff): ?>
-                                                <option><?= htmlspecialchars($staff['Name']); ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </strong></p>
+                                <p><strong>New Assistance</strong></p>
+                                <select id="staff-select" class="form-control">
+                                    <?php foreach ($staffList as $staff): ?>
+                                        <option value="<?= $staff['user_id']; ?>">
+                                            <?= $staff['user_id'] . " - " . $staff['Name']; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </div>
 
@@ -121,8 +120,6 @@ $staffList = getStaffList();
                     </div>
                 </div>
             </div>
-
-
 
             <!--Staff Listing-->
             <div class="accordion-item">

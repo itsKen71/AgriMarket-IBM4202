@@ -1,60 +1,53 @@
-function editVendorListing(element) {
-    let vendorId = element.getAttribute("data-vendor-id");
-    let storeName = element.getAttribute("data-store");
-    let subscriptionType = element.getAttribute("data-subscription-type");
-    let expirationDate = element.getAttribute("data-expiration-date");
-    let staffAssigned = element.getAttribute("data-staff-assistance");
-    let staffAssignedID = element.getAttribute("data-staff-assistance-id");
+function editVendorListing(button) {
+    let vendorId = button.getAttribute("data-vendor-id");
+    let storeName = button.getAttribute("data-store");
+    let subscriptionType = button.getAttribute("data-subscription-type");
+    let expirationDate = button.getAttribute("data-expiration-date");
+    let currentAssistance = button.getAttribute("data-assistance-name");
+    let currentAssistanceId = button.getAttribute("data-assistance-id");
 
     document.getElementById("show-store").textContent = storeName;
     document.getElementById("show-subscription").textContent = subscriptionType;
     document.getElementById("show-expiration").textContent = expirationDate;
-    document.getElementById("show-staff").textContent = staffAssigned;
-    
-    // Store vendor ID & staff ID for reference
-    document.getElementById("show-store").setAttribute("data-vendor-id", vendorId);
-    document.getElementById("show-store").setAttribute("data-staff-assistance-id", staffAssignedID);
+    document.getElementById("show-staff").textContent = currentAssistance || "None";
 
-    let staffSelect = document.getElementById("staff-select");
-    let staffContainer = document.getElementById("staff-selection-container");
+    document.getElementById("staff-select").value = currentAssistanceId;
 
-    // Show dropdown only for Tier 3
-    if (subscriptionType === "Tier 3") {
-        staffContainer.style.display = "block";
-        staffSelect.disabled = false;
-    } else {
-        staffContainer.style.display = "none";
-        staffSelect.disabled = true;
-    }
+    // Store vendor ID in modal for later use
+    document.getElementById("staff-select").setAttribute("data-vendor-id", vendorId);
 
-    // Pre-select assigned staff
-    staffSelect.value = staffAssignedID ? staffAssignedID : staffSelect.options[0].value;
-
-    // Open Bootstrap Modal
-    new bootstrap.Modal(document.getElementById("editVendorModal")).show();
+    let modal = new bootstrap.Modal(document.getElementById("editVendorModal"));
+    modal.show();
 }
 
 function updateVendor() {
-    let vendorId = document.getElementById("show-store").getAttribute("data-vendor-id");
-    let selectedStaff = document.getElementById("staff-select").value;
-    let currentStaffID = document.getElementById("show-store").getAttribute("data-staff-assistance-id");
+    let vendorId = document.getElementById("staff-select").getAttribute("data-vendor-id");
+    let selectedStaffId = document.getElementById("staff-select").value;
+    let selectedStaffName = document.querySelector(`#staff-select option[value="${selectedStaffId}"]`).textContent;
 
-    // Normalize values for comparison
-    let selectedStaffNormalized = selectedStaff ? selectedStaff.trim() : "";
-    let currentStaffNormalized = currentStaffID ? currentStaffID.trim() : "";
+    console.log("Updating Vendor ID:", vendorId); // Debugging
 
-    // If no change is detected, close the modal and exit function
-    if (selectedStaffNormalized === currentStaffNormalized) {
-        bootstrap.Modal.getInstance(document.getElementById("editVendorModal")).hide();
-        return;
-    }
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "../../includes/update_vendor.php", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-    fetch('../../includes/assign_staff.php', {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        credentials: 'include',
-        body: `vendor_id=${encodeURIComponent(vendorId)}&staff_id=${encodeURIComponent(selectedStaff)}`
-    });
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            console.log("Server Response:", xhr.responseText); // Debugging
+
+            // Update UI immediately before closing the modal
+            let vendorCard = document.querySelector(`[data-vendor-id="${vendorId}"]`);
+            if (vendorCard) {
+                let staffSpan = vendorCard.querySelector(".staff-assistance");
+                if (staffSpan) {
+                    staffSpan.textContent = selectedStaffName;
+                }
+            }
+
+            let modal = bootstrap.Modal.getInstance(document.getElementById("editVendorModal"));
+            modal.hide();
+        }
+    };
+
+    xhr.send("vendor_id=" + encodeURIComponent(vendorId) + "&staff_id=" + encodeURIComponent(selectedStaffId));
 }
