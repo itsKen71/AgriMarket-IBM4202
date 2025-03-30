@@ -1,240 +1,138 @@
-/*Body Styling*/
+/* Body Styling */
 body.staff_dashboard {
-    background-color: #f5f1eb; 
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+    background-color: #f5f1eb;
+    flex-direction: column;
+    min-height:100vh;
 }
 
-/* Promotion Update Container*/
+/* Promotion Update */
 .Promotion {
     display: flex;
-    justify-content: flex-end; /* Move to the right */
-    align-items: center; /* Align text and button vertically */
-    gap: 10px; /* Add spacing between text and button */
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
 }
 
-.addPromotionBTN{
-    cursor: pointer;
-}
-
-/* Heading*/
-.Pending-Listing h1,
-.Assisstance-Listing h1 {
+.modal-title {
     text-align: center;
-    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    flex-grow: 1;
+    font-size:25px !important;
+    font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
-/* Main Container(Pending Request /Assistance Request)*/
-.Pending-Listing,
-.Assisstance-Listing {
-    background-color: white;
-    padding: 50px;
-    border-radius: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 80px;
+.modal-body .mb-3{
+    margin-top: 20px !important;
 }
 
-/* Cards( Pending Request/ Assisstance Request) */
+
+/* Listing Container*/
+.accordion {
+    margin-bottom: 100px;
+}
+
+
+/* Pending& Assitance Cards */
 .Pending-Card,
 .Assisstance-Card {
-    border: 3px solid black;
+    border: 1px solid black;
     padding: 15px;
     margin-bottom: 30px;
-    border-radius: 8px;
+    border-radius: 10px;
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
 }
 
-/* Card Header (Store Name)*/
-.Pending-Listing-Container-Header,
-.Assisstance-Listing-Container-Header {
-    width: 100%; 
-    text-align: left; 
-    margin-bottom: 10px; 
-}
-
+/* Card Header */
 .Pending-Listing-Container-Header h2,
 .Assisstance-Listing-Container-Header h2 {
-    font-size: 35px;
-    margin-bottom: 20px;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif
 }
 
-.view_detail_pending_requestBTN{
-    cursor: pointer;
-}
-
-#togglePending,
-#toggleAssistance{
-    background-color: transparent; 
-    border: none; 
-    font-size: 30px; 
-    cursor: pointer; 
-}
-
-/*Card Body*/
+/* Card Body */
 .Pending-Card-Body,
 .Assisstance-Card-Body {
     display: flex;
-    justify-content: space-between; 
+    justify-content: space-between;
     align-items: center;
     width: 100%;
 }
 
-/* Card Content */
+/* Card Content(Left) */
 .Pending-Listing-Container-Content,
 .Assisstance-Listing-Container-Content {
     display: grid;
-    grid-template-columns: 200px 20px auto; 
-    gap: 5px 15px;
-    align-items: center;
-}
-
-/* Card Footer*/
-.Pending-Listing-Container-Footer,
-.Assisstance-Listing-Container-Footer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    grid-template-columns: 200px 20px auto;
     gap: 10px;
-    width: 150px;
 }
 
-/* Button*/
-.view_detail_pending_requestBTN{
+/*Button Container(Right)*/
+.Assisstance-Listing-Container-Button{
+    width:10%;
+    margin-right:20px;
+}
+
+/* Buttons */
+.viewDetails,
+.approve,
+.reject,
+.solve {
+    border: none;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+
+/*Pending Request Buttons*/
+.viewDetails {
     background-color: #99c1ee;
     width:80%;
-    margin-left: -25px;
-    margin-bottom: 10px;
 }
 
-.view_detail_pending_requestBTN:hover{
+.viewDetails:hover {
     background-color: #b1bfce;
 }
 
-.approve{
+.approve {
     background-color: #82df99;
     width:80%;
-    margin-bottom:15px;
 }
 
-.approve:hover,
-.solve:hover{
+.approve:hover{
     background-color: #a9ccb1;
 }
 
-.reject{
+.reject {
     background-color: #f77070;
     width:80%;
 }
 
-.reject:hover{
+.reject:hover {
     background-color: #cc6d6d;
 }
 
+/*Assistance Request Buttons*/
 .solve{
     background-color: #82df99;
-    width:100%;
+    width:90%;
+
 }
 
-.approve,
-.reject,
-.solve,
-.view_detail_pending_requestBTN {
-    border: none;
-    padding: 10px 15px;
-    font-size: 14px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-right: 10px;
-}
-
-/*Show Pending Details Container*/
-.Details_Container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    visibility: hidden;
-}
-
-.Details_Container.active {
-    opacity: 1;
-    visibility: visible;
+.solve:hover{
+    background-color: #a9ccb1;
 }
 
 
-.Details_Container_Content{
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 12px;
-    width: 50%;
-    max-width: 500px;
-    text-align: left;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
-}
-
-.Details_Container_Content_Details{
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 3px;
-    align-items: center;
-    margin-top: 30px;
-}
-
+/* Pending Details Modal */
 .Details_Label{
-    font-weight: bold;
+    font-size:18px;
 }
 
-.close{
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-    color: #555;
+.Details_Value{
+    margin-bottom:10px;
 }
 
-.close:hover {
-    color: #000;
-}
-
-.Details_Container_Content h2 {
-    font-size: 22px;
-    margin-bottom: 15px;
-    color: #333;
-    text-align: center;
-}
-
-.Details_Container_Content p {
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 10px;
-    line-height: 1.5;
-}
-
-.Details_Container_Content .detail-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 12px;
-}
-
-.Details_Container_Content .detail-label {
-    font-weight: bold;
-    color: #222;
-}
-
-.Details_Container_Content .detail-value {
-    color: #666;
-}
 
 /* No Data Messages */
 .No-Data-Assisstant p,
