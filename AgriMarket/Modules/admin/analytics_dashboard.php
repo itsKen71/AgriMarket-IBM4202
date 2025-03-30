@@ -48,8 +48,8 @@ $topFiveCategory = getTopFiveCategory($conn);
 
                 <!--Refund Percentage-->
                 <div class="info-card refund-card">
-                    <h3>Refund Percentage</h3>
-                    <p><?php echo $refundPercentage["totalRefundPercentage"]; ?>%</p>
+                    <h3>Refund Percentage (%)</h3>
+                    <p><?php echo $refundPercentage["totalRefundPercentage"]; ?></p>
                 </div>
             </div>
 
@@ -69,13 +69,13 @@ $topFiveCategory = getTopFiveCategory($conn);
 
                 <!-- Orders-->
                 <div class="chart-container full-width">
-                    <h3>Total Orders</h3>
+                    <h3>Total Orders (in year 2025)</h3>
                     <div id="ordersChart" style="height: 300px; margin-top:50px;"></div>
                 </div>
 
                 <!-- Revenue-->
                 <div class="chart-container full-width">
-                    <h3>Total Revenue</h3>
+                    <h3>Total Revenue (in year 2025)</h3>
                     <div id="revenueChart" style="height: 300px; margin-top:50px;"></div>
                 </div>
             </div>

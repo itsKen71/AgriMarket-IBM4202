@@ -63,7 +63,7 @@ $staffList = getStaffList();
                                         </div>
 
                                         <!--Button for Assign Assistance(Tier 3 )-->
-                                        <?php if ($vendor['plan_name'] == 'Tier 3'): ?>
+                                        <?php if ($vendor['plan_name'] == 'Tier_III'): ?>
                                             <div class="Vendor-Listing-Container-Button">
                                                 <img src="../../Assets/img/edit.png" alt="Add Assistance Button"
                                                     data-vendor-id="<?= htmlspecialchars($vendor['vendor_id']); ?>"

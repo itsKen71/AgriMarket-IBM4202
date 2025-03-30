@@ -88,7 +88,6 @@ function getApprovedProducts($category_id = null)
     return $products;
 }
 
-
 /*Staff Dashboard*/
 function update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by)
 {
@@ -148,7 +147,43 @@ function updateVendorAssistance($vendor_id, $staff_id)
     return $stmt->execute();
 }
 
-/*Admin Dashboard*/
+function getVendorAssisstanceList($user_id)
+{
+    global $conn;
+
+    $sql = "SELECT v.store_name,r.request_description, r.request_type,r.request_date, r.request_id
+          FROM request r JOIN vendor v
+          ON r.vendor_id = v.vendor_id
+          WHERE v.staff_assisstance_id=? AND r.is_completed=FALSE
+          ORDER BY r.request_date ASC";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
+
+function updateAssisstanceRequestStatus($request_id, $status)
+{
+    global $conn;
+
+    $sql = "UPDATE request SET is_completed=? WHERE request_id= ?";
+    $stmt = $conn->prepare($sql);
+
+    //Convert Boolean to Integer 
+    $status = (int) $status;
+
+    $stmt->bind_param("ii", $status, $request_id);
+
+    if ($stmt->execute()) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 function getStaffList()
 {
     global $conn;
@@ -208,44 +243,8 @@ function updatePendingRequestStatus($product_id, $status)
     return $stmt->execute();
 }
 
-function getVendorAssisstanceList($user_id)
-{
-    global $conn;
 
-    $sql = "SELECT v.store_name,r.request_description, r.request_type,r.request_date, r.request_id
-          FROM request r JOIN vendor v
-          ON r.vendor_id = v.vendor_id
-          WHERE v.staff_assisstance_id=? AND r.is_completed=FALSE
-          ORDER BY r.request_date ASC";
 
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-
-    $result = $stmt->get_result();
-    return $result->fetch_all(MYSQLI_ASSOC);
-}
-
-function updateAssisstanceRequestStatus($request_id, $status)
-{
-    global $conn;
-
-    $sql = "UPDATE request SET is_completed=? WHERE request_id= ?";
-    $stmt = $conn->prepare($sql);
-
-    //Convert Boolean to Integer 
-    $status = (int) $status;
-
-    $stmt->bind_param("ii", $status, $request_id);
-
-    if ($stmt->execute()) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/* Analytics Dashboard */
 function getActiveUser($conn)
 {
     $oneMonthAgo = date("Y-m-d H:i:s", strtotime("-1 month"));
