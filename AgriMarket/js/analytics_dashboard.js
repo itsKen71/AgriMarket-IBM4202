@@ -40,7 +40,11 @@ document.addEventListener("DOMContentLoaded", function () {
             dataPoints: categoryData
         }]
     });
-    categoryChart.render();
+     if (categoryData.length > 0) {
+        categoryChart.render();
+    } else {
+        document.getElementById("categoryChart").style.display = "none"; // ✅ Hide chart container if no data
+    }
 
     // Orders Chart
     let ordersChart = new CanvasJS.Chart("ordersChart", {
@@ -54,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         data: [{
             type: "column",
-            yValueFormatString: "#,##0 Orders",
+            yValueFormatString: "#,##0 orders",
             dataPoints: ordersData.map(d => ({ label: d.month, y: d.total_orders }))
         }]
     });
@@ -72,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         data: [{
             type: "spline",
-            yValueFormatString: "RM:#,##0.00",
+            yValueFormatString: "RM#,##0.00",
             dataPoints: revenueData.map(d => ({ label: d.month, y: d.revenue }))
         }]
     });

@@ -48,6 +48,12 @@ body.analytics_dashboard {
     justify-content: space-between;
 }
 
+.chart-container h3{
+    margin: 0;
+    font-size: 18px;
+    color: #555;
+}
+
 .chart-container {
     width: 48%;
     background: white;
