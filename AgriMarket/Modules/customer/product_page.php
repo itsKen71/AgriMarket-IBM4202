@@ -1,5 +1,19 @@
 <?php
 session_start();
+include '..\..\includes\database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
+    $_SESSION['selected_product_id'] = $_POST['product_id'];
+    header("Location: product_page.php");
+    exit();
+}
+
+if (!isset($_SESSION['selected_product_id'])) {
+    header("Location: main_page.php");
+    exit();
+}
+
+$product_id = $_SESSION['selected_product_id'];
 ?>
 
 <!DOCTYPE html>
@@ -20,6 +34,8 @@ session_start();
     <div class="container mt-5">
         <!-- Content Start Here -->
 
+        <!-- Testing  -->
+        <h1>Selected Product ID: <?php echo htmlspecialchars($product_id); ?></h1>
 
 
     </div>

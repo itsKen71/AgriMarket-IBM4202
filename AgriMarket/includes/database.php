@@ -43,6 +43,22 @@ function insertUser($first_name, $last_name, $email, $password, $role, $phone_nu
     }
 }
 
+function getApprovedProducts()
+{
+    global $conn;
+
+    $sql = "SELECT * FROM product WHERE product_status='Approved' ORDER BY RAND()";
+    $result = $conn->query($sql);
+    
+    $products = array();
+    if ($result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            $products[] = $row;
+        }
+    }
+    return $products;
+}
+
 /*Staff Dashboard*/
 function update_Promotion_Discount( $discountCode,$promotionTitle,$promotionMessage,$startDate,$endDate, $discountPercentage,$minPurchaseAmount,$isActive,$created_by){
     global $conn;
