@@ -207,4 +207,10 @@ function updateAssisstanceRequestStatus($request_id,$status){
     }
 }
 
+function getProductsByStatus($conn, $vendor_id, $status) {
+    $stmt = $conn->prepare("SELECT * FROM product WHERE vendor_id = ? AND product_status = ?");
+    $stmt->bind_param("is", $vendor_id, $status);
+    $stmt->execute();
+    return $stmt->get_result();
+}
 ?>
