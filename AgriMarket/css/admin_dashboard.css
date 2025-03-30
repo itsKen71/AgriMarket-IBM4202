@@ -1,117 +1,88 @@
 /* Body Styling */
 body.admin_dashboard {
     background-color: #f5f1eb;
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
 }
 
-/* Heading */
-.Vendor-Listing h1,
-.Staff-Listing h1 {
-    text-align: center;
-    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+/* Listing Container*/
+.accordion {
+    margin-bottom: 100px;
 }
 
-#toggleVendor,
-#toggleStaff{
-    background-color: transparent; 
-    border: none; 
-    font-size: 30px; 
-    cursor: pointer; 
-}
-
-/* Main Container (Vendor Listing/ Staff Listing) */
-.Vendor-Listing,
-.Staff-Listing {
-    background-color: white;
-    padding: 50px;
-    border-radius: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 80px;
-}
-
-/*Staff Header*/
-.Staff-Heading{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    position: relative;
-}
-
-.Staff-Heading-Title {
-    font-size: 39px;
-}
-
-.add-staff {
-    position: absolute;
-    right: 0;
-}
-
-.add-staff a img{
-    width: 50px;
-    height: auto;
-    cursor: pointer;
-}
-
-/* Cards (Vendor Listing/ Staff Listing) */
+/*Vendor& Staff Cards*/
 .Vendor-Card,
 .Staff-Card {
-    border: 3px solid black;
+    border: 1px solid black;
     padding: 15px;
     margin-bottom: 30px;
-    border-radius: 8px;
+    border-radius: 10px;
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
 }
 
-/* Card Header (Store Name / Staff Full Name) */
-.Vendor-Listing-Container-Header,
-.Staff-Listing-Container-Header {
-    width: 100%; 
-    text-align: left; 
-    margin-bottom: 10px; 
-}
-
+/*Card Header */
 .Vendor-Listing-Container-Header h2,
 .Staff-Listing-Container-Header h2 {
-    font-size: 35px;
-    margin-bottom: 20px;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif
 }
 
-/* Card Content */
-.Vendor-Listing-Container-Content {
-    display: grid;
-    grid-template-columns: 200px 20px auto; 
-    gap: 5px 15px;
-    align-items: center;
-    flex: 1;
-}
-
-.Listing-Container-Aligned{
+/* Card Body */
+.Vendor-Card-Body,
+.Staff-Card-Body {
     display: flex;
-    justify-content: space-between; 
+    justify-content: space-between;
     align-items: center;
     width: 100%;
 }
 
-/* Card Footer*/
-.Vendor-Listing-Container-Footer {
-    display: flex;
-    align-items: center;
+
+/*Card Content(Left)*/
+.Vendor-Listing-Container-Content,
+.Staff-Listing-Container-Content {
+    display: grid;
+    grid-template-columns: 200px 20px auto;
+    gap: 10px;
 }
 
-.Vendor-Listing-Container-Footer img {
-    width: 50px;
-    height: auto;
+/*Card Content(Right)*/
+.Vendor-Listing-Container-Button{
+    width:10%;
+    margin-right:20px;
+}
+
+.Vendor-Listing-Container-Button img {
+    width: 35px; 
+    height: 35px;
     cursor: pointer;
+    margin-left: 20px; 
+}
+
+/* Edit Vendor Modal*/
+.modal-title {
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; 
+   font-size: 30px;
+}
+
+.modal-footer {
+    text-align: center;
+}
+.modal-footer .btn {
+    display: block;
+    margin: 0 auto;
+}
+
+.modal-body p strong {
+    font-size: 18px; 
+    font-weight: bold;
+}
+
+.modal-body p span {
+    font-size: 16px; 
 }
 
 
 /* No Data Messages */
-.Staff-Listing h3,
-.Vendor-Listing h3 {
+.No-Data p,
+.No-Data p {
     font-size: 20px;
     text-align: center;
     color: #aca8a8;
