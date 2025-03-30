@@ -4,7 +4,7 @@ include '../../includes/database.php';
 
 $categories = getCategories();
 
-$selected_category_id = $_GET['category_id'] ?? ($categories[0]['category_id'] ?? null);
+$selected_category_id = $_GET['category_id'] ?? 'all';
 
 $products = getApprovedProducts($selected_category_id);
 ?>
