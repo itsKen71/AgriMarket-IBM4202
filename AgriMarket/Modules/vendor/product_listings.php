@@ -11,10 +11,11 @@ if (!$vendor_id) {
     exit(); // 
 }
 
-
 $approvedProducts = getProductsByStatus($conn, $vendor_id, 'Approved');
 $pendingProducts = getProductsByStatus($conn, $vendor_id, 'Pending');
 $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
+
+$categories = getCategory($conn);
 ?>
 
 <!DOCTYPE html>
@@ -31,7 +32,7 @@ $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
     <script src="../../js/product_listings.js"></script>
 </head>
 
-<body class="product_listings">
+<body class="product_listings" data-success="<?php echo isset($_GET['add']) && $_GET['add'] == 'success' ? 'true' : 'false'; ?>">
     <?php include '../../includes/header.php'; ?>
 
     <div class="container mt-5">
@@ -227,8 +228,89 @@ $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
     </div>
 </div>
 
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProductModalLabel">Add New Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="../../includes/add_products.php" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="vendor_id" value="<?php echo $vendor_id; ?>">
+
+                    <div class="mb-3">
+                        <label for="productName" class="form-label">Product Name</label>
+                        <input type="text" class="form-control" id="productName" name="product_name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="productImage" class="form-label">Product Image</label>
+                        <input type="file" class="form-control" id="productImage" name="product_image" accept="image/*" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="stock" class="form-label">Stock Quantity</label>
+                        <input type="number" class="form-control" id="stock" name="stock_quantity" min="1" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="weight" class="form-label">Weight (kg)</label>
+                        <input type="number" step="0.01" class="form-control" id="weight" name="weight" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="unitPrice" class="form-label">Price ($)</label>
+                        <input type="number" step="0.01" class="form-control" id="unitPrice" name="unit_price" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category_id" required>
+                            <option value="" disabled selected>Select Category</option>
+                            <?php while ($row = $categories->fetch_assoc()): ?>
+                                <option value="<?php echo $row['category_id']; ?>"><?php echo $row['category_name']; ?></option>
+                                <?php endwhile; ?>
+                            </select>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Product added successfully!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
     <!-- Add Button -->
-    <img src="../../Assets/img/add-circle.png" alt="Add Product" class="add-btn" id="addProductBtn">
+    <img src="../../assets/img/add-circle.png" alt="Add Product" class="add-btn" id="addProductBtn" data-bs-toggle="modal" data-bs-target="#addProductModal">
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
