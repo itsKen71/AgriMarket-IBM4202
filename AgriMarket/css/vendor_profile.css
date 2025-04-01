@@ -46,10 +46,18 @@ body.vendor_profile {
     margin-bottom: 15px; 
 }
 
-/* Edit Button */
+.request-assistance-btn {
+    position: absolute;
+    bottom: 80px; 
+    right: 20px;
+    width: 160px;
+    height: 40px;
+}
+
 .edit-btn {
     position: absolute;
     bottom: 20px;
     right: 20px;
+    width: 160px;
+    height: 40px;
 }
-
