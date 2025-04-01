@@ -436,39 +436,23 @@ function getCategory($conn)
 
 function getVendorDetails($vendor_id, $conn) 
 {
-    $query = "SELECT user_id, vendor_id, store_name, subscription_id, subscription_start_date, subscription_end_date 
-              FROM vendor 
-              WHERE vendor_id = ?";
+    $query = "
+        SELECT v.vendor_id, v.store_name, v.subscription_id, v.subscription_start_date, v.subscription_end_date, 
+               u.user_id, u.email, u.phone_number, 
+               s.plan_name, s.has_staff_support
+        FROM vendor v
+        JOIN user u ON v.user_id = u.user_id
+        LEFT JOIN subscription s ON v.subscription_id = s.subscription_id
+        WHERE v.vendor_id = ?
+    ";
+
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $vendor_id);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_assoc();
+    
+    return $result->fetch_assoc(); 
 }
 
-
-function getSubscriptionPlanName($subscription_id, $conn) 
-{
-    if (!$subscription_id) {
-        return null;
-    }
-
-    $query = "SELECT plan_name FROM subscription WHERE subscription_id = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $subscription_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    return $result->fetch_assoc();
-}
-
-function getUserContact($user_id, $conn) 
-{
-    $query = "SELECT email, phone_number FROM user WHERE user_id = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    return $result->fetch_assoc();
-}
 
 ?>
