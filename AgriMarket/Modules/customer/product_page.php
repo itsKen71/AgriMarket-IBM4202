@@ -16,6 +16,9 @@
     $product_id = $_SESSION['selected_product_id'];
     $user_id = 1;
 
+    $selected_rating = isset($_GET['rating']) ? intval($_GET['rating']) : 0;
+
+    //get product info
     $query = "SELECT * FROM product WHERE product_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $product_id);
@@ -23,6 +26,7 @@
     $result = $stmt->get_result();
     $product = $result->fetch_assoc();
 
+    //get total rating and average rating
     $query = "SELECT COUNT(*) as total_reviews, AVG(rating) as avg_rating FROM review WHERE product_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $product_id);
@@ -34,6 +38,8 @@
     $avg_rating = $review_stats['avg_rating'] ?? 0;
     $rounded_rating = round($avg_rating);
     $total_reviews = $review_stats['total_reviews'] ?? 0;
+
+    //display star
     function displayStars($rating) {
         $fullStars = floor($rating);
         $hasHalfStar = ($rating - $fullStars) >= 0.5;
@@ -53,6 +59,40 @@
         }
         return $output;
     }
+
+    //get each rating
+    $rating_counts = [];
+    for ($i = 1; $i <= 5; $i++) {
+    $query = "SELECT COUNT(*) FROM review WHERE product_id = ? AND rating = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ii", $product_id, $i);
+    $stmt->execute();
+    $rating_counts[$i] = $stmt->get_result()->fetch_row()[0];
+    $stmt->close();
+    }
+
+    //get comment with filtering and sorting
+    $query = "SELECT r.rating, r.review_description, r.review_date, u.first_name, u.last_name 
+          FROM review r 
+          JOIN `user` u ON r.user_id = u.user_id 
+          WHERE r.product_id = ?";
+    
+    // Add rating filter if selected
+    if ($selected_rating > 0) {
+        $query .= " AND r.rating = ?";
+    }
+    
+    $stmt = $conn->prepare($query);
+    
+    if ($selected_rating > 0) {
+        $stmt->bind_param("ii", $product_id, $selected_rating);
+    } else {
+        $stmt->bind_param("i", $product_id);
+    }
+    
+    $stmt->execute();
+    $reviews_result = $stmt->get_result();
+    $reviews = $reviews_result->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -64,7 +104,9 @@
     <title>AgriMarket - Product Page</title>
     <link rel="icon" type="image/png" href="..\..\assets\img\temp-logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <!-- Put CSS & JS Link Here-->
     <link rel="stylesheet" href="../../css/product_page.css">
     <style>
@@ -81,31 +123,118 @@
             margin-right: 2px; 
         }
 
-        /* 悬停效果样式 */
-    .shopping-protection-container {
-        position: relative;
-        display: inline-block;
-    }
-    
-    .shopping-protection-content {
-        display: none;
-        position: absolute;
-        z-index: 1000;
-        min-width: 300px;
-        left: 0;
-    }
-    
-    .shopping-protection-trigger:hover + .shopping-protection-content,
-    .shopping-protection-content:hover {
-        display: block;
-    }
-    </style>
+        .custom-price {
+            font-size: 40px;
+            font-weight: bold;
+        }
+ 
+       
+        .shopping-protection-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .shopping-protection-content {
+            display: none;
+            position: absolute;
+            z-index: 1000;
+            min-width: 300px;
+            left: 0;
+        }
+        
+        .shopping-protection-trigger:hover + .shopping-protection-content,
+        .shopping-protection-content:hover {
+            display: block;
+        }
 
+        .product-box {
+            border: 2px solid rgba(25, 25, 25, 0.1);
+            border-radius: 5px; 
+            padding-left: 25px; 
+            padding-top: 20px;
+            padding-bottom: 30px;
+            background: white; 
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1); 
+        }
+        
+        .comment-box{
+            border: 2px solid rgba(25, 25, 25, 0.1);
+            border-radius: 5px; 
+            padding-left: 25px; 
+            padding-top: 20px;
+            background: white; 
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1); 
+            margin-top: 20px; 
+            max-height: 500px; /* 你可以调整这个高度 */
+            overflow-y: auto;
+        }
+
+        .comment-box::-webkit-scrollbar {
+            width: 8px; /* 滚动条宽度 */
+        }
+
+        .comment-box::-webkit-scrollbar-track {
+            background: #f1f1f1; /* 滚动条轨道颜色 */
+            border-radius: 5px;
+        }
+
+        .comment-box::-webkit-scrollbar-thumb {
+            background: #888; /* 滚动条颜色 */
+            border-radius: 5px;
+        }
+
+        .comment-box::-webkit-scrollbar-thumb:hover {
+            background: #555; /* 滚动条悬停颜色 */
+        }
+
+        .space{
+            margin-top: 30px;
+        }
+        
+        .btn-outline-danger {
+            background-color: #FFF5F5;
+            border-color: #EB5757;
+            color: #EB5757;
+            font-weight: 500;
+        }
+
+        .btn-danger {
+            background-color: #EB5757;
+            border-color: #EB5757;
+            font-weight: 500;
+        }
+
+        .btn {
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .rating-filter .btn-outline-secondary.active {
+            background-color: #EB5757;
+            color: white;
+            border-color: #EB5757;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: normal;
+        }
+
+        .rating-filter .btn-outline-secondary.active {
+            background-color: #EB5757;
+            color: white;
+            border-color: #EB5757;
+        }
+
+        
+    </style>
 </head>
 
 <body class="product_page">
     <?php include '../../includes/header.php'; ?>
     <div class="container mt-5">
+    <div class="product-box">
         <!-- Content Start Here -->
         <div class="row">
         <div class="col-md-5">
@@ -120,17 +249,15 @@
                     <?php echo number_format($total_reviews);?> Ratings &nbsp;|&nbsp; 
                     <?php echo htmlspecialchars($product['sold_quantity'] ?? '0'); ?> Sold
                 </p>
-                <h3 class="text-danger">RM<?php echo number_format($product['unit_price'], 2); ?></h3>
+                <h3 class="text-danger custom-price">RM<?php echo number_format($product['unit_price'], 2); ?></h3>
 
 
                 <!-- stock quantity -->
-                <p class="mt-3"><strong>Stock: </strong><?php echo $product['stock_quantity']; ?> Available</p>
-
-                <!-- description -->
+                <p class="mt-3"><span style="color: #888888;">Stock:</span> <?php echo $product['stock_quantity']; ?> Available</p>                <!-- description -->
                 <div class="mt-4">
                     <h5>Product Description :</h5>
                     <p><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center space">
                         <h5 class="mb-0 me-2">Product Weight:</h5>
                         <p class="mb-0"><?php echo htmlspecialchars($product['weight']); ?></p>
                     </div>
@@ -139,31 +266,34 @@
                 <!-- dropdown shopping protection -->
                 <div class="mt-4 shopping-protection-container">
                 <div class="shopping-protection-trigger d-inline-block">
-                    <i class="fas fa-shield-alt me-2 text-primary"></i>
-                    <span>购物保障</span>
-                    <small class="text-muted ms-2">15 天免费退货 · 货到付款 · Program Servis Penjagaan Produk</small>
+                <i class="bi bi-shield-fill-check"></i>&nbsp;
+                    <span>Shopping Protection</span>
+                    <small class="text-muted ms-2">15-Day Free Return · Cash On Delivery (COD)</small>
                 </div>
                 
 
                 <div class="shopping-protection-content">
-                    <div class="card card-body bg-light mt-2">
-                        <div class="mb-3">
-                            <h6 class="fw-bold">15 天免费退货</h6>
-                            <p class="mb-0 small">
-                                在15天内申请免费退货，可享受无条件的全额退款。适用于特定商品。电子产品类别必须保持密封（即封条未损坏、未被篡改或修改)。特定商品詳情。需符合条款和条件。
-                            </p>
+                    <div class="card card-body bg-light mt-2 p-3">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2"> 
+                            <i class="bi bi-box-arrow-in-left me-2"></i> 
+                            <h6 class="fw-bold mb-0">15-Day Free Return</h6>  
                         </div>
+                        <p class="mb-0 small">
+                            Enjoy unconditional full refund within 15 days. Applies to eligible items. Electronic products must remain sealed (original packaging unbroken/unmodified). See terms for eligible products.
+                        </p>
+                    </div>
                         <div class="mb-3">
-                            <h6 class="fw-bold">货到付款</h6>
-                            <p class="mb-0 small">
-                                <ol>
-                                    <li>在马来西亚， Shopee为送货上门或250令吉以下的订单提供货到付款服务</li>
-                                    <li>您的订单将交由Shopee Express、 DHL eCommerce 或 Ninjavan 配送 </li>
-                                    <li>包裹送达时向快递员支付现金。</li>
-                                    <li>请注意， 应支付的金额将四舍五入至最接近的5仙。</li>
-                                    <li>提醒您提防欺诈行为，货到付款订单无需直接向卖家支付任何款项。</li>
+                            <h6 class="fw-bold"><img src="../../Assets/img/cash-on-delivery-cod-icon-260nw-2302469373 (1)-Photoroom.png" alt="COD Icon" style="height: 20px;"> Cash On Delivery (COD)</h6>
+                            <div class="small">
+                                <ol class="mb-0 ps-3">
+                                    <li class="small">In Malaysia, Shopee offers COD for door-to-door deliveries or orders below RM250.</li>
+                                    <li class="small">Your order will be delivered by Shopee Express, DHL eCommerce or Ninjavan. </li>
+                                    <li class="small">Pay cash upon delivery.</li>
+                                    <li class="small">Note: Payment amount will be rounded to the nearest 5 sen.</li>
+                                    <li class="small">Important: Beware of fraud - never pay sellers directly for COD orders.</li>
                                 </ol>
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -171,21 +301,80 @@
  
 
                 <!-- button -->
-                <div class="mt-4">
-                    <button class="btn btn-warning btn-lg">Buy Now</button>
-                    <button class="btn btn-danger btn-lg">Add to Cart</button>
+                <div class="mt-4 d-flex gap-3">
+                    <button class="btn btn-outline-danger px-4 py-2" style="width: 180px;">
+                        <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                    </button>
+                    <button class="btn btn-danger px-4 py-2" style="width: 180px;">Buy Now</button>
                 </div>
             </div>
         </div>
-
-        <!-- Testing  -->
-        <h1>Selected Product ID: <?php echo htmlspecialchars($product_id); ?></h1>
-
-
     </div>
-    </div>
+    
+    <!-- comment section -->
+    <section id="comment">
+        <div class="comment-box">
+            <div class="border-bottom pb-3 mb-4">
+                <h4>Product Review</h4>
+                <div class="d-flex align-items-center">
+                    <div class="me-4">
+                        <h2 class="text-warning mb-0"><?php echo number_format($avg_rating, 1); ?><small class="text-muted fs-6">/5</small></h2>
+                        <div class="text-warning">
+                            <?php echo displayStars($rounded_rating); ?>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <div class="rating-filter">
+                                <a href="?rating=0" class="btn btn-sm btn-outline-secondary <?= $selected_rating == 0 ? 'active' : '' ?>">All</a>
+                                <a href="?rating=5" class="btn btn-sm btn-outline-secondary <?= $selected_rating == 5 ? 'active' : '' ?>">5 Stars (<?= $rating_counts[5] ?? 0 ?>)</a>
+                                <a href="?rating=4" class="btn btn-sm btn-outline-secondary <?= $selected_rating == 4 ? 'active' : '' ?>">4 Stars (<?= $rating_counts[4] ?? 0 ?>)</a>
+                                <a href="?rating=3" class="btn btn-sm btn-outline-secondary <?= $selected_rating == 3 ? 'active' : '' ?>">3 Stars (<?= $rating_counts[3] ?? 0 ?>)</a>
+                                <a href="?rating=2" class="btn btn-sm btn-outline-secondary <?= $selected_rating == 2 ? 'active' : '' ?>">2 Stars (<?= $rating_counts[2] ?? 0 ?>)</a>
+                                <a href="?rating=1" class="btn btn-sm btn-outline-secondary <?= $selected_rating == 1 ? 'active' : '' ?>">1 Star (<?= $rating_counts[1] ?? 0 ?>)</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Each Comment -->
+            <?php if (count($reviews) > 0): ?>
+                <?php foreach ($reviews as $row): ?>
+                    <div class="border-bottom pb-4 mb-4 d-flex">
+                        <div class="me-3">
+                            <i class="bi bi-person-circle" style="font-size: 30px;"></i>
+                        </div>    
+                        <!-- content -->
+                        <div class="flex-grow-1">
+                            <!-- username -->
+                            <div class="fw-bold"><?= htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></div>
+                            <!-- rating -->
+                            <div class="text-warning">
+                                <?= displayStars($row['rating']); ?>
+                            </div>
+                            <!-- date -->
+                            <div class="text-muted small mb-2"><?= $row['review_date']; ?></div>
+                            <!-- description -->
+                            <div class="mb-2">
+                                <p class="mb-1"><?= htmlspecialchars($row['review_description']); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="text-center py-4">
+                    <p>No reviews found for this filter.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <!-- related item -->
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
+
