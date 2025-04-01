@@ -14,22 +14,29 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Get the success message flag from body attribute
-    const isSuccess = document.body.getAttribute("data-success");
+    // Get the success message flags from body attributes
+    const isAddSuccess = document.body.getAttribute("data-success");
+    const isEditSuccess = document.body.getAttribute("data-edit-success");
 
-    if (isSuccess === "true") {
-        // Initialize the success modal
-        var successModal = new bootstrap.Modal(document.getElementById("successModal"));
-
-        // Check if modal is initialized correctly
-        if (successModal) {
-            successModal.show();  // Show the modal
+    // Function to show modal and clean URL
+    function showModal(modalId, param) {
+        var modal = new bootstrap.Modal(document.getElementById(modalId));
+        if (modal) {
+            modal.show(); // Show the modal
         }
 
-        // Remove the ?add=success from the URL after showing modal
+        // Remove the parameter from the URL after showing modal
         const url = new URL(window.location);
-        url.searchParams.delete("add");
+        url.searchParams.delete(param);
         window.history.replaceState({}, document.title, url);
+    }
+
+    if (isAddSuccess === "true") {
+        showModal("successModal", "add");
+    }
+
+    if (isEditSuccess === "true") {
+        showModal("editSuccessModal", "edit");
     }
 });
 

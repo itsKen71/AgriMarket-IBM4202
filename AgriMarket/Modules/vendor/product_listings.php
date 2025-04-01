@@ -32,7 +32,10 @@ $categories = getCategory($conn);
     <script src="../../js/product_listings.js"></script>
 </head>
 
-<body class="product_listings" data-success="<?php echo isset($_GET['add']) && $_GET['add'] == 'success' ? 'true' : 'false'; ?>">
+<body class="product_listings" 
+    data-success="<?php echo isset($_GET['add']) && $_GET['add'] == 'success' ? 'true' : 'false'; ?>" 
+    data-edit-success="<?php echo isset($_GET['edit']) && $_GET['edit'] == 'success' ? 'true' : 'false'; ?>">
+    
     <?php include '../../includes/header.php'; ?>
 
     <div class="container mt-5">
@@ -290,7 +293,7 @@ $categories = getCategory($conn);
     </div>
 </div>
 
-<!-- Success Modal -->
+<!-- Add Success Modal -->
 <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -308,6 +311,23 @@ $categories = getCategory($conn);
     </div>
 </div>
 
+<!-- Edit Success Modal -->
+<div class="modal fade" id="editSuccessModal" tabindex="-1" aria-labelledby="editSuccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSuccessModalLabel">Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Product updated successfully!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Add Button -->
     <img src="../../assets/img/add-circle.png" alt="Add Product" class="add-btn" id="addProductBtn" data-bs-toggle="modal" data-bs-target="#addProductModal">

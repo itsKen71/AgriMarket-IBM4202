@@ -429,4 +429,42 @@ function getCategory($conn)
     $query = "SELECT category_id, category_name FROM category";
     return $conn->query($query);
 }
+
+
+// Function to get vendor details by vendor_id
+function getVendorDetails($vendor_id, $conn) {
+    $query = "SELECT user_id, vendor_id, store_name, subscription_id, subscription_start_date, subscription_end_date 
+              FROM vendor 
+              WHERE vendor_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $vendor_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_assoc();
+}
+
+
+function getSubscriptionPlanName($subscription_id, $conn) 
+{
+    if (!$subscription_id) {
+        return null;
+    }
+
+    $query = "SELECT plan_name FROM subscription WHERE subscription_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $subscription_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_assoc();
+}
+
+function getUserContact($user_id, $conn) {
+    $query = "SELECT email, phone_number FROM user WHERE user_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_assoc();
+}
+
 ?>

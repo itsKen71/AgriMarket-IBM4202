@@ -9,14 +9,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $weight = $_POST['weight'];
     $unit_price = $_POST['unit_price'];
 
-    $stmt = $conn->prepare("UPDATE product SET product_name=?, description=?, stock_quantity=?, weight=?, unit_price=? WHERE product_id=?");
-    $stmt->bind_param("ssidsdi", $product_name, $description, $stock_quantity, $weight, $unit_price, $product_id);
-
-    if ($stmt->execute()) {
-        header("Location: ../Modules/vendor/product_listings.php");
-        exit();
-    } else {
-        echo "Error updating record: " . $conn->error;
+    // Ensure all required values are received
+    if (empty($product_id) || empty($product_name) || empty($description) || empty($stock_quantity) || empty($weight) || empty($unit_price)) {
+        die("Error: Missing required fields.");
     }
+
+    $sql = "UPDATE product SET product_name = ?, description = ?, stock_quantity = ?, weight = ?, unit_price = ? WHERE product_id = ?";
+    $stmt = $conn->prepare($sql);
+
+    if ($stmt) {
+        $stmt->bind_param("ssiddi", $product_name, $description, $stock_quantity, $weight, $unit_price, $product_id);
+        if ($stmt->execute()) {
+             // Redirect on success
+             header("Location: ../Modules/vendor/product_listings.php?edit=success");
+             exit();
+        } else {
+            echo "Error updating product: " . $stmt->error;
+        }
+        $stmt->close();
+    } else {
+        echo "SQL Error: " . $conn->error;
+    }
+
+    $conn->close();
+} else {
+    echo "Invalid request method.";
 }
 ?>
