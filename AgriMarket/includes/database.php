@@ -453,6 +453,4 @@ function getVendorDetails($vendor_id, $conn)
     
     return $result->fetch_assoc(); 
 }
-
-
 ?>

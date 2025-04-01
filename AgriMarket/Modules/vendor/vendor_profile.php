@@ -51,6 +51,11 @@ if (!$vendor) {
                     <p><strong>Subscription Start:</strong> <?= htmlspecialchars($vendor['subscription_start_date']); ?></p>
                     <p><strong>Subscription End:</strong> <?= htmlspecialchars($vendor['subscription_end_date']); ?></p>
                 </div>
+                
+                <!-- Request Assistance Button (Appear only if has_staff_support = 1) -->
+                <?php if ($vendor['has_staff_support'] == 1): ?>
+                    <button class="btn btn-primary request-assistance-btn" onclick="requestAssistance()">Request Assistance</button>
+                <?php endif; ?>
 
                 <button class="btn btn-primary edit-btn" data-bs-toggle="modal" data-bs-target="#editModal">Edit Store Profile</button>
             </div>
