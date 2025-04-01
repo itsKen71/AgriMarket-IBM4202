@@ -162,6 +162,7 @@
             border-radius: 5px; 
             padding-left: 25px; 
             padding-top: 20px;
+            padding-bottom: 30px;
             background: white; 
             box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1); 
             margin-top: 20px; 
@@ -185,6 +186,34 @@
 
         .comment-box::-webkit-scrollbar-thumb:hover {
             background: #555; /* 滚动条悬停颜色 */
+        }
+
+        .related-box {
+            border: 2px solid rgba(25, 25, 25, 0.1);
+            border-radius: 5px; 
+            padding: 25px; 
+            padding-top: 20px;
+            background: white; 
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+        }
+
+        .related-product-card {
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .related-product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .related-product-card .card-img-top {
+            transition: transform 0.3s ease;
+        }
+
+        .related-product-card:hover .card-img-top {
+            transform: scale(1.05);
         }
 
         .space{
@@ -371,7 +400,63 @@
     </section>
 
     <!-- related item -->
-
+    <section id="related_item">
+        <div class="related-box">
+            <h4 class="mb-4">Related Item</h4>
+            <div class="row">
+                <?php
+                //current product id
+                $current_category_id = $product['category_id'];
+                
+                // show other product
+                $related_query = "SELECT * FROM product 
+                                WHERE category_id = ? 
+                                AND product_id != ? 
+                                AND product_status = 'Approved'
+                                ORDER BY product_name ASC"; // order by name
+                
+                $related_stmt = $conn->prepare($related_query);
+                $related_stmt->bind_param("ii", $current_category_id, $product_id);
+                $related_stmt->execute();
+                $related_result = $related_stmt->get_result();
+                
+                if ($related_result->num_rows > 0) {
+                    while ($related_product = $related_result->fetch_assoc()) {
+                        echo '
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6 mb-4">
+                            <div class="card h-100 related-product-card">
+                                <img src="../../'.htmlspecialchars($related_product['product_image']).'" 
+                                    class="card-img-top p-3" 
+                                    alt="'.htmlspecialchars($related_product['product_name']).'"
+                                    style="height: 180px; object-fit: contain;">
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title" style="font-size: 1rem;">'.htmlspecialchars($related_product['product_name']).'</h5>
+                                    <div class="mt-auto">
+                                        <p class="card-text text-danger fw-bold mb-2">RM'.number_format($related_product['unit_price'], 2).'</p>
+                                        <a href="product_page.php" 
+                                        class="btn btn-outline-danger w-100" 
+                                        onclick="event.preventDefault(); 
+                                                    document.getElementById(\'related_product_id\').value = '.$related_product['product_id'].';
+                                                    document.getElementById(\'related_product_form\').submit();">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>';
+                    }
+                } else {
+                    echo '<div class="col-12"><p class="text-muted">No other products found in this category.</p></div>';
+                }
+                ?>
+            </div>
+            
+            <!-- 隐藏表单用于产品跳转 -->
+            <form id="related_product_form" action="product_page.php" method="post" style="display: none;">
+                <input type="hidden" name="product_id" id="related_product_id">
+            </form>
+        </div>
+    </section>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
