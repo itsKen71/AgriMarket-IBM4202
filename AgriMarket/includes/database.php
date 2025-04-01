@@ -420,8 +420,7 @@ function getProductsByStatus($conn, $vendor_id, $status)
     return $stmt->get_result();
 }
 
-function getCategory($conn) 
-{
+function getCategory($conn) {
     $query = "SELECT category_id, category_name FROM category";
     return $conn->query($query);
 }
