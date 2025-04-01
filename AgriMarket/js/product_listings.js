@@ -4,14 +4,27 @@ document.addEventListener("DOMContentLoaded", function () {
     editButtons.forEach(button => {
         button.addEventListener("click", function () {
             document.getElementById("editProductId").value = this.dataset.id;
-            document.getElementById("editProductName").value = this.dataset.name;
+            document.getElementById("editProductName").value = this.dataset.name; // Show name but can't be edited
             document.getElementById("editDescription").value = this.dataset.description;
             document.getElementById("editStock").value = this.dataset.stock;
             document.getElementById("editWeight").value = this.dataset.weight;
             document.getElementById("editPrice").value = this.dataset.price;
+
+            // Set selected category using category_name
+            const selectedCategoryName = this.dataset.category;
+            const editCategoryDropdown = document.getElementById("editCategory");
+
+            for (let i = 0; i < editCategoryDropdown.options.length; i++) {
+                if (editCategoryDropdown.options[i].text.trim() === selectedCategoryName.trim()) {
+                    editCategoryDropdown.selectedIndex = i;
+                    break;
+                }
+            }
         });
     });
 });
+
+
 
 document.addEventListener("DOMContentLoaded", function () {
     // Get the success message flags from body attributes

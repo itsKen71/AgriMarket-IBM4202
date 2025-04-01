@@ -14,7 +14,6 @@ if (!$vendor_id) {
 $approvedProducts = getProductsByStatus($conn, $vendor_id, 'Approved');
 $pendingProducts = getProductsByStatus($conn, $vendor_id, 'Pending');
 $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
-
 $categories = getCategory($conn);
 ?>
 
@@ -56,46 +55,50 @@ $categories = getCategory($conn);
                         <?php if ($approvedProducts->num_rows > 0): ?>
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped">
-                                    <thead class="table-success">
+                                <thead class="table-success">
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Category</th>
+                                        <th>Description</th>
+                                        <th>Stock</th>
+                                        <th>Weight (kg)</th>
+                                        <th>Price</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php while ($product = $approvedProducts->fetch_assoc()): ?>
                                         <tr>
-                                            <th>Product Name</th>
-                                            <th>Description</th>
-                                            <th>Stock</th>
-                                            <th>Weight (kg)</th>
-                                            <th>Price</th>
-                                            <th class="text-center">Action</th>
+                                            <td><?php echo htmlspecialchars($product['product_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($product['category_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($product['description']); ?></td>
+                                            <td><?php echo $product['stock_quantity']; ?></td>
+                                            <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
+                                            <td>$<?php echo number_format($product['unit_price'], 2); ?></td>
+                                            <td class="text-center align-middle">
+                                                <button class="btn btn-primary btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editProductModal"
+                                                data-id="<?php echo $product['product_id']; ?>"
+                                                data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
+                                                data-category="<?php echo htmlspecialchars($product['category_name']); ?>"
+                                                data-description="<?php echo htmlspecialchars($product['description']); ?>"
+                                                data-stock="<?php echo $product['stock_quantity']; ?>"
+                                                data-weight="<?php echo $product['weight']; ?>"
+                                                data-price="<?php echo $product['unit_price']; ?>"
+                                                >
+                                                Edit
+                                                </button>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php while ($product = $approvedProducts->fetch_assoc()): ?>
-                                            <tr>
-                                                <td><?php echo htmlspecialchars($product['product_name']); ?></td>
-                                                <td><?php echo htmlspecialchars($product['description']); ?></td>
-                                                <td><?php echo $product['stock_quantity']; ?></td>
-                                                <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
-                                                <td>$<?php echo number_format($product['unit_price'], 2); ?></td>
-                                                <td class="text-center align-middle">
-                                                    <button class="btn btn-primary btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editProductModal"
-                                                        data-id="<?php echo $product['product_id']; ?>"
-                                                        data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
-                                                        data-description="<?php echo htmlspecialchars($product['description']); ?>"
-                                                        data-stock="<?php echo $product['stock_quantity']; ?>"
-                                                        data-weight="<?php echo $product['weight']; ?>"
-                                                        data-price="<?php echo $product['unit_price']; ?>">
-                                                        Edit
-                                                    </button>
-                                                </td>
-                                            </tr>
                                         <?php endwhile; ?>
                                     </tbody>
                                 </table>
                             </div>
-                        <?php else: ?>
-                            <p class="text-muted">No items found.</p>
-                        <?php endif; ?>
+                            <?php else: ?>
+                                <p class="text-muted">No items found.</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
             <!-- Pending Requests Section -->
             <div class="accordion-item">
@@ -113,6 +116,7 @@ $categories = getCategory($conn);
                                     <thead class="table-warning">
                                         <tr>
                                             <th>Product Name</th>
+                                            <th>Category</th>
                                             <th>Description</th>
                                             <th>Stock</th>
                                             <th>Weight (kg)</th>
@@ -123,6 +127,7 @@ $categories = getCategory($conn);
                                         <?php while ($product = $pendingProducts->fetch_assoc()): ?>
                                             <tr>
                                                 <td><?php echo htmlspecialchars($product['product_name']); ?></td>
+                                                <td><?php echo htmlspecialchars($product['category_name']); ?></td>
                                                 <td><?php echo htmlspecialchars($product['description']); ?></td>
                                                 <td><?php echo $product['stock_quantity']; ?></td>
                                                 <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
@@ -155,6 +160,7 @@ $categories = getCategory($conn);
                                     <thead class="table-danger">
                                         <tr>
                                             <th>Product Name</th>
+                                            <th>Category</th> 
                                             <th>Description</th>
                                             <th>Stock</th>
                                             <th>Weight (kg)</th>
@@ -165,6 +171,7 @@ $categories = getCategory($conn);
                                         <?php while ($product = $rejectedProducts->fetch_assoc()): ?>
                                             <tr>
                                                 <td><?php echo htmlspecialchars($product['product_name']); ?></td>
+                                                <td><?php echo htmlspecialchars($product['category_name']); ?></td>
                                                 <td><?php echo htmlspecialchars($product['description']); ?></td>
                                                 <td><?php echo $product['stock_quantity']; ?></td>
                                                 <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
@@ -185,9 +192,9 @@ $categories = getCategory($conn);
     
     
     <!-- Edit Product Modal -->
-     <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
-         <div class="modal-dialog modal-lg">
-            <div class="modal-content">
+    <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -197,32 +204,43 @@ $categories = getCategory($conn);
                     <input type="hidden" name="product_id" id="editProductId">
 
                     <div class="mb-3">
-                        <label for="editProductName" class="form-label">Product Name</label>
-                        <input type="text" class="form-control" id="editProductName" name="product_name" required>
+                        <label class="form-label">Product Name</label>
+                        <input type="text" class="form-control" id="editProductName" readonly> <!-- Read-only input -->
                     </div>
 
                     <div class="mb-3">
                         <label for="editDescription" class="form-label">Description</label>
-                        <textarea class="form-control" id="editDescription" name="description" rows="3" required></textarea>
+                        <textarea class="form-control" name="description" id="editDescription" required></textarea>
                     </div>
 
                     <div class="mb-3">
                         <label for="editStock" class="form-label">Stock Quantity</label>
-                        <input type="number" class="form-control" id="editStock" name="stock_quantity" min="1" required>
+                        <input type="number" class="form-control" name="stock_quantity" id="editStock" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="editWeight" class="form-label">Weight (kg)</label>
-                        <input type="number" step="0.01" class="form-control" id="editWeight" name="weight" required>
+                        <input type="number" step="0.01" class="form-control" name="weight" id="editWeight">
                     </div>
 
                     <div class="mb-3">
-                        <label for="editPrice" class="form-label">Price ($)</label>
-                        <input type="number" step="0.01" class="form-control" id="editPrice" name="unit_price" required>
+                        <label for="editPrice" class="form-label">Price</label>
+                        <input type="number" step="0.01" class="form-control" name="unit_price" id="editPrice" required>
                     </div>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <div class="mb-3">
+                        <label for="editCategory" class="form-label">Category</label>
+                        <select class="form-control" name="category_id" id="editCategory" required>
+                            <?php
+                            $categories = getCategory($conn);
+                            while ($category = $categories->fetch_assoc()) {
+                                echo "<option value='{$category['category_id']}'>{$category['category_name']}</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
@@ -230,6 +248,7 @@ $categories = getCategory($conn);
         </div>
     </div>
 </div>
+
 
 <!-- Add Product Modal -->
 <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">

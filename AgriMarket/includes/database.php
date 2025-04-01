@@ -147,7 +147,6 @@ function updateVendorAssistance($vendor_id, $staff_id)
     return $stmt->execute();
 }
 
-/* 愚人节快乐
 function getVendorAssisstanceList($user_id)
 {
     global $conn;
@@ -165,7 +164,6 @@ function getVendorAssisstanceList($user_id)
     $result = $stmt->get_result();
     return $result->fetch_all(MYSQLI_ASSOC);
 }
-    */
 
 function updateAssisstanceRequestStatus($request_id, $status)
 {
@@ -186,7 +184,6 @@ function updateAssisstanceRequestStatus($request_id, $status)
     }
 }
 
-/* 愚人节快乐
 function getStaffList()
 {
     global $conn;
@@ -213,7 +210,7 @@ function getStaffList()
         return [];
     }
 }
-    */
+
 
 function getPendingRequestList()
 {
@@ -416,13 +413,20 @@ function getTopFiveCategory($conn)
     return $data;
 }
 
-function getProductsByStatus($conn, $vendor_id, $status)
+function getProductsByStatus($conn, $vendor_id, $status) 
 {
-    $stmt = $conn->prepare("SELECT * FROM product WHERE vendor_id = ? AND product_status = ?");
+    $sql = "
+        SELECT p.product_id, p.product_name, p.description, p.stock_quantity, p.weight, p.unit_price, p.product_status, c.category_name
+        FROM product p
+        JOIN category c ON p.category_id = c.category_id
+        WHERE p.vendor_id = ? AND p.product_status = ?
+    ";
+    $stmt = $conn->prepare($sql);
     $stmt->bind_param("is", $vendor_id, $status);
     $stmt->execute();
     return $stmt->get_result();
 }
+
 
 function getCategory($conn)
 {
@@ -430,9 +434,8 @@ function getCategory($conn)
     return $conn->query($query);
 }
 
-
-// Function to get vendor details by vendor_id
-function getVendorDetails($vendor_id, $conn) {
+function getVendorDetails($vendor_id, $conn) 
+{
     $query = "SELECT user_id, vendor_id, store_name, subscription_id, subscription_start_date, subscription_end_date 
               FROM vendor 
               WHERE vendor_id = ?";
@@ -458,7 +461,8 @@ function getSubscriptionPlanName($subscription_id, $conn)
     return $result->fetch_assoc();
 }
 
-function getUserContact($user_id, $conn) {
+function getUserContact($user_id, $conn) 
+{
     $query = "SELECT email, phone_number FROM user WHERE user_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $user_id);
