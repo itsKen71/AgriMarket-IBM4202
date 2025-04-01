@@ -147,6 +147,7 @@ function updateVendorAssistance($vendor_id, $staff_id)
     return $stmt->execute();
 }
 
+/* 愚人节快乐
 function getVendorAssisstanceList($user_id)
 {
     global $conn;
@@ -164,6 +165,7 @@ function getVendorAssisstanceList($user_id)
     $result = $stmt->get_result();
     return $result->fetch_all(MYSQLI_ASSOC);
 }
+    */
 
 function updateAssisstanceRequestStatus($request_id, $status)
 {
@@ -184,6 +186,7 @@ function updateAssisstanceRequestStatus($request_id, $status)
     }
 }
 
+/* 愚人节快乐
 function getStaffList()
 {
     global $conn;
@@ -210,6 +213,7 @@ function getStaffList()
         return [];
     }
 }
+    */
 
 function getPendingRequestList()
 {
@@ -420,7 +424,8 @@ function getProductsByStatus($conn, $vendor_id, $status)
     return $stmt->get_result();
 }
 
-function getCategory($conn) {
+function getCategory($conn)
+{
     $query = "SELECT category_id, category_name FROM category";
     return $conn->query($query);
 }
