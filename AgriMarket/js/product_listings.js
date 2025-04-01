@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const editButtons = document.querySelectorAll(".edit-btn");
 
+    // Display original record
     editButtons.forEach(button => {
         button.addEventListener("click", function () {
             document.getElementById("editProductId").value = this.dataset.id;
@@ -10,7 +11,6 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editWeight").value = this.dataset.weight;
             document.getElementById("editPrice").value = this.dataset.price;
 
-            // Set selected category using category_name
             const selectedCategoryName = this.dataset.category;
             const editCategoryDropdown = document.getElementById("editCategory");
 
@@ -23,8 +23,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-
-
 
 document.addEventListener("DOMContentLoaded", function () {
     // Get the success message flags from body attributes

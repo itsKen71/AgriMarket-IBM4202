@@ -193,7 +193,7 @@ $categories = getCategory($conn);
     
     <!-- Edit Product Modal -->
     <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
@@ -210,7 +210,7 @@ $categories = getCategory($conn);
 
                     <div class="mb-3">
                         <label for="editDescription" class="form-label">Description</label>
-                        <textarea class="form-control" name="description" id="editDescription" required></textarea>
+                        <textarea class="form-control" name="description" id="editDescription" rows="3" required></textarea>
                     </div>
 
                     <div class="mb-3">
@@ -232,7 +232,6 @@ $categories = getCategory($conn);
                         <label for="editCategory" class="form-label">Category</label>
                         <select class="form-control" name="category_id" id="editCategory" required>
                             <?php
-                            $categories = getCategory($conn);
                             while ($category = $categories->fetch_assoc()) {
                                 echo "<option value='{$category['category_id']}'>{$category['category_name']}</option>";
                             }
@@ -294,13 +293,17 @@ $categories = getCategory($conn);
 
                     <div class="mb-3">
                         <label for="category" class="form-label">Category</label>
-                        <select class="form-select" id="category" name="category_id" required>
+                        <select class="form-select" name="category_id" id="category" required>
                             <option value="" disabled selected>Select Category</option>
-                            <?php while ($row = $categories->fetch_assoc()): ?>
-                                <option value="<?php echo $row['category_id']; ?>"><?php echo $row['category_name']; ?></option>
-                                <?php endwhile; ?>
-                            </select>
+                            <?php
+                            $categories = getCategory($conn);
+                            while ($category = $categories->fetch_assoc()) {
+                                echo "<option value='{$category['category_id']}'>{$category['category_name']}</option>";
+                            }
+                            ?>
+                        </select>
                     </div>
+
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
