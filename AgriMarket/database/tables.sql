@@ -192,7 +192,7 @@ CREATE TABLE request (
     request_id INT AUTO_INCREMENT PRIMARY KEY,
     vendor_id INT NOT NULL,
     request_description VARCHAR(200),
-    request_type ENUM('Feature Request', 'Account Issue') NOT NULL, /*Add Yourself*/
+    request_type ENUM('Feature Request', 'Account Issue', 'Technical Support', 'Billing Inquiry', 'General Inquiry') NOT NULL,
     request_date DATETIME NOT NULL,
     is_completed BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (vendor_id) REFERENCES vendor(vendor_id) ON DELETE CASCADE

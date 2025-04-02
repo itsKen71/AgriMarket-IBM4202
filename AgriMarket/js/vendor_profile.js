@@ -16,4 +16,20 @@ document.addEventListener("DOMContentLoaded", function () {
         url.searchParams.delete("update");
         window.history.replaceState({}, document.title, url);
     }
+
+     // Check for request success message and show success modal
+     const urlParams = new URLSearchParams(window.location.search);
+     if (urlParams.has("request")) {
+         if (urlParams.get("request") === "success") {
+             var requestSuccessModal = new bootstrap.Modal(document.getElementById("requestSuccessModal"));
+             if (requestSuccessModal) {
+                 requestSuccessModal.show();
+             }
+ 
+             // Remove success parameter from URL
+             const url = new URL(window.location);
+             url.searchParams.delete("request");
+             window.history.replaceState({}, document.title, url);
+         }
+     }
 });
