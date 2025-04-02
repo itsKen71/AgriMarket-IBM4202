@@ -2,11 +2,11 @@
 session_start();
 include '../../includes/database.php';
 
-$vendor_id = 1; // temporary use for testing
+$vendor_id = 5; // temporary use for testing
 //$vendor_id = $_SESSION['vendor_id'] ?? null;
 
 if (!$vendor_id) {
-    header("Location: ../../authentication/login.php"); // Redirect to login page
+    header("Location: ../../Modules/authentication/login.php"); // Redirect to login page
     exit();
 }
 
