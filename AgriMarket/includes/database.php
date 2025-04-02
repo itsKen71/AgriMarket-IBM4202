@@ -465,7 +465,7 @@ function getVendorDetails($vendor_id, $conn)
     $query = "
         SELECT v.vendor_id, v.store_name, v.subscription_id, v.subscription_start_date, v.subscription_end_date, 
                u.user_id, u.email, u.phone_number, 
-               s.plan_name, s.has_staff_support
+               s.plan_name, s.has_staff_support, s.upload_limit
         FROM vendor v
         JOIN user u ON v.user_id = u.user_id
         LEFT JOIN subscription s ON v.subscription_id = s.subscription_id
@@ -479,4 +479,16 @@ function getVendorDetails($vendor_id, $conn)
     
     return $result->fetch_assoc(); 
 }
+
+function getPendingProductCount($vendor_id, $conn)
+ {
+    $query = "SELECT COUNT(*) AS pending_count FROM product WHERE vendor_id = ? AND product_status = 'Pending'";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $vendor_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    return $row['pending_count'] ?? 0; // Return 0 if no result
+}
+
 ?>

@@ -3,11 +3,11 @@ session_start();
 
 include '../../includes/database.php';
 
-$vendor_id = 1;//temporary use for testing 
+$vendor_id = 5;//temporary use for testing 
 //$vendor_id = $_SESSION['vendor_id'] ?? null;
 
 if (!$vendor_id) {
-    header("Location: ../../authentication/login.php"); // Redirect to login page
+    header("Location: ../../Modules/authentication/login.php"); // Redirect to login page
     exit(); // 
 }
 
@@ -16,6 +16,9 @@ $pendingProducts = getProductsByStatus($conn, $vendor_id, 'Pending');
 $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
 $categories = getCategory($conn);
 
+$vendorDetails = getVendorDetails($vendor_id, $conn);
+$uploadLimit = $vendorDetails['upload_limit'];
+$pendingCount = getPendingProductCount($vendor_id, $conn);
 ?>
 
 <!DOCTYPE html>
@@ -365,7 +368,9 @@ $categories = getCategory($conn);
 </div>
 
 <!-- Add Button -->
-<img src="../../assets/img/add-circle.png" alt="Add Product" class="add-btn" id="addProductBtn" data-bs-toggle="modal" data-bs-target="#addProductModal">
+<img src="../../assets/img/add-circle.png" alt="Add Product" class="add-btn" id="addProductBtn"
+    data-bs-toggle="modal" data-bs-target="#addProductModal"
+    <?php if ($pendingCount >= $uploadLimit) echo 'style="pointer-events: none; opacity: 0.5;"'; ?> >
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
