@@ -39,22 +39,27 @@
         }
     }
 
-    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_item'])) {
-        $product_id = $_POST['product_id'];
+    // 在cart.php中
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_item'])) {
+    $product_id = $_POST['product_id'];
+    
+    $delete_query = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
+    $stmt_delete = $conn->prepare($delete_query);
+    
+    if ($stmt_delete) {
+        $stmt_delete->bind_param("ii", $user_id, $product_id);
+        $stmt_delete->execute();
+        $stmt_delete->close();
         
-        $delete_query = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
-        $stmt_delete = $conn->prepare($delete_query);
-        
-        if ($stmt_delete) {
-            $stmt_delete->bind_param("ii", $user_id, $product_id);
-            $stmt_delete->execute();
-            $stmt_delete->close();
-            
-            // 重定向以避免重复提交
-            header("Location: cart.php");
-            exit();
-        }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true]);
+        exit();
+    } else {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Database error']);
+        exit();
     }
+}
 
     // 处理数量更新请求
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
@@ -121,6 +126,50 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
             background-color: #f8f9fa;
             heg
         }
+        .total-section {
+            position: fixed;
+            bottom: 0;
+            left: 50%; /* 居中定位 */
+            transform: translateX(-50%); /* 精确居中 */
+            width: 100%; /* 初始宽度 */
+            max-width: 100%; /* 防止溢出 */
+            z-index: 1000;
+            border-radius: 0 !important;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            margin: 0 !important;
+            background-color: #f8f9fa;
+        }
+
+        /* 限制宽度与.container相同 */
+        @media (min-width: 576px) {
+            .total-section {
+                max-width: 540px;
+            }
+        }
+        @media (min-width: 768px) {
+            .total-section {
+                max-width: 720px;
+            }
+        }
+        @media (min-width: 992px) {
+            .total-section {
+                max-width: 960px;
+            }
+        }
+        @media (min-width: 1200px) {
+            .total-section {
+                max-width: 1140px;
+            }
+        }
+        @media (min-width: 1400px) {
+            .total-section {
+                max-width: 1320px;
+            }
+        }
+        
+        .container.mt-5 {
+            padding-bottom: 65px;
+        }
     </style>
 
 </head>
@@ -149,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
                 <div class="cart-item border-bottom py-4 px-3">
                     <div class="d-flex w-100 align-items-center">
                         <div style="width: 5%;">
-                            <input type="checkbox" class="form-check-input">
+                            <input type="checkbox" class="form-check-input item-checkbox" data-product-id="<?= $row['product_id'] ?>" data-unit-price="<?= $row['unit_price'] ?>">
                         </div>
                         <div style="width:15%;" class="pe-3">
                             <img src="../../<?php echo htmlspecialchars($row['product_image']); ?>" 
@@ -179,7 +228,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
                         <div style="width: 10%;" class="text-end">
                             <form method="POST" action="cart.php" class="d-inline">
                                 <input type="hidden" name="product_id" value="<?= $row['product_id'] ?>">
-                                <button type="submit" name="delete_item" class="delete-btn text-danger small mb-2 cursor-pointer border-0 bg-transparent">
+                                <button class="delete-btn text-danger small mb-2 cursor-pointer border-0 bg-transparent" 
+                                        data-product-id="<?= $row['product_id'] ?>">
                                     <i class="fas fa-trash-alt me-1"></i> Delete
                                 </button>
                             </form>
@@ -199,9 +249,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
             <!-- Total Section -->
             <div class="total-section d-flex justify-content-between align-items-center p-4 bg-light rounded-bottom mt-3">
                 <div class="d-flex align-items-center">
-                <input type="checkbox" id="selectAll" class="form-check-input select-all">
-                <label for="selectAll" class="ms-5 fw-medium px-1">Item</label>
-                    <button class="btn btn-link text-danger p-0 ms-3 text-decoration-none">
+                <input type="checkbox" id="selectAll2" class="form-check-input select-all">
+                <label for="selectAll2" class="ms-2 fw-medium">Select All</label>
+                    <button class="delete-btn btn btn-link text-danger p-0 ms-3 text-decoration-none">
                         <i class="fas fa-trash-alt me-1"></i> Delete
                     </button>
                 </div>
@@ -277,30 +327,153 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 更新购物车总价和总数
-    function updateCartTotals() {
-        const items = document.querySelectorAll('.cart-item');
-        let totalItems = 0;
-        let totalPrice = 0;
-        
-        items.forEach(item => {
-            const quantity = parseInt(item.querySelector('.quantity-display').textContent);
-            const subtotalText = item.querySelector('.subtotal').textContent.replace('RM', '');
-            const subtotal = parseFloat(subtotalText);
-            
-            totalItems += quantity;
-            totalPrice += subtotal;
+    // 全选/取消全选功能
+document.querySelectorAll('.select-all').forEach(selectAll => {
+    selectAll.addEventListener('change', function() {
+        const isChecked = this.checked;
+        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+            checkbox.checked = isChecked;
         });
-        
-        // 更新显示
-        const totalItemsElement = document.querySelector('.total-section span:first-child');
-        const totalPriceElement = document.querySelector('.price-color.fs-4');
-        
-        totalItemsElement.textContent = `Total (${totalItems} ${totalItems === 1 ? 'Item' : 'Items'}):`;
-        totalPriceElement.textContent = `RM${totalPrice.toFixed(2)}`;
-    }
+        updateCartTotals(); // 更新总价
+    });
+});
+
+// 单个商品选择变化时检查全选状态
+document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        // 检查是否需要更新全选复选框状态
+        const allChecked = [...document.querySelectorAll('.item-checkbox')].every(cb => cb.checked);
+        document.querySelectorAll('.select-all').forEach(selectAll => {
+            selectAll.checked = allChecked;
+        });
+        updateCartTotals(); // 更新总价
+    });
+});
+
+// 更新购物车总价和总数（修改现有函数）
+function updateCartTotals() {
+    const checkedItems = document.querySelectorAll('.item-checkbox:checked');
+    let totalItems = 0;
+    let totalPrice = 0;
     
-    // 删除按钮的事件监听 (之前添加的代码)
-    // ...
+    checkedItems.forEach(checkbox => {
+        const cartItem = checkbox.closest('.cart-item');
+        const quantity = parseInt(cartItem.querySelector('.quantity-display').textContent);
+        const unitPrice = parseFloat(checkbox.dataset.unitPrice);
+        
+        totalItems += quantity;
+        totalPrice += unitPrice * quantity;
+    });
+    
+    // 更新显示
+    const totalItemsElement = document.querySelector('.total-section span:first-child');
+    const totalPriceElement = document.querySelector('.price-color.fs-4');
+    
+    totalItemsElement.textContent = `Total (${totalItems} ${totalItems === 1 ? 'Item' : 'Items'}):`;
+    totalPriceElement.textContent = `RM${totalPrice.toFixed(2)}`;
+    
+    // 如果没有选中任何商品，显示0
+    if (checkedItems.length === 0) {
+        totalItemsElement.textContent = 'Total (0 Items):';
+        totalPriceElement.textContent = 'RM0.00';
+    }
+}
+    
+// 删除选中商品
+// 处理所有删除按钮点击事件
+document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        let productIds = [];
+        
+        // 判断是批量删除还是单个删除
+        if (this.classList.contains('btn-link')) {
+            // 批量删除 - 获取所有选中的商品ID
+            document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
+                productIds.push(checkbox.dataset.productId);
+            });
+            
+            if (productIds.length === 0) {
+                showToastMessage('Please select items to delete');
+                return;
+            }
+        } else {
+            // 单个删除 - 获取当前商品的ID
+            productIds.push(this.dataset.productId);
+        }
+        
+        // 执行删除操作
+        deleteItems(productIds);
+    });
+});
+
+// 统一的删除函数
+function deleteItems(productIds) {
+    // 创建删除请求数组
+    const deletePromises = productIds.map(productId => {
+        return fetch('cart.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `delete_item=1&product_id=${productId}`
+        }).then(response => response.json());
+    });
+    
+    // 执行所有删除请求
+    Promise.all(deletePromises)
+        .then(results => {
+            const allSuccess = results.every(result => result.success);
+            
+            if (allSuccess) {
+                // 从DOM中移除已删除的商品
+                productIds.forEach(productId => {
+                    const item = document.querySelector(`[data-product-id="${productId}"]`).closest('.cart-item');
+                    if (item) {
+                        item.style.transition = 'all 0.3s ease';
+                        item.style.opacity = '0';
+                        item.style.height = '0';
+                        item.style.padding = '0';
+                        item.style.margin = '0';
+                        setTimeout(() => {
+                            item.remove();
+                            // 确保在DOM完全移除后更新总计
+                            updateCartTotals();
+                        }, 300);
+                    }
+                });
+
+                showToastMessage(productIds.length > 1 
+                    ? `${productIds.length} items deleted` 
+                    : 'Item deleted');
+            } else {
+                showToastMessage('Some items could not be deleted');
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToastMessage('Error occurred while deleting items');
+            location.reload();
+        });
+}
+
+// 显示Toast消息的函数
+function showToastMessage(message) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px';
+    toast.style.right = '20px';
+    toast.style.padding = '10px 20px';
+    toast.style.backgroundColor = '#333';
+    toast.style.color = '#fff';
+    toast.style.borderRadius = '5px';
+    toast.style.zIndex = '1000';
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.remove(), 3000);
+}
 });
 </script>
