@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     //$vendor_id = $_SESSION['vendor_id'] ?? null
 
     if (!$vendor_id) {
-        header("Location: ../../authentication/login.php");
+        header("Location: ../../Modules/authentication/login.php");
         exit();
     }
 

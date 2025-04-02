@@ -2,7 +2,7 @@
 session_start();
 include '../../includes/database.php';
 
-$vendor_id = 5; // temporary use for testing
+$vendor_id = 1; // temporary use for testing
 //$vendor_id = $_SESSION['vendor_id'] ?? null;
 
 if (!$vendor_id) {
