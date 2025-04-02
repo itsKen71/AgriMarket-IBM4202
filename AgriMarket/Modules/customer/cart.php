@@ -92,6 +92,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
     }
 }
 
+// 在查询产品详情前添加这个函数
+function getAverageRating($conn, $productId) {
+    $query = "SELECT AVG(rating) as average_rating FROM review WHERE product_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $productId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    return round($row['average_rating'] ?? 0, 1); // 四舍五入到1位小数
+}
+
+// 修改获取所有产品的查询
+$allProducts = [];
+$allProductsQuery = "SELECT p.* FROM product p";
+$allProductsResult = $conn->query($allProductsQuery);
+while ($row = $allProductsResult->fetch_assoc()) {
+    $row['average_rating'] = getAverageRating($conn, $row['product_id']);
+    $allProducts[$row['product_id']] = $row;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -170,6 +190,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
         .container.mt-5 {
             padding-bottom: 65px;
         }
+
+        /* 比较模态框样式 */
+#compareModal .modal-dialog {
+    max-width: 90%;
+}
+
+.compare-product-image {
+    max-height: 200px;
+    width: auto;
+    margin: 0 auto;
+    display: block;
+}
+
+/* 卡片样式 */
+#compareModal .card {
+    height: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+#compareModal .card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    #compareModal .modal-dialog {
+        margin: 0.5rem auto;
+    }
+    
+    #compareModal .row {
+        flex-direction: column;
+    }
+    
+    #compareModal .col-md-6 {
+        margin-bottom: 1rem;
+    }
+}
     </style>
 
 </head>
@@ -233,8 +291,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
                                     <i class="fas fa-trash-alt me-1"></i> Delete
                                 </button>
                             </form>
-                            <div class="similar-btn text-primary small cursor-pointer">
-                                <i class="fas fa-random me-1"></i> Compare 
+                            <div class="similar-btn text-primary small cursor-pointer" 
+                                data-product-id="<?= $row['product_id']; ?>">
+                                <i class="fas fa-random me-1"></i> Compare
                             </div>
                         </div>
                     </div>
@@ -258,14 +317,114 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
                 <div class="d-flex align-items-center">
                     <span class="me-3">Total (0 Items):</span>
                     <span class="price-color fs-4 fw-bold">RM0.00</span>
-                    <button class="checkout-btn ms-3 btn btn-danger px-4 py-2 fw-medium">
-                        Check Out <i class="fas fa-arrow-right ms-2"></i>
-                    </button>
+                    <form id="checkoutForm" method="POST" action="check_out.php">
+    <input type="hidden" name="selected_products" id="selectedProducts">
+    <button type="submit" class="checkout-btn ms-3 btn btn-danger px-4 py-2 fw-medium">
+        Check Out <i class="fas fa-arrow-right ms-2"></i>
+    </button>
+</form>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Compare Modal -->
+    <div class="modal fade" id="compareModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">Product Comparison</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="compareForm">
+            <div class="row g-4">
+                <!-- 当前商品 -->
+                <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                    <h6 class="mb-0">Selected Product</h6>
+                    </div>
+                    <div class="card-body" id="currentProduct">
+                    <img src="" class="img-fluid rounded mb-3" id="currentProductImage" style="max-height: 200px;">
+                    <h4 id="currentProductName"></h4>
+                    <div class="text-muted mb-2" id="currentProductCategory"></div>
+                    <div class="h5 text-danger mb-3" id="currentProductPrice"></div>
+                    <div class="mb-3" id="currentProductDescription"></div>
+                    <div class="mb-3">
+    <span class="text-muted">Sold Quantity: </span>
+    <span id="currentProductSoldQuantity"></span>
+</div>
 
+                    </div>
+                </div>
+                </div>
+                
+                <!-- 对比商品 -->
+                <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                    <h6 class="mb-0">Compare With</h6>
+                    </div>
+                    <div class="card-body">
+                    <div class="mb-3">
+                        <label for="compareProductSelect" class="form-label">Select Product</label>
+                        <select class="form-select" id="compareProductSelect">
+                        <option value="">-- Select a product --</option>
+                        <?php 
+                        // 获取所有产品列表
+                        $allProductsQuery = "SELECT product_id, product_name FROM product";
+                        $allProductsResult = $conn->query($allProductsQuery);
+                        while ($product = $allProductsResult->fetch_assoc()): 
+                        ?>
+                            <option value="<?= $product['product_id'] ?>">
+                            <?= htmlspecialchars($product['product_name']) ?>
+                            </option>
+                        <?php endwhile; ?>
+                        </select>
+                    </div>
+                    
+                    <div id="compareProductContainer" style="display: none;">
+                        <img src="" class="img-fluid rounded mb-3" id="compareProductImage" style="max-height: 200px;">
+                        <h4 id="compareProductName"></h4>
+                        <div class="text-muted mb-2" id="compareProductCategory"></div>
+                        <div class="h5 text-danger mb-3" id="compareProductPrice"></div>
+                        <div class="mb-3" id="compareProductDescription"></div>
+                        <div class="mb-3">
+    <span class="text-muted">Sold Quantity: </span>
+    <span id="compareProductSoldQuantity"></span>
+</div>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- 提示模态框 -->
+<div class="modal fade" id="alertModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-white">
+        <h5 class="modal-title">Notification</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+        <p id="alertMessage">Please select at least one product.</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-warning text-white" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
@@ -475,5 +634,108 @@ function showToastMessage(message) {
     
     setTimeout(() => toast.remove(), 3000);
 }
+
+// 初始化比较按钮
+document.querySelectorAll('.similar-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const productId = this.getAttribute('data-product-id');
+        openCompareModal(productId);
+    });
+});
+
+
+// 打开比较模态框
+function openCompareModal(productId) {
+    // 加载当前产品详情
+    loadCurrentProduct(productId);
+    
+    // 重置比较产品选择
+    document.getElementById('compareProductSelect').value = '';
+    document.getElementById('compareProductContainer').style.display = 'none';
+    
+    // 显示模态框
+    const compareModal = new bootstrap.Modal('#compareModal');
+    compareModal.show();
+}
+
+// 加载当前产品详情
+function loadCurrentProduct(productId) {
+    // 这里直接从页面中获取已加载的产品信息
+    const productItem = document.querySelector(`[data-product-id="${productId}"]`).closest('.cart-item');
+    
+    if (productItem) {
+        document.getElementById('currentProductName').textContent = 
+            productItem.querySelector('.fw-medium').textContent;
+        document.getElementById('currentProductImage').src = 
+            productItem.querySelector('.product-image').src;
+        document.getElementById('currentProductPrice').textContent = 
+            productItem.querySelector('.text-center.fw-medium .fw-medium').textContent;
+        
+        // 从PHP生成的数据中获取完整产品信息
+        const allProducts = <?php 
+            $allProducts = [];
+            $allProductsQuery = "SELECT * FROM product";
+            $result = $conn->query($allProductsQuery);
+            while ($row = $result->fetch_assoc()) {
+                $allProducts[$row['product_id']] = $row;
+            }
+            echo json_encode($allProducts);
+        ?>;
+        
+        const currentProduct = allProducts[productId];
+        if (currentProduct) {
+            // 更新销售数量
+            document.getElementById('currentProductSoldQuantity').textContent = 
+                currentProduct.sold_quantity || '0';
+                document.getElementById('currentProductDescription').textContent = 
+                currentProduct.description || '-';
+        }
+    }
+}
+
+// 产品选择变化事件
+document.getElementById('compareProductSelect').addEventListener('change', function() {
+    const selectedProductId = this.value;
+    
+    if (selectedProductId) {
+        // 从PHP生成的数据中获取产品信息
+        const allProducts = <?php echo json_encode($allProducts ?? []); ?>;
+        const product = allProducts[selectedProductId];
+        
+        if (product) {
+            document.getElementById('compareProductContainer').style.display = 'block';
+            document.getElementById('compareProductName').textContent = product.product_name;
+            document.getElementById('compareProductImage').src = '../../' + product.product_image;
+            document.getElementById('compareProductPrice').textContent = 'RM' + parseFloat(product.unit_price).toFixed(2);
+            document.getElementById('compareProductDescription').textContent = product.description || 'No description available';
+            
+            // 更新销售数量
+            document.getElementById('compareProductSoldQuantity').textContent = 
+                product.sold_quantity || '0';
+        }
+    } else {
+        document.getElementById('compareProductContainer').style.display = 'none';
+    }
+});
+
+document.querySelector('.checkout-btn').addEventListener('click', function (e) {
+    e.preventDefault();  // 防止默认提交
+    let selected = [];
+    
+    document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
+        selected.push(checkbox.getAttribute('data-product-id'));
+    });
+
+    if (selected.length === 0) {
+        // 显示美观的提示模态框
+        const alertModal = new bootstrap.Modal('#alertModal');
+        document.getElementById('alertMessage').textContent = "Please select at least one product.";
+        alertModal.show();
+        return;
+    }
+
+    document.getElementById('selectedProducts').value = JSON.stringify(selected);
+    document.getElementById('checkoutForm').submit();
+});
 });
 </script>

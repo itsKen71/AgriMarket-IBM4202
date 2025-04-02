@@ -1,5 +1,16 @@
 <?php
 session_start();
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $selected_products = json_decode($_POST["selected_products"], true);
+
+    if (empty($selected_products)) {
+        die("No products selected.");
+    }
+
+    print_r($selected_products); // 这里可以处理逻辑，比如查询数据库显示订单信息
+}
+
 ?>
 
 <!DOCTYPE html>
