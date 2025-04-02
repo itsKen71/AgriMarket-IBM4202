@@ -13,7 +13,7 @@ function editVendorListing(button) {
 
     document.getElementById("staff-select").value = currentAssistanceId;
 
-    // Store vendor ID in modal for later use
+    // Store vendor ID in modal 
     document.getElementById("staff-select").setAttribute("data-vendor-id", vendorId);
 
     let modal = new bootstrap.Modal(document.getElementById("editVendorModal"));
@@ -25,7 +25,7 @@ function updateVendor() {
     let selectedStaffId = document.getElementById("staff-select").value;
     let selectedStaffName = document.querySelector(`#staff-select option[value="${selectedStaffId}"]`).textContent;
 
-    console.log("Updating Vendor ID:", vendorId); // Debugging
+    console.log("Updating Vendor ID:", vendorId);
 
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "../../includes/update_vendor.php", true);
@@ -33,9 +33,9 @@ function updateVendor() {
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-            console.log("Server Response:", xhr.responseText); // Debugging
+            console.log("Server Response:", xhr.responseText); 
 
-            // Update UI immediately before closing the modal
+            // Update UI  efore modal closing 
             let vendorCard = document.querySelector(`[data-vendor-id="${vendorId}"]`);
             if (vendorCard) {
                 let staffSpan = vendorCard.querySelector(".staff-assistance");

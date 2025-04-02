@@ -259,20 +259,25 @@ function getActiveUser($conn)
     $resultCustomers = mysqli_query($conn, $sqlCustomers);
     $resultVendors = mysqli_query($conn, $sqlVendors);
 
-    $data = [
+    return [
         "activeCustomers" => mysqli_fetch_assoc($resultCustomers)['totalCustomers'],
         "activeVendors" => mysqli_fetch_assoc($resultVendors)['totalVendors']
     ];
-
-    return $data;
 }
 
-function getRefundPercentage($conn)
+function getRefundPercentage($conn,$user_id)
 {
     $currentYear = date("Y");
 
-    $sqlRefunds = "SELECT COUNT(*) AS totalRefunds FROM refund WHERE YEAR(refund_date) = '$currentYear'";
-    $sqlOrders = "SELECT COUNT(*) AS totalOrders FROM orders WHERE YEAR(order_date) = '$currentYear'";
+    //Check whether is admin / vendor
+    $vendorView=($user_id == -1) ? "" : "AND orders.user_id ='$user_id'";
+
+    $sqlRefunds = "SELECT COUNT(*) AS totalRefunds 
+                    FROM refund 
+                    JOIN orders ON refund.order_id =orders.order_id
+                    WHERE YEAR(refund_date) = '$currentYear' $vendorView";
+
+    $sqlOrders = "SELECT COUNT(*) AS totalOrders FROM orders WHERE YEAR(order_date) = '$currentYear' $vendorView";
 
     $resultRefunds = mysqli_query($conn, $sqlRefunds);
     $resultOrders = mysqli_query($conn, $sqlOrders);
@@ -285,10 +290,19 @@ function getRefundPercentage($conn)
     return ["totalRefundPercentage" => round($refundPercentage, 2)];
 }
 
-function getRevenue($conn)
+function getRevenue($conn,$user_id)
 {
     $currentYear = date("Y");
 
+    //Check whether is admin / vendor
+    $vendorView=($user_id == -1) ? "" : "AND orders.user_id ='$user_id'";
+
+    $sql = "SELECT MONTH(order_date) AS month, SUM(price) AS revenue 
+            FROM orders 
+            WHERE YEAR(order_date) = '$currentYear' $vendorView 
+            GROUP BY MONTH(order_date)";
+
+    $result = mysqli_query($conn, $sql);
     $months = [
         1 => "Jan",
         2 => "Feb",
@@ -298,18 +312,12 @@ function getRevenue($conn)
         6 => "Jun",
         7 => "Jul",
         8 => "Aug",
-        9 => "September",
-        10 => "October",
-        11 => "November",
-        12 => "December"
+        9 => "Sep",
+        10 => "Oct",
+        11 => "Nov",
+        12 => "Dec"
     ];
 
-    $sql = "SELECT MONTH(order_date) AS month, SUM(price) AS revenue 
-            FROM orders 
-            WHERE YEAR(order_date) = '$currentYear' 
-            GROUP BY MONTH(order_date)";
-
-    $result = mysqli_query($conn, $sql);
     $data = [];
 
     foreach ($months as $num => $name) {
@@ -324,9 +332,12 @@ function getRevenue($conn)
     return array_values($data);
 }
 
-function getOrders($conn)
+function getOrders($conn, $user_id)
 {
     $currentYear = date("Y");
+
+    //Check whether is admin / vendor
+    $vendorView=($user_id == -1) ? "" : "AND orders.user_id ='$user_id'";
 
     $months = [
         1 => "Jan",
@@ -345,7 +356,7 @@ function getOrders($conn)
 
     $sql = "SELECT MONTH(order_date) AS month, COUNT(order_id) AS totalOrder 
             FROM orders 
-            WHERE YEAR(order_date) = '$currentYear' 
+            WHERE YEAR(order_date) = '$currentYear' $vendorView
             GROUP BY MONTH(order_date)";
 
     $result = mysqli_query($conn, $sql);
@@ -388,12 +399,15 @@ function getSubscription($conn)
     return $data;
 }
 
-function getTopFiveCategory($conn)
+function getTopFiveProduct($conn, $user_id)
 {
-    $sql = "SELECT c.category_name, SUM(p.sold_quantity) AS totalSold 
+    //Check whether is admin / vendor
+    $vendorView=($user_id == -1) ? "" : "WHERE p.vendor_id ='$user_id'";
+
+    $sql = "SELECT p.product_name, SUM(p.sold_quantity) AS totalSold 
             FROM product p 
-            JOIN category c ON p.category_id = c.category_id
-            GROUP BY c.category_name
+            $vendorView
+            GROUP BY p.product_name
             ORDER BY totalSold DESC
             LIMIT 5";
 
@@ -401,17 +415,29 @@ function getTopFiveCategory($conn)
     $totalSold = 0;
     $data = [];
 
+    $rows =[];
+
+    //Calculate total sold quantity
     while ($row = mysqli_fetch_assoc($result)) {
+        $rows[]=$row;
         $totalSold += $row['totalSold'];
     }
 
+    //Ensure chart will not be showed if less than 5 top product sold
+    if(count($rows)<5){
+        return[];
+    }
+
     mysqli_data_seek($result, 0);
+
+
     while ($row = mysqli_fetch_assoc($result)) {
         $percentage = ($totalSold > 0) ? ($row['totalSold'] / $totalSold) * 100 : 0;
-        $data[] = ["label" => $row['category_name'], "y" => round($percentage, 2)];
+        $data[] = ["label" => $row['product_name'], "y" => round($percentage, 2)];
     }
     return $data;
 }
+
 
 function getProductsByStatus($conn, $vendor_id, $status) 
 {
