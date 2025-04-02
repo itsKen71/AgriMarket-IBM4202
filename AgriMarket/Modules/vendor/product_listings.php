@@ -15,6 +15,7 @@ $approvedProducts = getProductsByStatus($conn, $vendor_id, 'Approved');
 $pendingProducts = getProductsByStatus($conn, $vendor_id, 'Pending');
 $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
 $categories = getCategory($conn);
+
 ?>
 
 <!DOCTYPE html>
@@ -84,7 +85,8 @@ $categories = getCategory($conn);
                                                 data-stock="<?php echo $product['stock_quantity']; ?>"
                                                 data-weight="<?php echo $product['weight']; ?>"
                                                 data-price="<?php echo $product['unit_price']; ?>"
-                                                >
+                                                data-image="<?php echo !empty($product['product_image']) ? htmlspecialchars($product['product_image']) : ''; ?>"
+                                                > 
                                                 Edit
                                                 </button>
                                             </td>
@@ -189,8 +191,7 @@ $categories = getCategory($conn);
             </div>
         </div>
     </div>
-    
-    
+
     <!-- Edit Product Modal -->
     <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -200,7 +201,7 @@ $categories = getCategory($conn);
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="../../includes/edit_products.php" method="POST">
+                <form action="../../includes/edit_products.php" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="product_id" id="editProductId">
 
                     <div class="mb-3">
@@ -208,6 +209,20 @@ $categories = getCategory($conn);
                         <input type="text" class="form-control" id="editProductName" readonly> <!-- Read-only input -->
                     </div>
 
+                    <!-- Product Image Upload -->
+                    <div class="mb-3">
+                        <label for="editProductImage" class="form-label">Product Image</label>
+                        <input type="file" class="form-control" name="product_image" id="editProductImage" accept="image/*">
+                        <!-- Image path -->
+                        <input type="hidden" name="current_image" id="currentImage">
+                        <!-- Image name -->
+                        <input type="hidden" name="current_image_name" id="currentImageName">
+                        <!-- Image Preview -->
+                        <div class="mt-2 mb-3">
+                            <img id="imagePreview" src="" alt="Current Image" class="img-thumbnail" style="max-width: 150px;">
+                        </div>
+                    </div>
+                    
                     <div class="mb-3">
                         <label for="editDescription" class="form-label">Description</label>
                         <textarea class="form-control" name="description" id="editDescription" rows="3" required></textarea>
@@ -247,7 +262,6 @@ $categories = getCategory($conn);
         </div>
     </div>
 </div>
-
 
 <!-- Add Product Modal -->
 <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
@@ -304,7 +318,6 @@ $categories = getCategory($conn);
                         </select>
                     </div>
 
-
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Add Product</button>
@@ -351,8 +364,8 @@ $categories = getCategory($conn);
     </div>
 </div>
 
-    <!-- Add Button -->
-    <img src="../../assets/img/add-circle.png" alt="Add Product" class="add-btn" id="addProductBtn" data-bs-toggle="modal" data-bs-target="#addProductModal">
+<!-- Add Button -->
+<img src="../../assets/img/add-circle.png" alt="Add Product" class="add-btn" id="addProductBtn" data-bs-toggle="modal" data-bs-target="#addProductModal">
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
