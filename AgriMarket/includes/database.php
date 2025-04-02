@@ -463,7 +463,7 @@ function getCategory($conn)
 function getVendorDetails($vendor_id, $conn) 
 {
     $query = "
-        SELECT v.vendor_id, v.store_name, v.subscription_id, v.subscription_start_date, v.subscription_end_date, 
+        SELECT v.vendor_id, v.store_name, v.subscription_id, v.subscription_start_date, v.subscription_end_date, v.staff_assisstance_id,
                u.user_id, u.email, u.phone_number, 
                s.plan_name, s.has_staff_support, s.upload_limit
         FROM vendor v
