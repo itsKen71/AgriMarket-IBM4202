@@ -442,7 +442,8 @@ function getTopFiveProduct($conn, $user_id)
 function getProductsByStatus($conn, $vendor_id, $status) 
 {
     $sql = "
-        SELECT p.product_id, p.product_name, p.description, p.stock_quantity, p.weight, p.unit_price, p.product_status, c.category_name
+        SELECT p.product_id, p.product_name, p.description, p.stock_quantity, p.weight, p.unit_price, p.product_status, p.product_image,
+        c.category_name
         FROM product p
         JOIN category c ON p.category_id = c.category_id
         WHERE p.vendor_id = ? AND p.product_status = ?
@@ -452,7 +453,6 @@ function getProductsByStatus($conn, $vendor_id, $status)
     $stmt->execute();
     return $stmt->get_result();
 }
-
 
 function getCategory($conn)
 {
