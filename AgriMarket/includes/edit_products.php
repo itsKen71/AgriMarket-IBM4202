@@ -10,42 +10,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $category_id = $_POST['category_id'];  
     $current_image = $_POST['current_image']; 
 
-    $upload_dir = "../Assets/img/product_img/"; // Upload directory for image
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0777, true);
-    }
+    try {
+        // Upload the product image (or use the existing image if no new one)
+        $image_path = updateProductImage($_FILES["product_image"], $current_image);
 
-    // Image upload
-    if (!empty($_FILES["product_image"]["name"])) {
-        $image_name = basename($_FILES["product_image"]["name"]);
-        $target_file = $upload_dir . $image_name;
-        $image_path = "Assets/img/product_img/" . $image_name; 
+        // Update the product in the database
+        $updateSuccess = updateProduct($conn, $product_id, $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price);
 
-        if (move_uploaded_file($_FILES["product_image"]["tmp_name"], $target_file)) 
-        {
-            if (file_exists($current_image)) 
-            {
-                unlink($current_image); // Successfully uploaded the new image, remove the old image if exists
-            }
-        } else {
-            echo "Error uploading image.";
+        if ($updateSuccess) {
+            // Redirect on success
+            header("Location: ../Modules/vendor/product_listings.php?edit=success");
             exit();
+        } else {
+            // If the update fails
+            echo "Error updating product.";
         }
-    } else {
-        $image_path = $current_image; // If no new image, use the existing image
-    }
-
-    // Update the product in the database
-    $stmt = $conn->prepare("UPDATE product 
-                            SET category_id = ?, product_image = ?, description = ?, stock_quantity = ?, weight = ?, unit_price = ? 
-                            WHERE product_id = ?");
-    $stmt->bind_param("issdids", $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_id);
-
-    if ($stmt->execute()) {
-        header("Location: ../Modules/vendor/product_listings.php?edit=success");
-        exit();
-    } else {
-        echo "Error updating product: " . $stmt->error;
+    } catch (Exception $e) {
+        // If image upload fails
+        echo $e->getMessage();
     }
 }
 ?>

@@ -14,7 +14,6 @@ if (!$vendor_id) {
 $approvedProducts = getProductsByStatus($conn, $vendor_id, 'Approved');
 $pendingProducts = getProductsByStatus($conn, $vendor_id, 'Pending');
 $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
-$categories = getCategory($conn);
 
 $vendorDetails = getVendorDetails($vendor_id, $conn);
 $uploadLimit = $vendorDetails['upload_limit'];
@@ -250,7 +249,8 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                         <label for="editCategory" class="form-label">Category</label>
                         <select class="form-control" name="category_id" id="editCategory" required>
                             <?php
-                            while ($category = $categories->fetch_assoc()) {
+                            $categories = getCategories(); 
+                            foreach ($categories as $category) {  
                                 echo "<option value='{$category['category_id']}'>{$category['category_name']}</option>";
                             }
                             ?>
@@ -313,8 +313,8 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                         <select class="form-select" name="category_id" id="category" required>
                             <option value="" disabled selected>Select Category</option>
                             <?php
-                            $categories = getCategory($conn);
-                            while ($category = $categories->fetch_assoc()) {
+                            $categories = getCategories(); 
+                            foreach ($categories as $category) { 
                                 echo "<option value='{$category['category_id']}'>{$category['category_name']}</option>";
                             }
                             ?>

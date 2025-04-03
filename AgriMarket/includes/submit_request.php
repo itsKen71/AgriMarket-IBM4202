@@ -16,19 +16,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $request_description = $_POST['request_description'] ?? null;
     
     if ($vendor_id && $request_type) {
-        $query = "INSERT INTO request (vendor_id, request_type, request_description, request_date) 
-                  VALUES (?, ?, ?, NOW())";
+        $isInserted = insertRequest($conn, $vendor_id, $request_type, $request_description);
         
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("iss", $vendor_id, $request_type, $request_description);
-        
-        if ($stmt->execute()) {
+        if ($isInserted) {
             header("Location: ../Modules/vendor/vendor_profile.php?request=success"); 
             exit();
         } else {
-            echo "Error: " . $stmt->error;
+            echo "Error: Failed to submit the request.";
         }
-        
-        $stmt->close();
     }
 }
+?>
