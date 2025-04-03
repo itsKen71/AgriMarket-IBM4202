@@ -7,18 +7,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     $phone_number = $_POST['phone_number'];
 
-    $vendor_id = 1; // temporary use for testing
-    //$vendor_id = $_SESSION['vendor_id'] ?? null
+    $user_id = 2; // temporary use for testing
+    //$user_id = $_SESSION['user_id'] ?? null
 
-    if (!$vendor_id) {
+    if (!$user_id) {
         header("Location: ../../Modules/authentication/login.php");
         exit();
     }
 
-    // Fetch the current user_id for the vendor
-    $vendor = getVendorDetails($vendor_id, $conn);
+    $vendor = getVendorDetails($user_id, $conn);
     if ($vendor) {
-        $user_id = $vendor['user_id'];
+        $vendor_id = $vendor['vendor_id'];
 
         // Update the vendor store name
         $storeUpdateSuccess = updateVendorProfile($conn, $store_name, $vendor_id);
@@ -33,11 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit();
             } else {
                 // If user details update fails
-                echo "Error updating email and phone: " . $stmt->error;
+                echo "Error updating email and phone";
             }
         } else {
             // If store name update fails
-            echo "Error updating store name: " . $stmt->error;
+            echo "Error updating store name";
         }
     } else {
         echo "Vendor not found.";
