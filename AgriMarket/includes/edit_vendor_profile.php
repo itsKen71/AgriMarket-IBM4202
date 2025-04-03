@@ -15,7 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // Fetch the current user_id for the vendor
     $vendor = getVendorDetails($vendor_id, $conn);
     if ($vendor) {
         $user_id = $vendor['user_id'];
@@ -33,11 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit();
             } else {
                 // If user details update fails
-                echo "Error updating email and phone: " . $stmt->error;
+                echo "Error updating email and phone";
             }
         } else {
             // If store name update fails
-            echo "Error updating store name: " . $stmt->error;
+            echo "Error updating store name";
         }
     } else {
         echo "Vendor not found.";
