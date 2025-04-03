@@ -3,20 +3,23 @@ session_start();
 
 include '../../includes/database.php';
 
-$vendor_id = 1;//temporary use for testing 
-//$vendor_id = $_SESSION['vendor_id'] ?? null;
-
-if (!$vendor_id) {
+$user_id = 2;//temporary use for testing 
+//$user_id = $_SESSION['user_id'] ?? null;
+$vendor = getVendorDetails($user_id, $conn);
+if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php"); // Redirect to login page
     exit(); // 
 }
-
+if (!$vendor) {
+    echo "Error: Vendor profile not found.";
+    exit();
+}
+$vendor_id = $vendor['vendor_id'];
 $approvedProducts = getProductsByStatus($conn, $vendor_id, 'Approved');
 $pendingProducts = getProductsByStatus($conn, $vendor_id, 'Pending');
 $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
 
-$vendorDetails = getVendorDetails($vendor_id, $conn);
-$uploadLimit = $vendorDetails['upload_limit'];
+$uploadLimit = $vendor['upload_limit'];
 $pendingCount = getPendingProductCount($vendor_id, $conn);
 ?>
 

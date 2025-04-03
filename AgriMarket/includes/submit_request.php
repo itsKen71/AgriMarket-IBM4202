@@ -2,10 +2,10 @@
 session_start();
 include 'database.php';
 
-$vendor_id = 1; // Temporary for testing
-//$vendor_id = $_SESSION['vendor_id'] ?? null;
+$user_id = 2; // Temporary for testing
+//$user_id = $_SESSION['user_id'] ?? null;
 
-if (!$vendor_id) {
+if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php"); 
     exit();
 }

@@ -2,16 +2,16 @@
 session_start();
 include '../../includes/database.php';
 
-$vendor_id = 1; // temporary use for testing
-//$vendor_id = $_SESSION['vendor_id'] ?? null;
 
-if (!$vendor_id) {
+$user_id = 2; // temporary use for testing
+//$user_id = $_SESSION['user_id'] ?? null;
+
+if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php"); // Redirect to login page
     exit();
 }
 
-// Fetch all vendor details in one query
-$vendor = getVendorDetails($vendor_id, $conn);
+$vendor = getVendorDetails($user_id, $conn);
 
 if (!$vendor) {
     echo "Error: Vendor profile not found.";
