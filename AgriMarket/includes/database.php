@@ -135,7 +135,6 @@ function getVendorList()
     return ($result->num_rows > 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
 }
 
-
 function updateVendorAssistance($vendor_id, $staff_id)
 {
     global $conn;
@@ -211,7 +210,6 @@ function getStaffList()
     }
 }
 
-
 function getPendingRequestList()
 {
     global $conn;
@@ -243,8 +241,6 @@ function updatePendingRequestStatus($product_id, $status)
 
     return $stmt->execute();
 }
-
-
 
 function getActiveUser($conn)
 {
@@ -430,14 +426,12 @@ function getTopFiveProduct($conn, $user_id)
 
     mysqli_data_seek($result, 0);
 
-
     while ($row = mysqli_fetch_assoc($result)) {
         $percentage = ($totalSold > 0) ? ($row['totalSold'] / $totalSold) * 100 : 0;
         $data[] = ["label" => $row['product_name'], "y" => round($percentage, 2)];
     }
     return $data;
 }
-
 
 function getProductsByStatus($conn, $vendor_id, $status) 
 {
@@ -465,12 +459,10 @@ function getVendorDetails($vendor_id, $conn)
         LEFT JOIN subscription s ON v.subscription_id = s.subscription_id
         WHERE v.vendor_id = ?
     ";
-
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $vendor_id);
     $stmt->execute();
-    $result = $stmt->get_result();
-    
+    $result = $stmt->get_result();  
     return $result->fetch_assoc(); 
 }
 
@@ -485,4 +477,101 @@ function getPendingProductCount($vendor_id, $conn)
     return $row['pending_count'] ?? 0; // Return 0 if no result
 }
 
+function insertRequest($conn, $vendor_id, $request_type, $request_description) {
+    $query = "INSERT INTO request (vendor_id, request_type, request_description, request_date) 
+              VALUES (?, ?, ?, NOW())";
+
+    if ($stmt = $conn->prepare($query)) {
+        $stmt->bind_param("iss", $vendor_id, $request_type, $request_description);
+
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            return false; 
+        }
+    } else {
+        return false;
+    }
+}
+
+function updateVendorProfile($conn, $store_name, $vendor_id) {
+    $query = "UPDATE vendor SET store_name = ? WHERE vendor_id = ?";
+    
+    if ($stmt = $conn->prepare($query)) {
+        $stmt->bind_param("si", $store_name, $vendor_id);
+        return $stmt->execute(); // Return true if success, false if failure
+    }
+    return false; 
+}
+
+function updateUserDetails($conn, $email, $phone_number, $user_id) {
+    $query = "UPDATE user SET email = ?, phone_number = ? WHERE user_id = ?";
+    
+    if ($stmt = $conn->prepare($query)) {
+        $stmt->bind_param("ssi", $email, $phone_number, $user_id);
+        return $stmt->execute(); // Return true if success, false if failure
+    }
+    return false; 
+}
+
+function updateProductImage($file, $current_image, $upload_dir = "../Assets/img/product_img/") {
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0777, true); // Create directory if it doesn't exist
+    }
+
+    $image_path = $current_image; // Default to current image if no new image is uploaded
+
+    if (!empty($file["name"])) {
+        $image_name = basename($file["name"]);
+        $target_file = $upload_dir . $image_name;
+        $image_path = "Assets/img/product_img/" . $image_name;
+
+        if (move_uploaded_file($file["tmp_name"], $target_file)) {
+            if (file_exists($current_image)) {
+                unlink($current_image); // Remove the old image if a new image is uploaded
+            }
+        } else {
+            throw new Exception("Error uploading image.");
+        }
+    }
+    return $image_path;
+}
+
+function updateProduct($conn, $product_id, $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price) {
+    $query = "UPDATE product 
+              SET category_id = ?, product_image = ?, description = ?, stock_quantity = ?, weight = ?, unit_price = ? 
+              WHERE product_id = ?";
+
+    if ($stmt = $conn->prepare($query)) {
+        $stmt->bind_param("issdids", $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_id);
+        return $stmt->execute(); // Return true if successful, false if failed
+    }
+    return false; 
+}
+
+function uploadProductImage($file, $upload_dir = "../Assets/img/product_img/") {
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0777, true); // Create directory if it doesn't exist
+    }
+
+    $image_name = basename($file["name"]);
+    $target_file = $upload_dir . $image_name;
+    $image_path = "Assets/img/product_img/" . $image_name;
+
+    if (move_uploaded_file($file["tmp_name"], $target_file)) {
+        return $image_path; 
+    }
+    throw new Exception("Error uploading image.");
+}
+
+function insertProduct($conn, $vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status) {
+    $query = "INSERT INTO product (vendor_id, category_id, product_name, product_image, description, stock_quantity, weight, unit_price, product_status) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    if ($stmt = $conn->prepare($query)) {
+        $stmt->bind_param("iisssidds", $vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status);
+        return $stmt->execute(); // Return true if successful, false if failed
+    }
+    return false;
+}
 ?>

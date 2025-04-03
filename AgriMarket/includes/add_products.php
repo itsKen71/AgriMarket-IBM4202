@@ -9,27 +9,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $unit_price = $_POST['unit_price'];
     $category_id = $_POST['category_id'];  
     $product_status = "Pending";  // Default status
-    $upload_dir = "../Assets/img/product_img/"; // Upload directory for image
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0777, true);
-    }
-    // Image upload
-    $image_name = basename($_FILES["product_image"]["name"]);
-    $target_file = $upload_dir . $image_name;
-    $image_path = "Assets/img/product_img/" . $image_name; 
-    if (move_uploaded_file($_FILES["product_image"]["tmp_name"], $target_file)) {
-        // Insert into database
-        $stmt = $conn->prepare("INSERT INTO product (vendor_id, category_id, product_name, product_image, description, stock_quantity, weight, unit_price, product_status) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("iisssidds", $vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status);
-        if ($stmt->execute()) {
+
+    try {
+        // Upload the product image
+        $image_path = uploadProductImage($_FILES["product_image"]);
+
+        // Insert the product into the database
+        $insertSuccess = insertProduct($conn, $vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status);
+
+        if ($insertSuccess) {
+            // Redirect on success
             header("Location: ../Modules/vendor/product_listings.php?add=success");
             exit();
         } else {
-            echo "Error adding product: " . $stmt->error;
+            echo "Error adding product.";
         }
-    } else {
-        echo "Error uploading image.";
+    } catch (Exception $e) {
+        // If image upload fails
+        echo $e->getMessage();
     }
 }
 ?>
