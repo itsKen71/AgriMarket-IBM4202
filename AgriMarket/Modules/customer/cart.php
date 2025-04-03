@@ -4,7 +4,7 @@
 
     $user_id = 1;
 
-    // 查询购物车获取 product_id 和 quantity
+    // check cart then get product_id 和 quantity
     $query = "SELECT product_id, quantity FROM cart WHERE user_id = ?";
     $stmt = $conn->prepare($query);
 
@@ -19,9 +19,9 @@
     $products = [];
     while ($row = $result->fetch_assoc()) {
         $product_id = $row['product_id'];
-        $quantity = $row['quantity']; // 获取购物车中对应的数量
+        $quantity = $row['quantity']; // get cart quantity
 
-        // 查询产品详情
+        // get roduct info
         $query_product = "SELECT * FROM product WHERE product_id = ?";
         $stmt_product = $conn->prepare($query_product);
 
@@ -34,84 +34,139 @@
         $result_product = $stmt_product->get_result();
 
         if ($product = $result_product->fetch_assoc()) {
-            $product['quantity'] = $quantity; // 将购物车的数量添加到产品数据里
+            $product['quantity'] = $quantity; // put cart quantity into array
             $products[] = $product;
         }
     }
 
-    // 在cart.php中
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_item'])) {
-    $product_id = $_POST['product_id'];
-    
-    $delete_query = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
-    $stmt_delete = $conn->prepare($delete_query);
-    
-    if ($stmt_delete) {
-        $stmt_delete->bind_param("ii", $user_id, $product_id);
-        $stmt_delete->execute();
-        $stmt_delete->close();
+    //Delete cart
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_item'])) {
+        $product_id = $_POST['product_id'];
         
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true]);
-        exit();
-    } else {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'error' => 'Database error']);
-        exit();
-    }
-}
-
-    // 处理数量更新请求
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
-    $product_id = $_POST['product_id'];
-    $new_quantity = $_POST['new_quantity'];
-    
-    // 验证数量 (至少为1)
-    $new_quantity = max(1, (int)$new_quantity);
-    
-    $update_query = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
-    $stmt_update = $conn->prepare($update_query);
-    
-    if ($stmt_update) {
-        $stmt_update->bind_param("iii", $new_quantity, $user_id, $product_id);
-        $stmt_update->execute();
-        $stmt_update->close();
+        $delete_query = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
+        $stmt_delete = $conn->prepare($delete_query);
         
-        // 返回JSON响应
-        header('Content-Type: application/json');
-        echo json_encode([
-            'success' => true,
-            'new_quantity' => $new_quantity,
-            'subtotal' => number_format($_POST['unit_price'] * $new_quantity, 2)
-        ]);
-        exit();
-    } else {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'error' => 'Database error']);
-        exit();
+        if ($stmt_delete) {
+            $stmt_delete->bind_param("ii", $user_id, $product_id);
+            $stmt_delete->execute();
+            $stmt_delete->close();
+            
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true]);
+            exit();
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Database error']);
+            exit();
+        }
     }
-}
 
-// 在查询产品详情前添加这个函数
-function getAverageRating($conn, $productId) {
-    $query = "SELECT AVG(rating) as average_rating FROM review WHERE product_id = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $productId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    return round($row['average_rating'] ?? 0, 1); // 四舍五入到1位小数
-}
+    // quantity update
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
+        $product_id = $_POST['product_id'];
+        $new_quantity = $_POST['new_quantity'];
+        
+        // verify quantity atleast 1
+        $new_quantity = max(1, (int)$new_quantity);
+        
+        $update_query = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
+        $stmt_update = $conn->prepare($update_query);
+        
+        if ($stmt_update) {
+            $stmt_update->bind_param("iii", $new_quantity, $user_id, $product_id);
+            $stmt_update->execute();
+            $stmt_update->close();
+            
+            // return JSON response
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'new_quantity' => $new_quantity,
+                'subtotal' => number_format($_POST['unit_price'] * $new_quantity, 2)
+            ]);
+            exit();
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Database error']);
+            exit();
+        }
+    }
 
-// 修改获取所有产品的查询
-$allProducts = [];
-$allProductsQuery = "SELECT p.* FROM product p";
-$allProductsResult = $conn->query($allProductsQuery);
-while ($row = $allProductsResult->fetch_assoc()) {
-    $row['average_rating'] = getAverageRating($conn, $row['product_id']);
-    $allProducts[$row['product_id']] = $row;
-}
+    // get rating
+    function getAverageRating($conn, $productId) {
+        $query = "SELECT AVG(rating) as avg_rating FROM review WHERE product_id = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $productId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return round($row['avg_rating'], 1) ?? 0; // round to 1 decimal place
+    }
 
+    // get all product query
+    $allProducts = [];
+    $allProductsQuery = "SELECT p.* FROM product p";
+    $allProductsResult = $conn->query($allProductsQuery);
+    while ($row = $allProductsResult->fetch_assoc()) {
+        $row['average_rating'] = getAverageRating($conn, $row['product_id']);
+        $allProducts[$row['product_id']] = $row;
+    }
+
+    function displayStars($rating) {
+        $fullStars = floor($rating);
+        $hasHalfStar = ($rating - $fullStars) >= 0.5;
+        $emptyStars = 5 - $fullStars - ($hasHalfStar ? 1 : 0);
+        $output = '';
+        // Full stars
+        for ($i = 0; $i < $fullStars; $i++) {
+            $output .= '<i class="fas fa-star"></i>';
+        }
+        // Half star
+        if ($hasHalfStar) {
+            $output .= '<i class="fas fa-star-half-alt"></i>';
+        }
+        // Empty stars
+        for ($i = 0; $i < $emptyStars; $i++) {
+            $output .= '<i class="far fa-star"></i>';
+        }
+        return $output;
+    }
+    
+    // Handle product switching
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['switch_product'])) {
+        $current_product_id = $_POST['current_product_id'];
+        $compare_product_id = $_POST['compare_product_id'];
+        $user_id = 1; // use user id
+
+        $conn->begin_transaction();
+
+        try {
+            // delete current product
+            $delete_query = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
+            $stmt_delete = $conn->prepare($delete_query);
+            $stmt_delete->bind_param("ii", $user_id, $current_product_id);
+            $stmt_delete->execute();
+            
+            // add compare product
+            $insert_query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, 1)
+                            ON DUPLICATE KEY UPDATE quantity = 1";
+            $stmt_insert = $conn->prepare($insert_query);
+            $stmt_insert->bind_param("ii", $user_id, $compare_product_id);
+            $stmt_insert->execute();
+            
+            $conn->commit();
+            
+            // return correct 
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true]);
+            exit();
+        } catch (Exception $e) {
+            $conn->rollback();
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit();
+        }
+    }
 ?>
 
 <!DOCTYPE html>
@@ -149,10 +204,10 @@ while ($row = $allProductsResult->fetch_assoc()) {
         .total-section {
             position: fixed;
             bottom: 0;
-            left: 50%; /* 居中定位 */
-            transform: translateX(-50%); /* 精确居中 */
-            width: 100%; /* 初始宽度 */
-            max-width: 100%; /* 防止溢出 */
+            left: 50%; 
+            transform: translateX(-50%);
+            width: 100%; 
+            max-width: 100%; 
             z-index: 1000;
             border-radius: 0 !important;
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
@@ -191,45 +246,41 @@ while ($row = $allProductsResult->fetch_assoc()) {
             padding-bottom: 65px;
         }
 
-        /* 比较模态框样式 */
-#compareModal .modal-dialog {
-    max-width: 90%;
-}
+        #compareModal .modal-dialog {
+            max-width: 90%;
+        }
 
-.compare-product-image {
-    max-height: 200px;
-    width: auto;
-    margin: 0 auto;
-    display: block;
-}
+        .compare-product-image {
+            max-height: 200px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+        }
 
-/* 卡片样式 */
-#compareModal .card {
-    height: 100%;
-    transition: all 0.3s ease;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
+        #compareModal .card {
+            height: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
 
-#compareModal .card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
+        #compareModal .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
 
-/* 响应式调整 */
-@media (max-width: 768px) {
-    #compareModal .modal-dialog {
-        margin: 0.5rem auto;
-    }
-    
-    #compareModal .row {
-        flex-direction: column;
-    }
-    
-    #compareModal .col-md-6 {
-        margin-bottom: 1rem;
-    }
-}
+        @media (max-width: 768px) {
+            #compareModal .modal-dialog {
+                margin: 0.5rem auto;
+            }
+            
+            #compareModal .row {
+                flex-direction: column;
+            }
+            
+            #compareModal .col-md-6 {
+                margin-bottom: 1rem;
+            }
+        }
     </style>
-
 </head>
 
 <body class="cart">
@@ -318,11 +369,11 @@ while ($row = $allProductsResult->fetch_assoc()) {
                     <span class="me-3">Total (0 Items):</span>
                     <span class="price-color fs-4 fw-bold">RM0.00</span>
                     <form id="checkoutForm" method="POST" action="check_out.php">
-    <input type="hidden" name="selected_products" id="selectedProducts">
-    <button type="submit" class="checkout-btn ms-3 btn btn-danger px-4 py-2 fw-medium">
-        Check Out <i class="fas fa-arrow-right ms-2"></i>
-    </button>
-</form>
+                        <input type="hidden" name="selected_products" id="selectedProducts">
+                        <button type="submit" class="checkout-btn ms-3 btn btn-danger px-4 py-2 fw-medium">
+                            Check Out <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -331,35 +382,35 @@ while ($row = $allProductsResult->fetch_assoc()) {
     <div class="modal fade" id="compareModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
+        <div class="modal-header text-white" style="background-color: #c9d8b6;" >
             <h5 class="modal-title">Product Comparison</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
             <form id="compareForm">
             <div class="row g-4">
-                <!-- 当前商品 -->
+                <!-- current product -->
                 <div class="col-md-6">
                 <div class="card h-100">
                     <div class="card-header bg-light">
                     <h6 class="mb-0">Selected Product</h6>
                     </div>
                     <div class="card-body" id="currentProduct">
-                    <img src="" class="img-fluid rounded mb-3" id="currentProductImage" style="max-height: 200px;">
-                    <h4 id="currentProductName"></h4>
-                    <div class="text-muted mb-2" id="currentProductCategory"></div>
-                    <div class="h5 text-danger mb-3" id="currentProductPrice"></div>
-                    <div class="mb-3" id="currentProductDescription"></div>
-                    <div class="mb-3">
-    <span class="text-muted">Sold Quantity: </span>
-    <span id="currentProductSoldQuantity"></span>
-</div>
-
+                        <img src="" class="img-fluid rounded mb-3" id="currentProductImage" style="max-height: 200px;">
+                        <h4 id="currentProductName"></h4>
+                        <div class="text-muted mb-2" id="currentProductCategory"></div>
+                        <div class="h5 text-danger mb-3" id="currentProductPrice"></div>
+                        <div class="mb-3" id="currentProductDescription"></div>
+                        <div class="mb-3">
+                            <span class="text-muted">Sold Quantity: </span>
+                            <span id="currentProductSoldQuantity"></span>
+                        </div>
+                        <div id="currentProductRating" class="mb-2"></div>
                     </div>
                 </div>
                 </div>
                 
-                <!-- 对比商品 -->
+                <!-- Comapre Product -->
                 <div class="col-md-6">
                 <div class="card h-100">
                     <div class="card-header bg-light">
@@ -371,7 +422,7 @@ while ($row = $allProductsResult->fetch_assoc()) {
                         <select class="form-select" id="compareProductSelect">
                         <option value="">-- Select a product --</option>
                         <?php 
-                        // 获取所有产品列表
+                        // get all data query
                         $allProductsQuery = "SELECT product_id, product_name FROM product";
                         $allProductsResult = $conn->query($allProductsQuery);
                         while ($product = $allProductsResult->fetch_assoc()): 
@@ -390,9 +441,10 @@ while ($row = $allProductsResult->fetch_assoc()) {
                         <div class="h5 text-danger mb-3" id="compareProductPrice"></div>
                         <div class="mb-3" id="compareProductDescription"></div>
                         <div class="mb-3">
-    <span class="text-muted">Sold Quantity: </span>
-    <span id="compareProductSoldQuantity"></span>
-</div>
+                            <span class="text-muted">Sold Quantity: </span>
+                            <span id="compareProductSoldQuantity"></span>
+                        </div>
+                        <div id="compareProductRating" class="mb-2 d-flex align-items-center"></div>
                     </div>
                     </div>
                 </div>
@@ -401,67 +453,69 @@ while ($row = $allProductsResult->fetch_assoc()) {
             </form>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <button type="button" class="btn btn-primary" id="switchProductsBtn">
+        <i class="fas fa-random me-1"></i> Switch Product
+    </button>
+</div>
         </div>
     </div>
     </div>
 
-    <!-- 提示模态框 -->
-<div class="modal fade" id="alertModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-warning text-white">
-        <h5 class="modal-title">Notification</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body text-center">
-        <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
-        <p id="alertMessage">Please select at least one product.</p>
-      </div>
-      <div class="modal-footer justify-content-center">
-        <button type="button" class="btn btn-warning text-white" data-bs-dismiss="modal">OK</button>
-      </div>
+    <!-- warning message -->
+    <div class="modal fade" id="alertModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header bg-warning text-white">
+            <h5 class="modal-title">Notification</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+            <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+            <p id="alertMessage">Please select at least one product.</p>
+        </div>
+        <div class="modal-footer justify-content-center">
+            <button type="button" class="btn btn-warning text-white" data-bs-dismiss="modal">OK</button>
+        </div>
+        </div>
     </div>
-  </div>
-</div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>
 
 
 
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 为所有加减按钮添加事件监听
-    document.querySelectorAll('.plus-btn, .minus-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const isPlus = this.classList.contains('plus-btn');
-            const quantityDisplay = this.parentElement.querySelector('.quantity-display');
-            const subtotalElement = this.closest('.cart-item').querySelector('.subtotal');
-            const productId = this.dataset.productId;
-            const unitPrice = parseFloat(this.dataset.unitPrice);
-            
-            let currentQuantity = parseInt(quantityDisplay.textContent);
-            let newQuantity = isPlus ? currentQuantity + 1 : Math.max(1, currentQuantity - 1);
-            
-            // 立即更新UI (乐观更新)
-            quantityDisplay.textContent = newQuantity;
-            const newSubtotal = (unitPrice * newQuantity).toFixed(2);
-            subtotalElement.textContent = 'RM' + newSubtotal;
-            
-            // 更新总价
-            updateCartTotals();
-            
-            // 发送请求到服务器
-            updateQuantityInDatabase(productId, newQuantity, unitPrice);
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // add event listeners for all plus and minus buttons
+        document.querySelectorAll('.plus-btn, .minus-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const isPlus = this.classList.contains('plus-btn');
+                const quantityDisplay = this.parentElement.querySelector('.quantity-display');
+                const subtotalElement = this.closest('.cart-item').querySelector('.subtotal');
+                const productId = this.dataset.productId;
+                const unitPrice = parseFloat(this.dataset.unitPrice);
+                
+                let currentQuantity = parseInt(quantityDisplay.textContent);
+                let newQuantity = isPlus ? currentQuantity + 1 : Math.max(1, currentQuantity - 1);
+                
+                // update UI
+                quantityDisplay.textContent = newQuantity;
+                const newSubtotal = (unitPrice * newQuantity).toFixed(2);
+                subtotalElement.textContent = 'RM' + newSubtotal;
+                
+                // update total price
+                updateCartTotals();
+                
+                // update quantity
+                updateQuantityInDatabase(productId, newQuantity, unitPrice);
+            });
         });
-    });
     
-    // 更新数据库中的数量
+    // update database product quantity
     function updateQuantityInDatabase(productId, newQuantity, unitPrice) {
         fetch('cart.php', {
             method: 'POST',
@@ -473,11 +527,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (!data.success) {
-                // 如果服务器更新失败，恢复UI
+                // if server update fail, refresh UI
                 alert('Failed to update quantity: ' + (data.error || 'Unknown error'));
-                location.reload(); // 重新加载页面以同步状态
+                location.reload(); // reload page
             }
-            // 成功则不需要做任何事，因为我们已经乐观更新了
         })
         .catch(error => {
             console.error('Error:', error);
@@ -486,256 +539,322 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 全选/取消全选功能
-document.querySelectorAll('.select-all').forEach(selectAll => {
-    selectAll.addEventListener('change', function() {
-        const isChecked = this.checked;
-        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-            checkbox.checked = isChecked;
-        });
-        updateCartTotals(); // 更新总价
-    });
-});
-
-// 单个商品选择变化时检查全选状态
-document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-    checkbox.addEventListener('change', function() {
-        // 检查是否需要更新全选复选框状态
-        const allChecked = [...document.querySelectorAll('.item-checkbox')].every(cb => cb.checked);
-        document.querySelectorAll('.select-all').forEach(selectAll => {
-            selectAll.checked = allChecked;
-        });
-        updateCartTotals(); // 更新总价
-    });
-});
-
-// 更新购物车总价和总数（修改现有函数）
-function updateCartTotals() {
-    const checkedItems = document.querySelectorAll('.item-checkbox:checked');
-    let totalItems = 0;
-    let totalPrice = 0;
-    
-    checkedItems.forEach(checkbox => {
-        const cartItem = checkbox.closest('.cart-item');
-        const quantity = parseInt(cartItem.querySelector('.quantity-display').textContent);
-        const unitPrice = parseFloat(checkbox.dataset.unitPrice);
-        
-        totalItems += quantity;
-        totalPrice += unitPrice * quantity;
-    });
-    
-    // 更新显示
-    const totalItemsElement = document.querySelector('.total-section span:first-child');
-    const totalPriceElement = document.querySelector('.price-color.fs-4');
-    
-    totalItemsElement.textContent = `Total (${totalItems} ${totalItems === 1 ? 'Item' : 'Items'}):`;
-    totalPriceElement.textContent = `RM${totalPrice.toFixed(2)}`;
-    
-    // 如果没有选中任何商品，显示0
-    if (checkedItems.length === 0) {
-        totalItemsElement.textContent = 'Total (0 Items):';
-        totalPriceElement.textContent = 'RM0.00';
-    }
-}
-    
-// 删除选中商品
-// 处理所有删除按钮点击事件
-document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        let productIds = [];
-        
-        // 判断是批量删除还是单个删除
-        if (this.classList.contains('btn-link')) {
-            // 批量删除 - 获取所有选中的商品ID
-            document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
-                productIds.push(checkbox.dataset.productId);
+    //select all and no select all function
+    document.querySelectorAll('.select-all').forEach(selectAll => {
+        selectAll.addEventListener('change', function() {
+            const isChecked = this.checked;
+            document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
             });
+            updateCartTotals(); //update total price
+        });
+    });
+
+    // check all selected status when single item selection changes
+    document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // check if the selected checkbox state needs to be updated
+            const allChecked = [...document.querySelectorAll('.item-checkbox')].every(cb => cb.checked);
+            document.querySelectorAll('.select-all').forEach(selectAll => {
+                selectAll.checked = allChecked;
+            });
+            updateCartTotals(); // update total price
+        });
+    });
+
+    // update cart total price and total item being choose
+    function updateCartTotals() {
+        const checkedItems = document.querySelectorAll('.item-checkbox:checked');
+        let totalItems = 0;
+        let totalPrice = 0;
+        
+        checkedItems.forEach(checkbox => {
+            const cartItem = checkbox.closest('.cart-item');
+            const quantity = parseInt(cartItem.querySelector('.quantity-display').textContent);
+            const unitPrice = parseFloat(checkbox.dataset.unitPrice);
             
-            if (productIds.length === 0) {
-                showToastMessage('Please select items to delete');
-                return;
+            totalItems += quantity;
+            totalPrice += unitPrice * quantity;
+        });
+        
+        // update display
+        const totalItemsElement = document.querySelector('.total-section span:first-child');
+        const totalPriceElement = document.querySelector('.price-color.fs-4');
+        
+        totalItemsElement.textContent = `Total (${totalItems} ${totalItems === 1 ? 'Item' : 'Items'}):`;
+        totalPriceElement.textContent = `RM${totalPrice.toFixed(2)}`;
+        
+        // if no item select then total quantity and product is 0
+        if (checkedItems.length === 0) {
+            totalItemsElement.textContent = 'Total (0 Items):';
+            totalPriceElement.textContent = 'RM0.00';
+        }
+    }
+    
+    // delete selected product
+    // handle all delete button click events
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            let productIds = [];
+            
+            // determine whether to delete in batches or individually
+            if (this.classList.contains('btn-link')) {
+                // batch delete - get all selected product IDs
+                document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
+                    productIds.push(checkbox.dataset.productId);
+                });
+                
+                if (productIds.length === 0) {
+                    showToastMessage('Please select items to delete');
+                    return;
+                }
+            } else {
+            // single deletion - get the ID of the current product
+                productIds.push(this.dataset.productId);
+            }
+            
+            // execute delete operation
+            deleteItems(productIds);
+        });
+    });
+
+    // unified delete function
+    function deleteItems(productIds) {
+        // create an array of delete requests
+        const deletePromises = productIds.map(productId => {
+            return fetch('cart.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `delete_item=1&product_id=${productId}`
+            }).then(response => response.json());
+        });
+        
+        // execute all delete request
+        Promise.all(deletePromises)
+            .then(results => {
+                const allSuccess = results.every(result => result.success);
+                
+                if (allSuccess) {
+                    // remove the deleted item from the DOM
+                    productIds.forEach(productId => {
+                        const item = document.querySelector(`[data-product-id="${productId}"]`).closest('.cart-item');
+                        if (item) {
+                            item.style.transition = 'all 0.3s ease';
+                            item.style.opacity = '0';
+                            item.style.height = '0';
+                            item.style.padding = '0';
+                            item.style.margin = '0';
+                            setTimeout(() => {
+                                item.remove();
+                                // update cart total after delete
+                                updateCartTotals();
+                            }, 300);
+                        }
+                    });
+
+                    showToastMessage(productIds.length > 1 
+                        ? `${productIds.length} items deleted` 
+                        : 'Item deleted');
+                } else {
+                    showToastMessage('Some items could not be deleted');
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToastMessage('Error occurred while deleting items');
+                location.reload();
+            });
+    }
+
+    // show toast
+    function showToastMessage(message) {
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.padding = '10px 20px';
+        toast.style.backgroundColor = '#333';
+        toast.style.color = '#fff';
+        toast.style.borderRadius = '5px';
+        toast.style.zIndex = '1000';
+        document.body.appendChild(toast);
+        
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // initial compare btn
+    document.querySelectorAll('.similar-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            openCompareModal(productId);
+        });
+    });
+
+
+    // open form
+    function openCompareModal(productId) {
+        // load current product info
+        loadCurrentProduct(productId);
+        
+        // reset compare product
+        document.getElementById('compareProductSelect').value = '';
+        document.getElementById('compareProductContainer').style.display = 'none';
+        
+        // display form
+        const compareModal = new bootstrap.Modal('#compareModal');
+        compareModal.show();
+    }
+
+    // load current product info
+    function loadCurrentProduct(productId) {
+        const productItem = document.querySelector(`[data-product-id="${productId}"]`).closest('.cart-item');
+        
+        if (productItem) {
+            document.getElementById('currentProductName').textContent = 
+                productItem.querySelector('.fw-medium').textContent;
+            document.getElementById('currentProductImage').src = 
+                productItem.querySelector('.product-image').src;
+            document.getElementById('currentProductPrice').textContent = 
+                productItem.querySelector('.text-center.fw-medium .fw-medium').textContent;
+
+            // generate complete product information from data generated by PHP
+            const allProducts = <?php echo json_encode($allProducts); ?>;
+            
+            const currentProduct = allProducts[productId];
+            if (currentProduct) {
+                document.getElementById('currentProductSoldQuantity').textContent = 
+                    currentProduct.sold_quantity || '0';
+                document.getElementById('currentProductDescription').textContent = 
+                    currentProduct.description || '-';
+
+                // rating
+                document.getElementById('currentProductRating').innerHTML = generateStars(currentProduct.average_rating);
+            }
+        }
+    }
+
+    //generate rating 
+    function generateStars(rating) {
+        let fullStars = Math.floor(rating);
+        let hasHalfStar = (rating - fullStars) >= 0.5;
+        let emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        let stars = '';
+
+        for (let i = 0; i < fullStars; i++) {
+            stars += '<i class="fas fa-star text-warning"></i>';
+        }
+        if (hasHalfStar) {
+            stars += '<i class="fas fa-star-half-alt text-warning"></i>';
+        }
+        for (let i = 0; i < emptyStars; i++) {
+            stars += '<i class="far fa-star text-warning"></i>';
+        }
+
+        //rating score
+        return `<span class="me-2 fw-bold">${rating.toFixed(1)}</span>${stars}`;
+    }
+
+    // product select incident
+    document.getElementById('compareProductSelect').addEventListener('change', function() {
+        const selectedProductId = this.value;
+        
+        if (selectedProductId) {
+            // generate complete product information from data generated by PHP
+            const allProducts = <?php echo json_encode($allProducts ?? []); ?>;
+            const product = allProducts[selectedProductId];
+            
+            if (product) {
+                document.getElementById('compareProductContainer').style.display = 'block';
+                document.getElementById('compareProductName').textContent = product.product_name;
+                document.getElementById('compareProductImage').src = '../../' + product.product_image;
+                document.getElementById('compareProductPrice').textContent = 'RM' + parseFloat(product.unit_price).toFixed(2);
+                document.getElementById('compareProductDescription').textContent = product.description || 'No description available';
+                
+                // update sold quantity
+                document.getElementById('compareProductSoldQuantity').textContent = 
+                    product.sold_quantity || '0';
+
+                // rating
+                document.getElementById('compareProductRating').innerHTML = generateStars(product.average_rating);
             }
         } else {
-            // 单个删除 - 获取当前商品的ID
-            productIds.push(this.dataset.productId);
+            document.getElementById('compareProductContainer').style.display = 'none';
         }
+    });
+
+
+    document.querySelector('.checkout-btn').addEventListener('click', function (e) {
+        e.preventDefault();  // prevent default commit
+        let selected = [];
         
-        // 执行删除操作
-        deleteItems(productIds);
-    });
-});
-
-// 统一的删除函数
-function deleteItems(productIds) {
-    // 创建删除请求数组
-    const deletePromises = productIds.map(productId => {
-        return fetch('cart.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `delete_item=1&product_id=${productId}`
-        }).then(response => response.json());
-    });
-    
-    // 执行所有删除请求
-    Promise.all(deletePromises)
-        .then(results => {
-            const allSuccess = results.every(result => result.success);
-            
-            if (allSuccess) {
-                // 从DOM中移除已删除的商品
-                productIds.forEach(productId => {
-                    const item = document.querySelector(`[data-product-id="${productId}"]`).closest('.cart-item');
-                    if (item) {
-                        item.style.transition = 'all 0.3s ease';
-                        item.style.opacity = '0';
-                        item.style.height = '0';
-                        item.style.padding = '0';
-                        item.style.margin = '0';
-                        setTimeout(() => {
-                            item.remove();
-                            // 确保在DOM完全移除后更新总计
-                            updateCartTotals();
-                        }, 300);
-                    }
-                });
-
-                showToastMessage(productIds.length > 1 
-                    ? `${productIds.length} items deleted` 
-                    : 'Item deleted');
-            } else {
-                showToastMessage('Some items could not be deleted');
-                location.reload();
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToastMessage('Error occurred while deleting items');
-            location.reload();
+        document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
+            selected.push(checkbox.getAttribute('data-product-id'));
         });
-}
 
-// 显示Toast消息的函数
-function showToastMessage(message) {
-    const toast = document.createElement('div');
-    toast.textContent = message;
-    toast.style.position = 'fixed';
-    toast.style.bottom = '20px';
-    toast.style.right = '20px';
-    toast.style.padding = '10px 20px';
-    toast.style.backgroundColor = '#333';
-    toast.style.color = '#fff';
-    toast.style.borderRadius = '5px';
-    toast.style.zIndex = '1000';
-    document.body.appendChild(toast);
-    
-    setTimeout(() => toast.remove(), 3000);
-}
-
-// 初始化比较按钮
-document.querySelectorAll('.similar-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const productId = this.getAttribute('data-product-id');
-        openCompareModal(productId);
-    });
-});
-
-
-// 打开比较模态框
-function openCompareModal(productId) {
-    // 加载当前产品详情
-    loadCurrentProduct(productId);
-    
-    // 重置比较产品选择
-    document.getElementById('compareProductSelect').value = '';
-    document.getElementById('compareProductContainer').style.display = 'none';
-    
-    // 显示模态框
-    const compareModal = new bootstrap.Modal('#compareModal');
-    compareModal.show();
-}
-
-// 加载当前产品详情
-function loadCurrentProduct(productId) {
-    // 这里直接从页面中获取已加载的产品信息
-    const productItem = document.querySelector(`[data-product-id="${productId}"]`).closest('.cart-item');
-    
-    if (productItem) {
-        document.getElementById('currentProductName').textContent = 
-            productItem.querySelector('.fw-medium').textContent;
-        document.getElementById('currentProductImage').src = 
-            productItem.querySelector('.product-image').src;
-        document.getElementById('currentProductPrice').textContent = 
-            productItem.querySelector('.text-center.fw-medium .fw-medium').textContent;
-        
-        // 从PHP生成的数据中获取完整产品信息
-        const allProducts = <?php 
-            $allProducts = [];
-            $allProductsQuery = "SELECT * FROM product";
-            $result = $conn->query($allProductsQuery);
-            while ($row = $result->fetch_assoc()) {
-                $allProducts[$row['product_id']] = $row;
-            }
-            echo json_encode($allProducts);
-        ?>;
-        
-        const currentProduct = allProducts[productId];
-        if (currentProduct) {
-            // 更新销售数量
-            document.getElementById('currentProductSoldQuantity').textContent = 
-                currentProduct.sold_quantity || '0';
-                document.getElementById('currentProductDescription').textContent = 
-                currentProduct.description || '-';
+        if (selected.length === 0) {
+            // display error
+            const alertModal = new bootstrap.Modal('#alertModal');
+            document.getElementById('alertMessage').textContent = "Please select at least one product.";
+            alertModal.show();
+            return;
         }
-    }
-}
 
-// 产品选择变化事件
-document.getElementById('compareProductSelect').addEventListener('change', function() {
-    const selectedProductId = this.value;
-    
-    if (selectedProductId) {
-        // 从PHP生成的数据中获取产品信息
-        const allProducts = <?php echo json_encode($allProducts ?? []); ?>;
-        const product = allProducts[selectedProductId];
-        
-        if (product) {
-            document.getElementById('compareProductContainer').style.display = 'block';
-            document.getElementById('compareProductName').textContent = product.product_name;
-            document.getElementById('compareProductImage').src = '../../' + product.product_image;
-            document.getElementById('compareProductPrice').textContent = 'RM' + parseFloat(product.unit_price).toFixed(2);
-            document.getElementById('compareProductDescription').textContent = product.description || 'No description available';
+        document.getElementById('selectedProducts').value = JSON.stringify(selected);
+        document.getElementById('checkoutForm').submit();
+    });
+
+    // switch product
+    document.getElementById('switchProductsBtn').addEventListener('click', async function() {
+        const activeCompareBtn = document.querySelector('.similar-btn.active');
+        if (!activeCompareBtn) {
+            showToastMessage('Please select a product to compare first');
+            return;
+        }
+
+        const currentProductId = activeCompareBtn.dataset.productId;
+        const compareProductId = document.getElementById('compareProductSelect').value;
+
+        if (!compareProductId) {
+            showToastMessage('Please select a product to compare with');
+            return;
+        }
+
+        try {
+            // send switch request
+            const response = await fetch('cart.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `switch_product=1&current_product_id=${currentProductId}&compare_product_id=${compareProductId}`
+            });
             
-            // 更新销售数量
-            document.getElementById('compareProductSoldQuantity').textContent = 
-                product.sold_quantity || '0';
+            const data = await response.json();
+            
+            if (data.success) {
+                // redirection to cart.php
+                window.location.href = 'cart.php';
+            } else {
+                throw new Error(data.error || 'Failed to switch products');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToastMessage(error.message);
         }
-    } else {
-        document.getElementById('compareProductContainer').style.display = 'none';
-    }
-});
-
-document.querySelector('.checkout-btn').addEventListener('click', function (e) {
-    e.preventDefault();  // 防止默认提交
-    let selected = [];
-    
-    document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
-        selected.push(checkbox.getAttribute('data-product-id'));
     });
 
-    if (selected.length === 0) {
-        // 显示美观的提示模态框
-        const alertModal = new bootstrap.Modal('#alertModal');
-        document.getElementById('alertMessage').textContent = "Please select at least one product.";
-        alertModal.show();
-        return;
-    }
-
-    document.getElementById('selectedProducts').value = JSON.stringify(selected);
-    document.getElementById('checkoutForm').submit();
-});
+    // make sure compare btn is active
+    document.querySelectorAll('.similar-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.similar-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
 });
 </script>
