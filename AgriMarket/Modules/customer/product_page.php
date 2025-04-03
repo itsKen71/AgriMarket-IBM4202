@@ -60,6 +60,35 @@
         return $output;
     }
 
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+        $product_id = $_SESSION['selected_product_id'];
+        $user_id = 1;
+        
+        // check if product already exists in cart
+        $check_query = "SELECT * FROM cart WHERE user_id = ? AND product_id = ?";
+        $check_stmt = $conn->prepare($check_query);
+        $check_stmt->bind_param("ii", $user_id, $product_id);
+        $check_stmt->execute();
+        $result = $check_stmt->get_result();
+        
+        if ($result->num_rows >= 1) {
+            // product exists then update quantity
+            $update_query = "UPDATE cart SET quantity = quantity + 1 WHERE user_id = ? AND product_id = ?";
+            $update_stmt = $conn->prepare($update_query);
+            $update_stmt->bind_param("ii", $user_id, $product_id);
+            $update_stmt->execute();
+            $update_stmt->close();
+        } else {
+            // Product no exist insert new record
+            $insert_query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, 1)";
+            $insert_stmt = $conn->prepare($insert_query);
+            $insert_stmt->bind_param("ii", $user_id, $product_id);
+            $insert_stmt->execute();
+            $insert_stmt->close();
+        }
+    }
+
+    
     //get each rating
     $rating_counts = [];
     for ($i = 1; $i <= 5; $i++) {
@@ -166,26 +195,26 @@
             background: white; 
             box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1); 
             margin-top: 20px; 
-            max-height: 500px; /* 你可以调整这个高度 */
+            max-height: 500px; 
             overflow-y: auto;
         }
 
         .comment-box::-webkit-scrollbar {
-            width: 8px; /* 滚动条宽度 */
+            width: 8px; 
         }
 
         .comment-box::-webkit-scrollbar-track {
-            background: #f1f1f1; /* 滚动条轨道颜色 */
+            background: #f1f1f1; 
             border-radius: 5px;
         }
 
         .comment-box::-webkit-scrollbar-thumb {
-            background: #888; /* 滚动条颜色 */
+            background: #888;
             border-radius: 5px;
         }
 
         .comment-box::-webkit-scrollbar-thumb:hover {
-            background: #555; /* 滚动条悬停颜色 */
+            background: #555;
         }
 
         .related-box {
@@ -331,9 +360,12 @@
 
                 <!-- button -->
                 <div class="mt-4 d-flex gap-3">
-                    <button class="btn btn-outline-danger px-4 py-2" style="width: 180px;">
-                        <i class="fas fa-shopping-cart me-2"></i> Add to Cart
-                    </button>
+                    <form method="post" action="" class="d-inline">
+                        <input type="hidden" name="add_to_cart" value="1">
+                        <button type="submit" class="btn btn-outline-danger px-4 py-2" style="width: 180px;">
+                            <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                        </button>
+                    </form>
                     <button class="btn btn-danger px-4 py-2" style="width: 180px;">Buy Now</button>
                 </div>
             </div>
