@@ -2,6 +2,7 @@
 session_start();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // 处理直接从产品页Buy Now过来的请求
     if (isset($_POST["product_id"]) && isset($_POST["quantity"])) {
         $selected_products = [
             [

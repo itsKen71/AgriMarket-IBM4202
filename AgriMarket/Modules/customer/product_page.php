@@ -65,7 +65,22 @@
         $quantity = max(1, intval($_POST['quantity'])); // at least quantity = 1
         $user_id = 1;
         
-        // check is it the product in the cart
+        // First check available stock
+        $stock_query = "SELECT stock_quantity FROM product WHERE product_id = ?";
+        $stock_stmt = $conn->prepare($stock_query);
+        $stock_stmt->bind_param("i", $product_id);
+        $stock_stmt->execute();
+        $stock_result = $stock_stmt->get_result();
+        $product_stock = $stock_result->fetch_assoc()['stock_quantity'];
+        $stock_stmt->close();
+        
+        if ($quantity > $product_stock) {
+            // Redirect back with error message if quantity exceeds stock
+            header("Location: product_page.php?error=stock&available=" . $product_stock);
+            exit();
+        }
+        
+        // check if the product is already in the cart
         $check_query = "SELECT * FROM cart WHERE user_id = ? AND product_id = ?";
         $check_stmt = $conn->prepare($check_query);
         $check_stmt->bind_param("ii", $user_id, $product_id);
@@ -73,14 +88,23 @@
         $result = $check_stmt->get_result();
         
         if ($result->num_rows >= 1) {
-            // if product exist then add quantity
+            // if product exists, check if adding this quantity would exceed stock
+            $cart_item = $result->fetch_assoc();
+            $new_quantity = $cart_item['quantity'] + $quantity;
+            
+            if ($new_quantity > $product_stock) {
+                header("Location: product_page.php?error=stock&available=" . $product_stock);
+                exit();
+            }
+            
+            // update quantity
             $update_query = "UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?";
             $update_stmt = $conn->prepare($update_query);
             $update_stmt->bind_param("iii", $quantity, $user_id, $product_id);
             $update_stmt->execute();
             $update_stmt->close();
         } else {
-            // if product no exist then add product
+            // if product doesn't exist, add it to cart
             $insert_query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)";
             $insert_stmt = $conn->prepare($insert_query);
             $insert_stmt->bind_param("iii", $user_id, $product_id, $quantity);
@@ -94,7 +118,7 @@
     }
 
     
-    //get each rating
+    //11get each rating
     $rating_counts = [];
     for ($i = 1; $i <= 5; $i++) {
     $query = "SELECT COUNT(*) FROM review WHERE product_id = ? AND rating = ?";
@@ -365,14 +389,16 @@
 
                 <!-- button -->
                 <div class="mt-4 d-flex gap-3">
-                    <button type="button" class="btn btn-outline-danger px-4 py-2" style="width: 180px;" 
-                            data-bs-toggle="modal" data-bs-target="#quantityModal">
-                            <i class="fas fa-shopping-cart me-2"></i> Add to Cart
-                    </button>
-                    <button class="btn btn-danger px-4 py-2" style="width: 180px;" 
-                            data-bs-toggle="modal" data-bs-target="#buyNowModal">
-                            Buy Now
-                    </button>
+                <button type="button" class="btn btn-outline-danger px-4 py-2" style="width: 180px;" 
+                        data-bs-toggle="modal" data-bs-target="#quantityModal"
+                        data-stock-quantity="<?php echo $product['stock_quantity']; ?>">
+                    <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                </button>
+                <button class="btn btn-danger px-4 py-2" style="width: 180px;" 
+                        data-bs-toggle="modal" data-bs-target="#buyNowModal"
+                        data-stock-quantity="<?php echo $product['stock_quantity']; ?>">
+                        Buy Now
+                </button>
                 </div>
             </div>
         </div>
@@ -507,11 +533,11 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-            <div class="mb-3">
-                <label for="quantityInput" class="form-label">Quantity</label>
-                <input type="number" class="form-control" id="quantityInput" name="quantity" min="1" value="1" required>
-                <div class="invalid-feedback">The quantity must be at least 1</div>
-            </div>
+                <div class="mb-3">
+                    <label for="quantityInput" class="form-label">Quantity (Available: <span id="availableStock"><?php echo $product['stock_quantity']; ?></span>)</label>
+                    <input type="number" class="form-control" id="quantityInput" name="quantity" min="1" value="1" required>
+                    <div class="invalid-feedback">The quantity must be at least 1</div>
+                </div>
             </div>
             <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -533,10 +559,12 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-            <div class="mb-3">
-                <label for="buyNowQuantity" class="form-label">Quantity</label>
-                <input type="number" class="form-control" id="buyNowQuantity" name="quantity" min="1" value="1" required>
-                <div class="invalid-feedback">The quantity must be at least 1</div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="buyNowQuantity" class="form-label">Quantity (Available: <span id="availableStock"><?php echo $product['stock_quantity']; ?></span>)</label>
+                    <input type="number" class="form-control" id="buyNowQuantity" name="quantity" min="1" value="1" required>
+                    <div class="invalid-feedback">The quantity must be at least 1</div>
+                </div>
             </div>
             </div>
             <div class="modal-footer">
@@ -551,35 +579,131 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     // add to cart form validate
-    document.getElementById('cartForm').addEventListener('submit', function(e) {
-    const quantityInput = document.getElementById('quantityInput');
-    
-    // validate the quantity is it valid
-    if (quantityInput.value < 1 || isNaN(quantityInput.value)) {
-        e.preventDefault(); // if not valid then reject the form apply
-        quantityInput.classList.add('is-invalid');
-    } else {
-        quantityInput.classList.remove('is-invalid');
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const quantityModal = document.getElementById('quantityModal');
+        const cartForm = document.getElementById('cartForm');
+        const quantityInput = document.getElementById('quantityInput');
+        const submitButton = cartForm.querySelector('button[type="submit"]');
+        let stockQuantity = 0;
+
+        // when modal opens, get the stock quantity from the button
+        quantityModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            stockQuantity = parseInt(button.getAttribute('data-stock-quantity'));
+            document.getElementById('availableStock').textContent = stockQuantity;
+            
+            // reset form state when opening
+            quantityInput.classList.remove('is-invalid');
+            quantityInput.value = 1;
+            submitButton.disabled = false;
+        });
+
+        // real-time validate quantity
+        quantityInput.addEventListener('input', function() {
+            validateQuantity();
+        });
+
+        // form submission handler
+        cartForm.addEventListener('submit', function(e) {
+            if (!validateQuantity()) {
+                e.preventDefault();
+            }
+        });
+
+        function validateQuantity() {
+            const quantity = parseInt(quantityInput.value) || 0;
+            let isValid = true;
+            
+            // clear previous invalid states
+            quantityInput.classList.remove('is-invalid');
+            
+            // check if quantity is at least 1 and a number
+            if (quantity < 1 || isNaN(quantity)) {
+                quantityInput.classList.add('is-invalid');
+                quantityInput.nextElementSibling.textContent = 'The quantity must be at least 1';
+                isValid = false;
+            } 
+            // check if quantity exceeds stock
+            else if (quantity > stockQuantity) {
+                quantityInput.classList.add('is-invalid');
+                quantityInput.nextElementSibling.textContent = `Only ${stockQuantity} items available in stock`;
+                isValid = false;
+            }
+            
+            // disable submit button if invalid
+            submitButton.disabled = !isValid;
+            
+            return isValid;
+        }
     });
 
-    // real time validate quantity
-    document.getElementById('quantityInput').addEventListener('input', function() {
-    if (this.value < 1) {
-        this.value = 1;
-    }
-    });
-
-    document.getElementById('buyNowForm').addEventListener('submit', function(e) {
+    document.addEventListener('DOMContentLoaded', function() {
+    const buyNowModal = document.getElementById('buyNowModal');
+    const buyNowForm = document.getElementById('buyNowForm');
     const quantityInput = document.getElementById('buyNowQuantity');
-    
-    if (quantityInput.value < 1 || isNaN(quantityInput.value)) {
-        e.preventDefault();
-        quantityInput.classList.add('is-invalid');
-    } else {
+    const submitButton = buyNowForm.querySelector('button[type="submit"]');
+    let stockQuantity = 0;
+
+    // When modal opens, get the stock quantity from the button
+    buyNowModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        stockQuantity = parseInt(button.getAttribute('data-stock-quantity'));
+        
+        // Reset form state when opening
         quantityInput.classList.remove('is-invalid');
-    }
+        quantityInput.value = 1;
+        submitButton.disabled = false;
     });
+
+    // Validate quantity on input change
+    quantityInput.addEventListener('input', function() {
+        validateQuantity();
+    });
+
+    // Form submission handler
+    buyNowForm.addEventListener('submit', function(e) {
+        if (!validateQuantity()) {
+            e.preventDefault();
+        }
+    });
+
+    function validateQuantity() {
+        const quantity = parseInt(quantityInput.value);
+        let isValid = true;
+        
+        // Clear previous invalid states
+        quantityInput.classList.remove('is-invalid');
+        
+        // Check if quantity is at least 1 and a number
+        if (isNaN(quantity) || quantity < 1) {
+            quantityInput.classList.add('is-invalid');
+            quantityInput.nextElementSibling.textContent = 'The quantity must be at least 1';
+            isValid = false;
+        } 
+        // Check if quantity exceeds stock
+        else if (quantity > stockQuantity) {
+            quantityInput.classList.add('is-invalid');
+            quantityInput.nextElementSibling.textContent = `Only ${stockQuantity} items available in stock`;
+            isValid = false;
+        }
+        
+        // Disable submit button if invalid
+        submitButton.disabled = !isValid;
+        
+        return isValid;
+    }
+
+    buyNowModal.addEventListener('show.bs.modal', function(event) {
+    const button = event.relatedTarget;
+    stockQuantity = parseInt(button.getAttribute('data-stock-quantity'));
+    document.getElementById('availableStock').textContent = stockQuantity;
+    
+    // Reset form state when opening
+    quantityInput.classList.remove('is-invalid');
+    quantityInput.value = 1;
+    submitButton.disabled = false;
+});
+});
 </script>
 </body>
 
