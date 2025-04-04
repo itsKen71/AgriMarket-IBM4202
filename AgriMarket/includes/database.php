@@ -526,7 +526,7 @@ function getVendorDetails($user_id, $conn)
     $query = "
         SELECT v.vendor_id, v.store_name, v.subscription_id, v.subscription_start_date, v.subscription_end_date, v.staff_assisstance_id,
                u.user_id, u.email, u.phone_number, 
-               s.plan_name, s.has_staff_support, s.upload_limit
+               s.plan_name, s.has_staff_support, s.upload_limit, s.has_low_stock_alert
         FROM vendor v
         JOIN user u ON v.user_id = u.user_id
         LEFT JOIN subscription s ON v.subscription_id = s.subscription_id
@@ -539,8 +539,21 @@ function getVendorDetails($user_id, $conn)
     return $result->fetch_assoc();
 }
 
-function getPendingProductCount($vendor_id, $conn)
+function getLowStockProducts($vendor_id, $conn, $threshold = 10)
 {
+    $query = "
+        SELECT product_id, product_name, stock_quantity 
+        FROM product 
+        WHERE vendor_id = ? AND stock_quantity < ?
+    ";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ii", $vendor_id, $threshold);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+function getPendingProductCount($vendor_id, $conn)
+{// Used to determine whether it exceed upload_limit
     $query = "SELECT COUNT(*) AS pending_count FROM product WHERE vendor_id = ? AND product_status = 'Pending'";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $vendor_id);

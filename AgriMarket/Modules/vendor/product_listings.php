@@ -14,6 +14,11 @@ if (!$vendor) {
     exit();
 }
 $vendor_id = $vendor['vendor_id'];
+
+if ($vendor['has_low_stock_alert']) {
+    $lowStockProducts = getLowStockProducts($vendor['vendor_id'], $conn);
+    $lowStockProductsJson = json_encode($lowStockProducts);
+}
 $approvedProducts = getProductsByStatus($conn, $vendor_id, 'Approved');
 $pendingProducts = getProductsByStatus($conn, $vendor_id, 'Pending');
 $rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
@@ -369,12 +374,20 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
     </div>
 </div>
 
+<!-- Low Stock Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;" id="toastContainer">
+    <!-- JS add toast per product -->
+</div>
+
+
 <!-- Add Button -->
 <img src="../../assets/img/add-circle.png" alt="Add Product" class="add-btn" id="addProductBtn"
     data-bs-toggle="modal" data-bs-target="#addProductModal"
     <?php if ($pendingCount >= $uploadLimit) echo 'style="pointer-events: none; opacity: 0.5;"'; ?> >
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>window.lowStockProducts = <?php echo $lowStockProductsJson; ?>;</script> <!-- Pass php data to js -->
 </body>
 
 </html>
+
