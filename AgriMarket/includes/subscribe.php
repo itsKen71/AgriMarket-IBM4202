@@ -5,7 +5,7 @@ include 'database.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_id = $_SESSION['user_id'] ?? null;
     $plan_id = $_POST['plan_id'] ?? null;
-    $months = $_POST['subscription_months'] ?? 1;
+    $months = $_POST['subscription_months'] ?? 1200;
 
     if (!$user_id || !$plan_id) {
         echo "Invalid request.";
