@@ -9,8 +9,10 @@ include '../../includes/database.php';
 $categories = getCategories();
 
 $selected_category_id = $_GET['category_id'] ?? 'all';
+$search_query = $_GET['search'] ?? ''; 
+$filter = $_GET['filter'] ?? ''; 
 
-$products = getApprovedProducts($selected_category_id);
+$products = getApprovedProducts($selected_category_id, $search_query, $filter); 
 ?>
 
 <!DOCTYPE html>
@@ -30,6 +32,74 @@ $products = getApprovedProducts($selected_category_id);
     <?php include '../../includes/header.php'; ?>
 
     <div class="container mt-5">
+        <!-- Search Bar and Filter Button -->
+        <div class="search-filter-container d-flex justify-content-between align-items-center mb-4">
+            <form action="main_page.php" method="GET" class="d-flex flex-grow-1 me-3">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="search" placeholder="Search for products..."
+                        value="<?php echo htmlspecialchars($search_query); ?>">
+                    <button class="btn btn-success" type="submit">Search</button>
+                </div>
+            </form>
+
+            <button class="btn btn-outline-success d-flex align-items-center" type="button" data-bs-toggle="collapse"
+                data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                Filter&nbsp;&nbsp;&nbsp;&#9660;
+            </button>
+        </div>
+        <div class="collapse" id="filterCollapse">
+            <div class="card card-body">
+                <h5 class="mb-3">Filter Options</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <ul class="list-unstyled">
+                            <li>
+                                <a class="btn btn-link text-decoration-none" href="?category_id=<?php echo htmlspecialchars($selected_category_id); ?>&filter=price_asc">Price: Low to High</a>
+                            </li>
+                            <li>
+                                <a class="btn btn-link text-decoration-none" href="?category_id=<?php echo htmlspecialchars($selected_category_id); ?>&filter=price_desc">Price: High to Low</a>
+                            </li>
+                            <li>
+                                <a class="btn btn-link text-decoration-none" href="?category_id=<?php echo htmlspecialchars($selected_category_id); ?>&filter=stock_asc">Stock: Low to High</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-4">
+                        <ul class="list-unstyled">
+                            <li>
+                                <a class="btn btn-link text-decoration-none" href="?category_id=<?php echo htmlspecialchars($selected_category_id); ?>&filter=stock_desc">Stock: High to Low</a>
+                            </li>
+                            <li>
+                                <a class="btn btn-link text-decoration-none" href="?category_id=<?php echo htmlspecialchars($selected_category_id); ?>&filter=sold_asc">Sold Quantity: Low to High</a>
+                            </li>
+                            <li>
+                                <a class="btn btn-link text-decoration-none" href="?category_id=<?php echo htmlspecialchars($selected_category_id); ?>&filter=sold_desc">Sold Quantity: High to Low</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-4">
+                        <ul class="list-unstyled">
+                            <li>
+                                <a class="btn btn-link text-decoration-none" href="?category_id=<?php echo htmlspecialchars($selected_category_id); ?>&filter=weight_asc">Weight: Low to High</a>
+                            </li>
+                            <li>
+                                <a class="btn btn-link text-decoration-none" href="?category_id=<?php echo htmlspecialchars($selected_category_id); ?>&filter=weight_desc">Weight: High to Low</a>
+                            </li>
+                            <li>
+                                <a class="btn btn-link text-decoration-none" href="?category_id=<?php echo htmlspecialchars($selected_category_id); ?>&filter=recent">Recently Added</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3">
+                    <a class="btn btn-danger text-white" href="main_page.php?category_id=<?php echo htmlspecialchars($selected_category_id); ?>">Clear Filter</a>
+                </div>
+            </div>
+        </div>
+
         <!-- Category Navigation -->
         <div class="d-flex align-items-center justify-content-between mb-3">
             <button class="btn btn-outline-success" id="prevCategory">&lt;</button>
