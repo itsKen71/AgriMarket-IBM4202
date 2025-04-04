@@ -2,8 +2,7 @@
 session_start();
 include 'database.php';
 
-$user_id = 2; // Temporary for testing
-//$user_id = $_SESSION['user_id'] ?? null;
+$user_id = $_SESSION['user_id'] ?? null;
 
 if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php"); 

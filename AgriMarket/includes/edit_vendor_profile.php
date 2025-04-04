@@ -7,8 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     $phone_number = $_POST['phone_number'];
 
-    $user_id = 2; // temporary use for testing
-    //$user_id = $_SESSION['user_id'] ?? null
+    $user_id = $_SESSION['user_id'] ?? null;
 
     if (!$user_id) {
         header("Location: ../../Modules/authentication/login.php");

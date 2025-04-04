@@ -1,8 +1,7 @@
 <?php
 session_start();
 
-$user_id = 1;
-//$user_id = $_SESSION['user_id'] ?? null;
+$user_id = $_SESSION['user_id'] ?? null;
 
 if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php"); // Redirect to login page

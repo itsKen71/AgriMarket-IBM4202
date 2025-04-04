@@ -3,8 +3,7 @@ session_start();
 
 include '../../includes/database.php';
 
-$user_id = 2;//temporary use for testing 
-//$user_id = $_SESSION['user_id'] ?? null;
+$user_id = $_SESSION['user_id'] ?? null;
 $vendor = getVendorDetails($user_id, $conn);
 if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php"); // Redirect to login page
