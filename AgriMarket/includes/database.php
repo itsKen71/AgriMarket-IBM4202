@@ -550,7 +550,7 @@ function getPendingProductCount($vendor_id, $conn)
     return $row['pending_count'] ?? 0; // Return 0 if no result
 }
 
-function insertRequest($conn, $vendor_id, $request_type, $request_description)
+function insertRequest($conn, $vendor_id, $request_type, $request_description) 
 {
     $query = "INSERT INTO request (vendor_id, request_type, request_description, request_date) 
               VALUES (?, ?, ?, NOW())";
@@ -568,7 +568,7 @@ function insertRequest($conn, $vendor_id, $request_type, $request_description)
     }
 }
 
-function updateVendorProfile($conn, $store_name, $vendor_id)
+function updateVendorProfile($conn, $store_name, $vendor_id) 
 {
     $query = "UPDATE vendor SET store_name = ? WHERE vendor_id = ?";
 
@@ -579,7 +579,7 @@ function updateVendorProfile($conn, $store_name, $vendor_id)
     return false;
 }
 
-function updateUserDetails($conn, $email, $phone_number, $user_id)
+function updateUserDetails($conn, $email, $phone_number, $user_id) 
 {
     $query = "UPDATE user SET email = ?, phone_number = ? WHERE user_id = ?";
 
@@ -590,7 +590,7 @@ function updateUserDetails($conn, $email, $phone_number, $user_id)
     return false;
 }
 
-function updateProductImage($file, $current_image, $upload_dir = "../Assets/img/product_img/")
+function updateProductImage($file, $current_image, $upload_dir = "../Assets/img/product_img/") 
 {
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0777, true); // Create directory if it doesn't exist
@@ -614,7 +614,7 @@ function updateProductImage($file, $current_image, $upload_dir = "../Assets/img/
     return $image_path;
 }
 
-function updateProduct($conn, $product_id, $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price)
+function updateProduct($conn, $product_id, $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price) 
 {
     $query = "UPDATE product 
               SET category_id = ?, product_image = ?, description = ?, stock_quantity = ?, weight = ?, unit_price = ? 
@@ -627,7 +627,7 @@ function updateProduct($conn, $product_id, $category_id, $image_path, $descripti
     return false;
 }
 
-function uploadProductImage($file, $upload_dir = "../Assets/img/product_img/")
+function uploadProductImage($file, $upload_dir = "../Assets/img/product_img/") 
 {
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0777, true); // Create directory if it doesn't exist
@@ -643,7 +643,7 @@ function uploadProductImage($file, $upload_dir = "../Assets/img/product_img/")
     throw new Exception("Error uploading image.");
 }
 
-function insertProduct($conn, $vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status)
+function insertProduct($conn, $vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status) 
 {
     $query = "INSERT INTO product (vendor_id, category_id, product_name, product_image, description, stock_quantity, weight, unit_price, product_status) 
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -653,5 +653,50 @@ function insertProduct($conn, $vendor_id, $category_id, $product_name, $image_pa
         return $stmt->execute(); // Return true if successful, false if failed
     }
     return false;
+}
+
+function checkIfVendor($conn, $user_id) 
+{// Check if user is already a vendor
+    $query = "SELECT vendor_id FROM vendor WHERE user_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->num_rows > 0;
+}
+
+function upgradeToVendor($conn, $user_id, $plan_id, $end_date) 
+{// Upgrade user to vendor and insert into vendor table
+    // Upgrade user role
+    $update_user = "UPDATE user SET role = 'Vendor' WHERE user_id = ?";
+    $stmt = $conn->prepare($update_user);
+    $stmt->bind_param("i", $user_id);
+    if (!$stmt->execute()) return false;
+
+    // Insert into vendor table
+    $insert_vendor = "INSERT INTO vendor (user_id, subscription_id, store_name, subscription_start_date, subscription_end_date)
+                      VALUES (?, ?, 'New Store', CURDATE(), ?)";
+    $stmt = $conn->prepare($insert_vendor);
+    $stmt->bind_param("iis", $user_id, $plan_id, $end_date);
+    return $stmt->execute();
+}
+
+function updateVendorSubscription($conn, $user_id, $plan_id, $end_date) 
+{// Update vendor's subscription
+    $update_vendor = "UPDATE vendor SET subscription_id = ?, subscription_start_date = CURDATE(), subscription_end_date = ? WHERE user_id = ?";
+    $stmt = $conn->prepare($update_vendor);
+    $stmt->bind_param("isi", $plan_id, $end_date, $user_id);
+    return $stmt->execute();
+}
+
+function getPlanName($conn, $plan_id) 
+{// Get subscription plan name
+    $query = "SELECT plan_name FROM subscription WHERE subscription_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $plan_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $plan = $result->fetch_assoc();
+    return $plan ? $plan['plan_name'] : null;
 }
 ?>

@@ -20,7 +20,7 @@ if (!$user_id) {
     <link rel="icon" type="image/png" href="..\..\assets\img\logo.png">
     <!-- Put CSS & JS Link Here-->
     <link rel="stylesheet" href="../../css/subscription_listing.css">
-    <script src="../../js/subscription.js"></script>
+    <script src="../../js/subscription_listing.js"></script>
 </head>
 
 <body class="subscription_listing">
@@ -36,7 +36,7 @@ if (!$user_id) {
                         <h4>Tier I</h4>
                     </div>
                     <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">$Free</h5> 
+                        <h5 class="card-title">Free</h5> 
                         <div class="text-start"> 
                             <p class="card-text">&#10003 Upload 1 product at a time</p>
                             <p class="card-text">&#10007 Low stock alert</p>
@@ -45,9 +45,12 @@ if (!$user_id) {
                         </div>
                     </div>
                     <div class="card-footer">
-                    <button type="button" class="btn btn-outline-dark" id="tier1Button">
-                        Subscribe
-                    </button>
+                    <form action="../../includes/subscribe.php" method="POST">
+                        <input type="hidden" name="plan_id" value="1">
+                        <button type="submit" class="btn btn-outline-dark">
+                            Subscribe
+                        </button>
+                    </form>
                     </div>
                 </div>
             </div>
@@ -144,24 +147,22 @@ if (!$user_id) {
             </div>
             
             <!-- Success Modal -->
-             <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+            <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="successModalLabel">Subscription Successful</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body" id="subscriptionSuccessText">
-                            <!-- Success message -->
-                            </div>
-
+                        <div class="modal-body">
+                            <p id="subscriptionSuccessText"></p>
+                        </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
                         </div>
                     </div>
                 </div>
             </div>
-
 </div>
 
 <!-- Warning Modal for Missing Payment Method -->
@@ -176,7 +177,7 @@ if (!$user_id) {
                 Please select a payment method before confirming your subscription.
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
     </div>
