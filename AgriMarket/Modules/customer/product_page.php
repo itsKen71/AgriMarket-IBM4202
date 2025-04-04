@@ -60,11 +60,12 @@
         return $output;
     }
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart']) && isset($_POST['quantity'])) {
         $product_id = $_SESSION['selected_product_id'];
+        $quantity = max(1, intval($_POST['quantity'])); // at least quantity = 1
         $user_id = 1;
         
-        // check if product already exists in cart
+        // check is it the product in the cart
         $check_query = "SELECT * FROM cart WHERE user_id = ? AND product_id = ?";
         $check_stmt = $conn->prepare($check_query);
         $check_stmt->bind_param("ii", $user_id, $product_id);
@@ -72,20 +73,24 @@
         $result = $check_stmt->get_result();
         
         if ($result->num_rows >= 1) {
-            // product exists then update quantity
-            $update_query = "UPDATE cart SET quantity = quantity + 1 WHERE user_id = ? AND product_id = ?";
+            // if product exist then add quantity
+            $update_query = "UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?";
             $update_stmt = $conn->prepare($update_query);
-            $update_stmt->bind_param("ii", $user_id, $product_id);
+            $update_stmt->bind_param("iii", $quantity, $user_id, $product_id);
             $update_stmt->execute();
             $update_stmt->close();
         } else {
-            // Product no exist insert new record
-            $insert_query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, 1)";
+            // if product no exist then add product
+            $insert_query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)";
             $insert_stmt = $conn->prepare($insert_query);
-            $insert_stmt->bind_param("ii", $user_id, $product_id);
+            $insert_stmt->bind_param("iii", $user_id, $product_id, $quantity);
             $insert_stmt->execute();
             $insert_stmt->close();
         }
+        
+        $check_stmt->close();
+        header("Location: product_page.php?added=1");
+        exit();
     }
 
     
@@ -360,13 +365,14 @@
 
                 <!-- button -->
                 <div class="mt-4 d-flex gap-3">
-                    <form method="post" action="" class="d-inline">
-                        <input type="hidden" name="add_to_cart" value="1">
-                        <button type="submit" class="btn btn-outline-danger px-4 py-2" style="width: 180px;">
+                    <button type="button" class="btn btn-outline-danger px-4 py-2" style="width: 180px;" 
+                            data-bs-toggle="modal" data-bs-target="#quantityModal">
                             <i class="fas fa-shopping-cart me-2"></i> Add to Cart
-                        </button>
-                    </form>
-                    <button class="btn btn-danger px-4 py-2" style="width: 180px;">Buy Now</button>
+                    </button>
+                    <button class="btn btn-danger px-4 py-2" style="width: 180px;" 
+                            data-bs-toggle="modal" data-bs-target="#buyNowModal">
+                            Buy Now
+                    </button>
                 </div>
             </div>
         </div>
@@ -483,14 +489,98 @@
                 ?>
             </div>
             
-            <!-- 隐藏表单用于产品跳转 -->
+            <!-- Hidden form for product jump -->
             <form id="related_product_form" action="product_page.php" method="post" style="display: none;">
                 <input type="hidden" name="product_id" id="related_product_id">
             </form>
         </div>
     </section>
+    
+    <!-- add to cart form -->
+    <div class="modal fade" id="quantityModal" tabindex="-1" aria-labelledby="quantityModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <form method="post" action="" id="cartForm">
+            <input type="hidden" name="add_to_cart" value="1">
+            <div class="modal-header">
+            <h5 class="modal-title" id="quantityModalLabel">Please enter the purchase quantity          </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <div class="mb-3">
+                <label for="quantityInput" class="form-label">Quantity</label>
+                <input type="number" class="form-control" id="quantityInput" name="quantity" min="1" value="1" required>
+                <div class="invalid-feedback">The quantity must be at least 1</div>
+            </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-outline-danger">Add to Cart</button>
+            </div>
+        </form>
+        </div>
+    </div>
+    </div>
+
+    <!-- Buy now form -->
+    <div class="modal fade" id="buyNowModal" tabindex="-1" aria-labelledby="buyNowModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <form method="post" action="check_out.php" id="buyNowForm">
+            <input type="hidden" name="product_id" value="<?php echo $_SESSION['selected_product_id']; ?>">
+            <div class="modal-header">
+            <h5 class="modal-title" id="buyNowModalLabel">Please enter the purchase quantity</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <div class="mb-3">
+                <label for="buyNowQuantity" class="form-label">Quantity</label>
+                <input type="number" class="form-control" id="buyNowQuantity" name="quantity" min="1" value="1" required>
+                <div class="invalid-feedback">The quantity must be at least 1</div>
+            </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-outline-danger">Proceed to Checkout</button>
+            </div>
+        </form>
+        </div>
+    </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // add to cart form validate
+    document.getElementById('cartForm').addEventListener('submit', function(e) {
+    const quantityInput = document.getElementById('quantityInput');
+    
+    // validate the quantity is it valid
+    if (quantityInput.value < 1 || isNaN(quantityInput.value)) {
+        e.preventDefault(); // if not valid then reject the form apply
+        quantityInput.classList.add('is-invalid');
+    } else {
+        quantityInput.classList.remove('is-invalid');
+    }
+    });
+
+    // real time validate quantity
+    document.getElementById('quantityInput').addEventListener('input', function() {
+    if (this.value < 1) {
+        this.value = 1;
+    }
+    });
+
+    document.getElementById('buyNowForm').addEventListener('submit', function(e) {
+    const quantityInput = document.getElementById('buyNowQuantity');
+    
+    if (quantityInput.value < 1 || isNaN(quantityInput.value)) {
+        e.preventDefault();
+        quantityInput.classList.add('is-invalid');
+    } else {
+        quantityInput.classList.remove('is-invalid');
+    }
+    });
+</script>
 </body>
 
 </html>

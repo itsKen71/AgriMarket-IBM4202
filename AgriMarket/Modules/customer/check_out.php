@@ -2,13 +2,24 @@
 session_start();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $selected_products = json_decode($_POST["selected_products"], true);
-
-    if (empty($selected_products)) {
+    if (isset($_POST["product_id"]) && isset($_POST["quantity"])) {
+        $selected_products = [
+            [
+                'product_id' => $_POST["product_id"],
+                'quantity' => $_POST["quantity"]
+            ]
+        ];
+    } 
+    // 处理从购物车过来的请求
+    elseif (isset($_POST["selected_products"])) {
+        $selected_products = json_decode($_POST["selected_products"], true);
+    }
+    else {
         die("No products selected.");
     }
 
-    print_r($selected_products); // 这里可以处理逻辑，比如查询数据库显示订单信息
+    // 现在$selected_products总是包含产品数组
+    print_r($selected_products); // 调试用，实际处理订单逻辑
 }
 
 ?>
