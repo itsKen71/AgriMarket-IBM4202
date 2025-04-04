@@ -9,7 +9,7 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriMarket - Customer Profile</title>
-    <link rel="icon" type="image/png" href="..\..\assets\img\temp-logo.png">
+    <link rel="icon" type="image/png" href="..\..\assets\img\logo.png">
     <!-- Put CSS & JS Link Here-->
     <link rel="stylesheet" href="../../css/customer_profile.css">
 

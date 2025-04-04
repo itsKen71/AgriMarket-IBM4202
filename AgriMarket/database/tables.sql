@@ -6,11 +6,12 @@ CREATE TABLE user (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
+    username VARCHAR(255) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role ENUM('Customer', 'Vendor', 'Staff', 'Admin') NOT NULL,
-    phone_number VARCHAR(20),
-    home_address VARCHAR(200),
+    phone_number VARCHAR(20) UNIQUE NOT NULL,
+    home_address VARCHAR(200) NOT NULL,
     last_online DATETIME
 );
 

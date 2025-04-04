@@ -26,7 +26,7 @@ $topFiveCategory = getTopFiveProduct($conn,$user_id);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriMarket - Analytics Dashboard</title>
-    <link rel="icon" type="image/png" href="../../assets/img/temp-logo.png">
+    <link rel="icon" type="image/png" href="../../assets/img/logo.png">
     <link rel="stylesheet" href="../../css/analytics_dashboard.css">
     <script src="../../js/analytics_dashboard.js"></script>
 </head>

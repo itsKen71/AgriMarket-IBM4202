@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../authentication/login.php");
+    exit();
+}
 include '../../includes/database.php';
 
 $categories = getCategories();
@@ -16,7 +20,7 @@ $products = getApprovedProducts($selected_category_id);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriMarket - Main Page</title>
-    <link rel="icon" type="image/png" href="../../assets/img/temp-logo.png">
+    <link rel="icon" type="image/png" href="../../assets/img/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../css/main_page.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
