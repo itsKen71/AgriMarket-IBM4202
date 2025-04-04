@@ -1,12 +1,13 @@
 <?php
-
-if (!isset($_SESSION['role'])) {
-    header("Location: ../authentication/login.php");
-    exit();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-$username = $_SESSION['username'] ?? 'Hau Tien';
+require_once '../../includes/database.php';
+
+$user_id = $_SESSION['user_id'];
 $role = $_SESSION['role'];
+$username = getUsernameFromUserID($user_id);
 $homeLink = "#";
 
 if ($role === "Customer") {
@@ -36,7 +37,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <a class="navbar-brand" href="<?php echo $homeLink; ?>">
-                <img src="../../Assets/svg/temp_logo.svg" alt="logo" class="logo">
+                <img src="../../Assets/img/logo.png" alt="logo" class="logo">
                 AgriMarket
             </a>
 
@@ -48,7 +49,6 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <!-- Customer & Vendor Links -->
-
                     <?php if ($role === "Customer" || $role === "Vendor"): ?>
                         <li class="nav-item">
                             <a class="nav-link <?php echo ($currentPage == 'cart.php') ? 'active' : ''; ?>"
@@ -70,10 +70,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                             <a class="nav-link <?php echo ($currentPage == 'product_listings.php') ? 'active' : ''; ?>"
                                 href="../vendor/product_listings.php">Product Listings</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?php echo ($currentPage == 'analytics_dashboard.php') ? 'active' : ''; ?>"
-                                href="../admin/analytics_dashboard.php">Analytics Dashboard</a>
-                        </li>
+                        <?php if (isVendorTierThree($user_id)): ?>
+                            <li class="nav-item">
+                                <a class="nav-link <?php echo ($currentPage == 'analytics_dashboard.php') ? 'active' : ''; ?>"
+                                    href="../admin/analytics_dashboard.php">Analytics Dashboard</a>
+                            </li>
+                        <?php endif; ?>
                     <?php endif; ?>
 
                     <!-- Staff Links -->
@@ -123,7 +125,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                             </li>
                             <li>
                                 <a class="dropdown-item d-flex justify-content-center align-items-center"
-                                    href="../authentication/login.php">
+                                    href="../../includes/logout.php">
                                     <img src="../../Assets/svg/box-arrow-left.svg" alt="Logout" width="20" height="20"
                                         class="me-2">
                                     Logout
@@ -135,8 +137,6 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             </div>
         </div>
     </nav>
-
 </body>
-
 
 </html>

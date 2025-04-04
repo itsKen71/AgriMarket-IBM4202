@@ -1,5 +1,12 @@
 <?php
 session_start();
+
+$user_id = $_SESSION['user_id'] ?? null;
+
+if (!$user_id) {
+    header("Location: ../../Modules/authentication/login.php"); // Redirect to login page
+    exit(); // 
+}
 ?>
 
 <!DOCTYPE html>
@@ -9,10 +16,10 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriMarket - Subscription Listings</title>
-    <link rel="icon" type="image/png" href="..\..\assets\img\temp-logo.png">
+    <link rel="icon" type="image/png" href="..\..\assets\img\logo.png">
     <!-- Put CSS & JS Link Here-->
     <link rel="stylesheet" href="../../css/subscription_listing.css">
-    <script src="../../js/subscription.js"></script>
+    <script src="../../js/subscription_listing.js"></script>
 </head>
 
 <body class="subscription_listing">
@@ -28,7 +35,7 @@ session_start();
                         <h4>Tier I</h4>
                     </div>
                     <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">$Free</h5> 
+                        <h5 class="card-title">Free</h5> 
                         <div class="text-start"> 
                             <p class="card-text">&#10003 Upload 1 product at a time</p>
                             <p class="card-text">&#10007 Low stock alert</p>
@@ -37,13 +44,15 @@ session_start();
                         </div>
                     </div>
                     <div class="card-footer">
-                    <button type="button" class="btn btn-outline-dark" id="tier1Button">
-                        Subscribe
-                    </button>
+                    <form action="../../includes/subscribe.php" method="POST">
+                        <input type="hidden" name="plan_id" value="1">
+                        <button type="submit" class="btn btn-outline-dark">
+                            Subscribe
+                        </button>
+                    </form>
                     </div>
                 </div>
             </div>
-
 
             <!-- Tier II -->
             <div class="col-md-4">
@@ -137,24 +146,22 @@ session_start();
             </div>
             
             <!-- Success Modal -->
-             <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+            <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="successModalLabel">Subscription Successful</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body" id="subscriptionSuccessText">
-                            <!-- Success message -->
-                            </div>
-
+                        <div class="modal-body">
+                            <p id="subscriptionSuccessText"></p>
+                        </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
                         </div>
                     </div>
                 </div>
             </div>
-
 </div>
 
 <!-- Warning Modal for Missing Payment Method -->
@@ -169,7 +176,7 @@ session_start();
                 Please select a payment method before confirming your subscription.
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
     </div>

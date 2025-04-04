@@ -2,13 +2,21 @@
 session_start();
 include '../../includes/database.php';
 
-// Fetch Data for Analytics Dashboard
+//Get user id and role from the session
+/////////////////////////////Dummy Function/////////////////////////////
+$role = "Admin";
+//Assign value -1 if role is admin,if not as usual id assignment
+$user_id = ($role == "Admin") ? -1 : $_SESSION['user_id'];
+
+
+// Fetch data based on specific role
 $activeUsers = getActiveUser($conn);
-$refundPercentage = getRefundPercentage($conn);
-$monthlyRevenue = getRevenue($conn);
-$monthlyOrders = getOrders($conn);
+$refundPercentage = getRefundPercentage($conn, $user_id);
+$monthlyRevenue = getRevenue($conn,$user_id);
+$monthlyOrders = getOrders($conn,$user_id);
 $subscriptionData = getSubscription($conn);
-$topFiveCategory = getTopFiveCategory($conn);
+$topFiveCategory = getTopFiveProduct($conn,$user_id);
+
 ?>
 
 <!DOCTYPE html>
@@ -18,7 +26,7 @@ $topFiveCategory = getTopFiveCategory($conn);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriMarket - Analytics Dashboard</title>
-    <link rel="icon" type="image/png" href="../../assets/img/temp-logo.png">
+    <link rel="icon" type="image/png" href="../../assets/img/logo.png">
     <link rel="stylesheet" href="../../css/analytics_dashboard.css">
     <script src="../../js/analytics_dashboard.js"></script>
 </head>
@@ -61,9 +69,9 @@ $topFiveCategory = getTopFiveCategory($conn);
                     <div id="subscriptionChart" style="height: 320px; margin-top:30px;"></div>
                 </div>
 
-                <!-- Top 5 Product Category-->
+                <!-- Top 5 Product List-->
                 <div class="chart-container">
-                    <h3>Top 5 Product Categories</h3>
+                    <h3>Top 5 Product List</h3>
                     <div id="categoryChart" style="height: 320px; margin-top:30px;"></div>
                 </div>
 
@@ -81,7 +89,6 @@ $topFiveCategory = getTopFiveCategory($conn);
             </div>
         </div>
 
-        <!-- Embed JSON Data for JS -->
         <script id="revenueData" type="application/json">
             <?php echo json_encode($monthlyRevenue, JSON_NUMERIC_CHECK); ?>
         </script>
