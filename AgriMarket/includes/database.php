@@ -10,37 +10,110 @@ if ($conn->connect_error) {
     die("Connection Failed: " . $conn->connect_error);
 }
 
-function getUserRole($user_id)
+function authenticateUser($username_email, $password)
 {
     global $conn;
 
-    $getUserRoleSQL = "SELECT role FROM user WHERE user_id = ?";
-    $stmt = $conn->prepare($getUserRoleSQL);
+    $password_hashed = hash('sha256', $password);
+
+    $stmt = $conn->prepare("SELECT user_id, role, password FROM user WHERE username = ? OR email = ?");
+    $stmt->bind_param("ss", $username_email, $username_email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+
+        if ($row['password'] === $password_hashed) {
+            // Update the last_online field
+            $update_stmt = $conn->prepare("UPDATE user SET last_online = NOW() WHERE user_id = ?");
+            $update_stmt->bind_param("i", $row['user_id']);
+            $update_stmt->execute();
+
+            return [
+                'user_id' => $row['user_id'],
+                'role' => $row['role']
+            ];
+        }
+    }
+
+    return null;
+}
+
+function insertUser($first_name, $last_name, $username, $email, $password, $role, $phone_number, $home_address)
+{
+    global $conn;
+
+    $stmt = $conn->prepare("INSERT INTO user (first_name, last_name, username, email, password, role, phone_number, home_address, last_online) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+    $stmt->bind_param("ssssssss", $first_name, $last_name, $username, $email, $password, $role, $phone_number, $home_address);
+
+    return $stmt->execute();
+}
+
+function getUsernameFromUserID($user_id)
+{
+    global $conn;
+
+    $stmt = $conn->prepare("SELECT username FROM user WHERE user_id = ?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    $row = $result->fetch_assoc();
-    return $row['role'];
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+        return $row['username'];
+    }
+
+    return null;
 }
 
-function insertUser($first_name, $last_name, $email, $password, $role, $phone_number, $home_address)
+function getEmailByUsername($username)
 {
     global $conn;
 
-    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+    $stmt = $conn->prepare("SELECT email FROM user WHERE username = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    $sql = "INSERT INTO user (first_name, last_name, email, password, role, phone_number, home_address) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssss", $first_name, $last_name, $email, $password_hash, $role, $phone_number, $home_address);
-
-    if ($stmt->execute()) {
-        return $stmt->insert_id;
-    } else {
-        return false;
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+        return $row['email'];
     }
+
+    return null;
+}
+
+function updatePasswordByUsername($username, $hashed_password)
+{
+    global $conn;
+
+    $stmt = $conn->prepare("UPDATE user SET password = ? WHERE username = ?");
+    $stmt->bind_param("ss", $hashed_password, $username);
+
+    return $stmt->execute();
+}
+
+function isVendorTierThree($user_id)
+{
+    global $conn;
+
+    $stmt = $conn->prepare("
+        SELECT s.plan_name 
+        FROM vendor v
+        JOIN subscription s ON v.subscription_id = s.subscription_id
+        WHERE v.user_id = ?
+    ");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+        return $row['plan_name'] === 'Tier_III';
+    }
+
+    return false;
 }
 
 function getCategories()
@@ -261,12 +334,12 @@ function getActiveUser($conn)
     ];
 }
 
-function getRefundPercentage($conn,$user_id)
+function getRefundPercentage($conn, $user_id)
 {
     $currentYear = date("Y");
 
     //Check whether is admin / vendor
-    $vendorView=($user_id == -1) ? "" : "AND orders.user_id ='$user_id'";
+    $vendorView = ($user_id == -1) ? "" : "AND orders.user_id ='$user_id'";
 
     $sqlRefunds = "SELECT COUNT(*) AS totalRefunds 
                     FROM refund 
@@ -286,12 +359,12 @@ function getRefundPercentage($conn,$user_id)
     return ["totalRefundPercentage" => round($refundPercentage, 2)];
 }
 
-function getRevenue($conn,$user_id)
+function getRevenue($conn, $user_id)
 {
     $currentYear = date("Y");
 
     //Check whether is admin / vendor
-    $vendorView=($user_id == -1) ? "" : "AND orders.user_id ='$user_id'";
+    $vendorView = ($user_id == -1) ? "" : "AND orders.user_id ='$user_id'";
 
     $sql = "SELECT MONTH(order_date) AS month, SUM(price) AS revenue 
             FROM orders 
@@ -333,7 +406,7 @@ function getOrders($conn, $user_id)
     $currentYear = date("Y");
 
     //Check whether is admin / vendor
-    $vendorView=($user_id == -1) ? "" : "AND orders.user_id ='$user_id'";
+    $vendorView = ($user_id == -1) ? "" : "AND orders.user_id ='$user_id'";
 
     $months = [
         1 => "Jan",
@@ -398,7 +471,7 @@ function getSubscription($conn)
 function getTopFiveProduct($conn, $user_id)
 {
     //Check whether is admin / vendor
-    $vendorView=($user_id == -1) ? "" : "WHERE p.vendor_id ='$user_id'";
+    $vendorView = ($user_id == -1) ? "" : "WHERE p.vendor_id ='$user_id'";
 
     $sql = "SELECT p.product_name, SUM(p.sold_quantity) AS totalSold 
             FROM product p 
@@ -411,17 +484,17 @@ function getTopFiveProduct($conn, $user_id)
     $totalSold = 0;
     $data = [];
 
-    $rows =[];
+    $rows = [];
 
     //Calculate total sold quantity
     while ($row = mysqli_fetch_assoc($result)) {
-        $rows[]=$row;
+        $rows[] = $row;
         $totalSold += $row['totalSold'];
     }
 
     //Ensure chart will not be showed if less than 5 top product sold
-    if(count($rows)<5){
-        return[];
+    if (count($rows) < 5) {
+        return [];
     }
 
     mysqli_data_seek($result, 0);
@@ -433,7 +506,7 @@ function getTopFiveProduct($conn, $user_id)
     return $data;
 }
 
-function getProductsByStatus($conn, $vendor_id, $status) 
+function getProductsByStatus($conn, $vendor_id, $status)
 {
     $sql = "
         SELECT p.product_id, p.product_name, p.description, p.stock_quantity, p.weight, p.unit_price, p.product_status, p.product_image,
@@ -448,7 +521,7 @@ function getProductsByStatus($conn, $vendor_id, $status)
     return $stmt->get_result();
 }
 
-function getVendorDetails($user_id, $conn) 
+function getVendorDetails($user_id, $conn)
 {
     $query = "
         SELECT v.vendor_id, v.store_name, v.subscription_id, v.subscription_start_date, v.subscription_end_date, v.staff_assisstance_id,
@@ -462,12 +535,12 @@ function getVendorDetails($user_id, $conn)
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
-    $result = $stmt->get_result();  
-    return $result->fetch_assoc(); 
+    $result = $stmt->get_result();
+    return $result->fetch_assoc();
 }
 
 function getPendingProductCount($vendor_id, $conn)
- {
+{
     $query = "SELECT COUNT(*) AS pending_count FROM product WHERE vendor_id = ? AND product_status = 'Pending'";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $vendor_id);
@@ -488,7 +561,7 @@ function insertRequest($conn, $vendor_id, $request_type, $request_description)
         if ($stmt->execute()) {
             return true;
         } else {
-            return false; 
+            return false;
         }
     } else {
         return false;
@@ -498,23 +571,23 @@ function insertRequest($conn, $vendor_id, $request_type, $request_description)
 function updateVendorProfile($conn, $store_name, $vendor_id) 
 {
     $query = "UPDATE vendor SET store_name = ? WHERE vendor_id = ?";
-    
+
     if ($stmt = $conn->prepare($query)) {
         $stmt->bind_param("si", $store_name, $vendor_id);
         return $stmt->execute(); // Return true if success, false if failure
     }
-    return false; 
+    return false;
 }
 
 function updateUserDetails($conn, $email, $phone_number, $user_id) 
 {
     $query = "UPDATE user SET email = ?, phone_number = ? WHERE user_id = ?";
-    
+
     if ($stmt = $conn->prepare($query)) {
         $stmt->bind_param("ssi", $email, $phone_number, $user_id);
         return $stmt->execute(); // Return true if success, false if failure
     }
-    return false; 
+    return false;
 }
 
 function updateProductImage($file, $current_image, $upload_dir = "../Assets/img/product_img/") 
@@ -551,7 +624,7 @@ function updateProduct($conn, $product_id, $category_id, $image_path, $descripti
         $stmt->bind_param("issdids", $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_id);
         return $stmt->execute(); // Return true if successful, false if failed
     }
-    return false; 
+    return false;
 }
 
 function uploadProductImage($file, $upload_dir = "../Assets/img/product_img/") 
@@ -565,7 +638,7 @@ function uploadProductImage($file, $upload_dir = "../Assets/img/product_img/")
     $image_path = "Assets/img/product_img/" . $image_name;
 
     if (move_uploaded_file($file["tmp_name"], $target_file)) {
-        return $image_path; 
+        return $image_path;
     }
     throw new Exception("Error uploading image.");
 }

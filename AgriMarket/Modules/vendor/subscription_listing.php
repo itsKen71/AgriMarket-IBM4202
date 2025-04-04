@@ -17,7 +17,7 @@ if (!$user_id) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriMarket - Subscription Listings</title>
-    <link rel="icon" type="image/png" href="..\..\assets\img\temp-logo.png">
+    <link rel="icon" type="image/png" href="..\..\assets\img\logo.png">
     <!-- Put CSS & JS Link Here-->
     <link rel="stylesheet" href="../../css/subscription_listing.css">
     <script src="../../js/subscription_listing.js"></script>
