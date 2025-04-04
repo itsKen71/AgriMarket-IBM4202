@@ -1,13 +1,13 @@
 USE agrimarket;
 
 -- User Data
-INSERT INTO user (first_name, last_name, email, password, role, phone_number, home_address, last_online) VALUES 
-    ('Hau', 'Tien', 'idk@gmail,com', SHA2('password', 256), 'Customer', '6012-3456789', '123 Jalan Kebun, Kuala Lumpur, Malaysia', NOW()),
-    ('Hau', 'Zhen', 'kenjichong88@gmail.com', SHA2('password', 256), 'Vendor', '6017-9876543', '456 Lorong Tani, Penang, Malaysia', NOW()),
-	('Hau', 'Chong', 'kenjichong11@gmail.com', SHA2('password', 256), 'Vendor', '6017-9876543', '123 Mont Austin, Johor, Malaysia', NOW()),
-    ('Hau', 'Xing', 'kenjichong22@gmail.com', SHA2('password', 256), 'Vendor', '6017-9876543', '34 Desa India, Johor, Malaysia', NOW()),
-    ('Hau', 'An', 'idk2@gmail,com', SHA2('password', 256), 'Staff', '6019-5554321', '789 Kampung Sejahtera, Johor Bahru, Malaysia', NOW()),
-    ('Hau', 'Chun', 'idk3@gmail,com', SHA2('password', 256), 'Admin', '6011-2223334', '101 Taman Bukit Indah, Selangor, Malaysia', NOW());
+INSERT INTO user (first_name, last_name, username, email, password, role, phone_number, home_address, last_online) VALUES 
+    ('Hau', 'Tien', 'tien tien', 'idk@gmail.com', SHA2('password', 256), 'Customer', '6012-3456789', '123 Jalan Kebun, Kuala Lumpur, Malaysia', NOW()),
+    ('Hau', 'Zhen', 'Mamba', 'kenjichong88@gmail.com', SHA2('password', 256), 'Vendor', '6017-9876543', '456 Lorong Tani, Penang, Malaysia', NOW()),
+    ('Hau', 'Chong', 'LeBron', 'kenjichong11@gmail.com', SHA2('password', 256), 'Vendor', '6016-1234567', '123 Mont Austin, Johor, Malaysia', NOW()),
+    ('Hau', 'Xing', 'xingxing', 'kenjichong22@gmail.com', SHA2('password', 256), 'Vendor', '6015-2345678', '34 Desa India, Johor, Malaysia', NOW()),
+    ('Hau', 'An', 'diam', 'idk2@gmail.com', SHA2('password', 256), 'Staff', '6019-5554321', '789 Kampung Sejahtera, Johor Bahru, Malaysia', NOW()),
+    ('Hau', 'Chun', 'chunLi', 'idk3@gmail.com', SHA2('password', 256), 'Admin', '6011-2223334', '101 Taman Bukit Indah, Selangor, Malaysia', NOW());
 
 -- Subscription Plan
 INSERT INTO subscription (plan_name, subscription_price, upload_limit, has_low_stock_alert, has_staff_support, has_analytics_access) VALUES 
@@ -18,7 +18,7 @@ INSERT INTO subscription (plan_name, subscription_price, upload_limit, has_low_s
 -- Vendor Data
 INSERT vendor (user_id, subscription_id, store_name, subscription_start_date, subscription_end_date, staff_assisstance_id) 
 VALUES 
-    (2, 3, 'Hau Zhen Store', '2024-03-29', '2025-04-29', NULL),
+    (2, 2, 'Hau Zhen Store', '2024-03-29', '2025-04-29', NULL),
 	(3, 3, 'Hau Chong Store', '2024-03-29', '2025-04-29', NULL),
     (4, 3, 'Hau Xing Store', '2024-03-29', '2025-04-29', NULL);
 
