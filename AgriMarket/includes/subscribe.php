@@ -3,8 +3,7 @@ session_start();
 include 'database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $user_id = 1; // Testing
-    // $user_id = $_SESSION['user_id'] ?? null;
+    $user_id = $_SESSION['user_id'] ?? null;
     $plan_id = $_POST['plan_id'] ?? null;
     $months = $_POST['subscription_months'] ?? 1;
 
