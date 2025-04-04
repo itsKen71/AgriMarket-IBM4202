@@ -280,6 +280,7 @@
                 margin-bottom: 1rem;
             }
         }
+        
     </style>
 </head>
 
@@ -369,11 +370,11 @@
                     <span class="me-3">Total (0 Items):</span>
                     <span class="price-color fs-4 fw-bold">RM0.00</span>
                     <form id="checkoutForm" method="POST" action="check_out.php">
-                        <input type="hidden" name="selected_products" id="selectedProducts">
-                        <button type="submit" class="checkout-btn ms-3 btn btn-danger px-4 py-2 fw-medium">
-                            Check Out <i class="fas fa-arrow-right ms-2"></i>
-                        </button>
-                    </form>
+    <input type="hidden" name="selected_products" id="selectedProducts">
+    <button type="submit" class="checkout-btn ms-3 btn btn-danger px-4 py-2 fw-medium">
+        Check Out <i class="fas fa-arrow-right ms-2"></i>
+    </button>
+</form>
                 </div>
             </div>
         </div>
@@ -789,25 +790,75 @@
     });
 
 
-    document.querySelector('.checkout-btn').addEventListener('click', function (e) {
-        e.preventDefault();  // prevent default commit
-        let selected = [];
-        
-        document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
-            selected.push(checkbox.getAttribute('data-product-id'));
-        });
-
-        if (selected.length === 0) {
-            // display error
-            const alertModal = new bootstrap.Modal('#alertModal');
-            document.getElementById('alertMessage').textContent = "Please select at least one product.";
-            alertModal.show();
-            return;
-        }
-
-        document.getElementById('selectedProducts').value = JSON.stringify(selected);
-        document.getElementById('checkoutForm').submit();
+    document.querySelector('.checkout-btn').addEventListener('click', async function (e) {
+    e.preventDefault();  // prevent default submit
+    
+    let selected = [];
+    let quantities = [];
+    let validationPassed = true;
+    let errorMessage = "";
+    
+    // Get selected products and their quantities
+    document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
+        const productId = checkbox.getAttribute('data-product-id');
+        const quantity = parseInt(checkbox.closest('.cart-item').querySelector('.quantity-display').textContent);
+        selected.push(productId);
+        quantities.push(quantity);
     });
+
+    if (selected.length === 0) {
+        // display error
+        const alertModal = new bootstrap.Modal('#alertModal');
+        document.getElementById('alertMessage').textContent = "Please select at least one product.";
+        alertModal.show();
+        return;
+    }
+
+    // Validate stock quantities before proceeding
+    try {
+    const response = await fetch('../../includes/check_stock.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            products: selected.map((id, index) => ({
+                product_id: id,
+                quantity: quantities[index]
+            }))
+        })
+    });
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+        validationPassed = false;
+        errorMessage = data.message || "Some items exceed available stock";
+        // 移除了高亮相关代码
+    }
+} catch (error) {
+    console.error('Error:', error);
+    validationPassed = false;
+    errorMessage = "Error checking stock availability";
+}
+
+if (!validationPassed) {
+    const alertModal = new bootstrap.Modal('#alertModal');
+    document.getElementById('alertMessage').innerHTML = errorMessage;
+    alertModal.show();
+    return;
+}
+
+
+    // If validation passed, proceed with checkout
+    document.getElementById('selectedProducts').value = JSON.stringify(
+        selected.map((id, index) => ({
+            product_id: id,
+            quantity: quantities[index]
+        }))
+    );
+    document.getElementById('checkoutForm').submit();
+});
 
     // switch product
     document.getElementById('switchProductsBtn').addEventListener('click', async function() {
