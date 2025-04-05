@@ -759,7 +759,7 @@ function getOrderHistoryByUser($userId, $conn)
         SELECT o.order_id, o.order_date, o.delivery_date, o.price AS total_order_price,
             poh.product_id, poh.quantity, poh.sub_price,
             p.product_name, p.unit_price,
-            coh.status AS order_status, coh.order_date AS history_order_date
+            coh.status AS order_status
         FROM orders o
         INNER JOIN product_order poh ON o.order_id = poh.order_id
         INNER JOIN product p ON poh.product_id = p.product_id
@@ -780,7 +780,6 @@ function getOrderHistoryByUser($userId, $conn)
                 'delivery_date' => $row['delivery_date'],
                 'total_order_price' => $row['total_order_price'],
                 'order_status' => $row['order_status'],
-                'history_order_date' => $row['history_order_date'],
                 'products' => []
             ];
         }

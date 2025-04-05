@@ -1,3 +1,30 @@
 body.order_history {
     background-color: #f5f1eb; 
 }
+
+.btn-success {
+    width: 80px !important;
+    background-color: #d9f2da !important;
+    border-color: #c8e6c9 !important;
+    color: #7a997a !important;
+    font-weight: bold !important;
+    transition: background-color 0.3s ease !important;
+}
+
+.btn-success:hover {
+    background-color: #c8e6c9 !important;
+    border-color: #b2d8b2 !important;
+}
+
+.card-header {
+    background-color: #e8f5e9 !important;
+    border-bottom: 1px solid #b2dfdb !important;
+    color: #2e4d2c;
+    font-weight: bold;
+}
+
+.card-body {
+    background-color: #f0f8f2 !important;
+    color: #333;
+}
+
