@@ -156,7 +156,7 @@ function handleSubscriptionSuccessFromURL() {
 
         document.getElementById("subscriptionSuccessText").innerHTML = message;
 
-        new bootstrap.Modal(document.getElementById("successModal")).show();
+        new bootstrap.Modal(document.getElementById("successSubscribeModal")).show();
 
         // Clean URL
         urlParams.delete('subscribe');
