@@ -64,13 +64,6 @@ CREATE TABLE vendor (
     FOREIGN KEY (subscription_id) REFERENCES subscription(subscription_id) ON DELETE SET NULL
 );
 
--- Cart Table
-CREATE TABLE cart (
-    cart_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
-);
-
 -- Product Table
 CREATE TABLE product (
     product_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -86,15 +79,6 @@ CREATE TABLE product (
     sold_quantity INT DEFAULT 0,
     FOREIGN KEY (vendor_id) REFERENCES vendor(vendor_id) ON DELETE SET NULL,
     FOREIGN KEY (category_id) REFERENCES category(category_id) ON DELETE CASCADE
-);
-
--- Product Cart Table
-CREATE TABLE product_cart (
-    cart_id INT NOT NULL,
-    product_id INT NOT NULL,
-    PRIMARY KEY (cart_id, product_id),
-    FOREIGN KEY (cart_id) REFERENCES cart(cart_id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE
 );
 
 -- Product Order Table
@@ -197,4 +181,14 @@ CREATE TABLE request (
     request_date DATETIME NOT NULL,
     is_completed BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (vendor_id) REFERENCES vendor(vendor_id) ON DELETE CASCADE
+);
+
+-- Cart Table
+CREATE TABLE cart (
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    PRIMARY KEY (user_id, product_id),  
+    FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE
 );

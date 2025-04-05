@@ -1,3 +1,152 @@
 body.product_page {
     background-color: #f5f1eb; 
 }
+
+        .product-image {
+            width: 100%;
+            max-width: 450px;
+            max-height: 450px;
+            object-fit: contain;
+            cursor: pointer;
+        }
+
+        .text-muted i {
+            color: gold; /* Make stars gold/yellow */
+            margin-right: 2px; 
+        }
+
+        .custom-price {
+            font-size: 40px;
+            font-weight: bold;
+        }
+ 
+       
+        .shopping-protection-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .shopping-protection-content {
+            display: none;
+            position: absolute;
+            z-index: 1000;
+            min-width: 300px;
+            left: 0;
+        }
+        
+        .shopping-protection-trigger:hover + .shopping-protection-content,
+        .shopping-protection-content:hover {
+            display: block;
+        }
+
+        .product-box {
+            border: 2px solid rgba(25, 25, 25, 0.1);
+            border-radius: 5px; 
+            padding-left: 25px; 
+            padding-top: 20px;
+            padding-bottom: 30px;
+            background: white; 
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1); 
+        }
+        
+        .comment-box{
+            border: 2px solid rgba(25, 25, 25, 0.1);
+            border-radius: 5px; 
+            padding-left: 25px; 
+            padding-top: 20px;
+            padding-bottom: 30px;
+            background: white; 
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1); 
+            margin-top: 20px; 
+            max-height: 500px; 
+            overflow-y: auto;
+        }
+
+        .comment-box::-webkit-scrollbar {
+            width: 8px; 
+        }
+
+        .comment-box::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 5px;
+        }
+
+        .comment-box::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 5px;
+        }
+
+        .comment-box::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .related-box {
+            border: 2px solid rgba(25, 25, 25, 0.1);
+            border-radius: 5px; 
+            padding: 25px; 
+            padding-top: 20px;
+            background: white; 
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+        }
+
+        .related-product-card {
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .related-product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .related-product-card .card-img-top {
+            transition: transform 0.3s ease;
+        }
+
+        .related-product-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+
+        .space{
+            margin-top: 30px;
+        }
+        
+        .btn-outline-danger {
+            background-color: #FFF5F5;
+            border-color: #EB5757;
+            color: #EB5757;
+            font-weight: 500;
+        }
+
+        .btn-danger {
+            background-color: #EB5757;
+            border-color: #EB5757;
+            font-weight: 500;
+        }
+
+        .btn {
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .rating-filter .btn-outline-secondary.active {
+            background-color: #EB5757;
+            color: white;
+            border-color: #EB5757;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: normal;
+        }
+
+        .rating-filter .btn-outline-secondary.active {
+            background-color: #EB5757;
+            color: white;
+            border-color: #EB5757;
+        }
+
+        
+
