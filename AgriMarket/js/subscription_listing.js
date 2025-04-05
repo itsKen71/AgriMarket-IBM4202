@@ -98,8 +98,6 @@ function confirmPayment() {
 
     const planId = selectedPlan === "tier2" ? "2" : "3";
     submitForm(planId, months);
-
-    new bootstrap.Modal(document.getElementById("successModal")).show();
 }
 
 // Subscription Details
