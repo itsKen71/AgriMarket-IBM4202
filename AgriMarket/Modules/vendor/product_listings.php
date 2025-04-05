@@ -383,6 +383,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
     data-bs-toggle="modal" data-bs-target="#addProductModal"
     <?php if ($pendingCount >= $uploadLimit) echo 'style="pointer-events: none; opacity: 0.5;"'; ?> >
 
+    <?php include '../../includes/footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>window.lowStockProducts = <?php echo $lowStockProductsJson; ?>;</script> <!-- Pass php data to js -->
 </body>

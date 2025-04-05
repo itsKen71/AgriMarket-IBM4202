@@ -1,106 +1,43 @@
 <?php
     session_start();
     include '..\..\includes\database.php';
+    include '..\..\includes\cart_functions.php';
 
-    $user_id = 1;
-
-    // check cart then get product_id 和 quantity
-    $query = "SELECT product_id, quantity FROM cart WHERE user_id = ?";
-    $stmt = $conn->prepare($query);
-
-    if (!$stmt) {
-        die("Cart Query Preparation Failed: " . $conn->error);
+    $user_id = $_SESSION['user_id'] ?? null;
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: ../authentication/login.php");
+        exit();
     }
 
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $products = getUserCart($conn, $user_id);
 
-    $products = [];
-    while ($row = $result->fetch_assoc()) {
-        $product_id = $row['product_id'];
-        $quantity = $row['quantity']; // get cart quantity
-
-        // get roduct info
-        $query_product = "SELECT * FROM product WHERE product_id = ?";
-        $stmt_product = $conn->prepare($query_product);
-
-        if (!$stmt_product) {
-            die("Product Query Preparation Failed: " . $conn->error);
-        }
-
-        $stmt_product->bind_param("i", $product_id);
-        $stmt_product->execute();
-        $result_product = $stmt_product->get_result();
-
-        if ($product = $result_product->fetch_assoc()) {
-            $product['quantity'] = $quantity; // put cart quantity into array
-            $products[] = $product;
-        }
-    }
-
-    //Delete cart
+    // delete cart item
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_item'])) {
-        $product_id = $_POST['product_id'];
-        
-        $delete_query = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
-        $stmt_delete = $conn->prepare($delete_query);
-        
-        if ($stmt_delete) {
-            $stmt_delete->bind_param("ii", $user_id, $product_id);
-            $stmt_delete->execute();
-            $stmt_delete->close();
-            
+        if (!isset($_POST['product_id']) || empty($_POST['product_id'])) {
             header('Content-Type: application/json');
-            echo json_encode(['success' => true]);
-            exit();
-        } else {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Database error']);
+            echo json_encode(['success' => false, 'error' => 'Missing product_id']);
             exit();
         }
+
+        $product_id = (int) $_POST['product_id']; 
+        $response = deleteCartItem($conn, $user_id, $product_id);
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
     }
 
-    // quantity update
+    // update cart quantity
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
         $product_id = $_POST['product_id'];
         $new_quantity = $_POST['new_quantity'];
-        
-        // verify quantity atleast 1
-        $new_quantity = max(1, (int)$new_quantity);
-        
-        $update_query = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
-        $stmt_update = $conn->prepare($update_query);
-        
-        if ($stmt_update) {
-            $stmt_update->bind_param("iii", $new_quantity, $user_id, $product_id);
-            $stmt_update->execute();
-            $stmt_update->close();
-            
-            // return JSON response
-            header('Content-Type: application/json');
-            echo json_encode([
-                'success' => true,
-                'new_quantity' => $new_quantity,
-                'subtotal' => number_format($_POST['unit_price'] * $new_quantity, 2)
-            ]);
-            exit();
-        } else {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Database error']);
-            exit();
-        }
-    }
+        $unit_price = $_POST['unit_price'];
 
-    // get rating
-    function getAverageRating($conn, $productId) {
-        $query = "SELECT AVG(rating) as avg_rating FROM review WHERE product_id = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("i", $productId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-        return round($row['avg_rating'], 1) ?? 0; // round to 1 decimal place
+        $response = updateCartQuantity($conn, $user_id, $product_id, $new_quantity, $unit_price);
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
     }
 
     // get all product query
@@ -133,39 +70,16 @@
     }
     
     // Handle product switching
+    // switch product
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['switch_product'])) {
         $current_product_id = $_POST['current_product_id'];
         $compare_product_id = $_POST['compare_product_id'];
-        $user_id = 1; // use user id
 
-        $conn->begin_transaction();
+        $response = switchCartProduct($conn, $user_id, $current_product_id, $compare_product_id);
 
-        try {
-            // delete current product
-            $delete_query = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
-            $stmt_delete = $conn->prepare($delete_query);
-            $stmt_delete->bind_param("ii", $user_id, $current_product_id);
-            $stmt_delete->execute();
-            
-            // add compare product
-            $insert_query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, 1)
-                            ON DUPLICATE KEY UPDATE quantity = 1";
-            $stmt_insert = $conn->prepare($insert_query);
-            $stmt_insert->bind_param("ii", $user_id, $compare_product_id);
-            $stmt_insert->execute();
-            
-            $conn->commit();
-            
-            // return correct 
-            header('Content-Type: application/json');
-            echo json_encode(['success' => true]);
-            exit();
-        } catch (Exception $e) {
-            $conn->rollback();
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
-            exit();
-        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
     }
 ?>
 
@@ -180,110 +94,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <!-- Put CSS & JS Link Here-->
-    <link rel="stylesheet" href="../../css/cart.css">
-    <style>
-        .cart {
-            background-color: #f8f9fa;
-        }
-        .price-color {
-            color: #dc3545;
-        }
-        .quantity-control button {
-            width: 30px;
-        }
-        .cursor-pointer {
-            cursor: pointer;
-        }
-        .checkout-btn:hover {
-            background-color: #c82333;
-        }
-        .cart-item:hover {
-            background-color: #f8f9fa;
-            heg
-        }
-        .total-section {
-            position: fixed;
-            bottom: 0;
-            left: 50%; 
-            transform: translateX(-50%);
-            width: 100%; 
-            max-width: 100%; 
-            z-index: 1000;
-            border-radius: 0 !important;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            margin: 0 !important;
-            background-color: #f8f9fa;
-        }
-
-        /* 限制宽度与.container相同 */
-        @media (min-width: 576px) {
-            .total-section {
-                max-width: 540px;
-            }
-        }
-        @media (min-width: 768px) {
-            .total-section {
-                max-width: 720px;
-            }
-        }
-        @media (min-width: 992px) {
-            .total-section {
-                max-width: 960px;
-            }
-        }
-        @media (min-width: 1200px) {
-            .total-section {
-                max-width: 1140px;
-            }
-        }
-        @media (min-width: 1400px) {
-            .total-section {
-                max-width: 1320px;
-            }
-        }
-        
-        .container.mt-5 {
-            padding-bottom: 65px;
-        }
-
-        #compareModal .modal-dialog {
-            max-width: 90%;
-        }
-
-        .compare-product-image {
-            max-height: 200px;
-            width: auto;
-            margin: 0 auto;
-            display: block;
-        }
-
-        #compareModal .card {
-            height: 100%;
-            transition: all 0.3s ease;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
-
-        #compareModal .card:hover {
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        }
-
-        @media (max-width: 768px) {
-            #compareModal .modal-dialog {
-                margin: 0.5rem auto;
-            }
-            
-            #compareModal .row {
-                flex-direction: column;
-            }
-            
-            #compareModal .col-md-6 {
-                margin-bottom: 1rem;
-            }
-        }
-        
-    </style>
+    <link rel="stylesheet" href="../../css/cart.css?v=<?= filemtime('../../css/cart.css') ?>">
 </head>
-
 <body class="cart">
     <?php include '../../includes/header.php'; ?>
     <div class="container mt-5">
@@ -358,7 +170,7 @@
             <?php endif; ?>
     
             <!-- Total Section -->
-            <div class="total-section d-flex justify-content-between align-items-center p-4 bg-light rounded-bottom mt-3">
+            <div class="d-flex fixed-bottom container px-4 justify-content-between align-items-center p-4 bg-light rounded-bottom mt-3">
                 <div class="d-flex align-items-center">
                 <input type="checkbox" id="selectAll2" class="form-check-input select-all">
                 <label for="selectAll2" class="ms-2 fw-medium">Select All</label>
@@ -370,11 +182,11 @@
                     <span class="me-3">Total (0 Items):</span>
                     <span class="price-color fs-4 fw-bold">RM0.00</span>
                     <form id="checkoutForm" method="POST" action="check_out.php">
-    <input type="hidden" name="selected_products" id="selectedProducts">
-    <button type="submit" class="checkout-btn ms-3 btn btn-danger px-4 py-2 fw-medium">
-        Check Out <i class="fas fa-arrow-right ms-2"></i>
-    </button>
-</form>
+                    <input type="hidden" name="selected_products" id="selectedProducts">
+                    <button type="submit" class="checkout-btn ms-3 btn btn-danger px-4 py-2 fw-medium">
+                        Check Out <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </form>
                 </div>
             </div>
         </div>
@@ -485,10 +297,7 @@
 </body>
 </html>
 
-
-
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // add event listeners for all plus and minus buttons
@@ -565,32 +374,35 @@
 
     // update cart total price and total item being choose
     function updateCartTotals() {
-        const checkedItems = document.querySelectorAll('.item-checkbox:checked');
-        let totalItems = 0;
-        let totalPrice = 0;
+    const checkedItems = document.querySelectorAll('.item-checkbox:checked');
+    let totalItems = 0;
+    let totalPrice = 0;
+    
+    checkedItems.forEach(checkbox => {
+        const cartItem = checkbox.closest('.cart-item');
+        const quantity = parseInt(cartItem.querySelector('.quantity-display').textContent);
+        const unitPrice = parseFloat(checkbox.dataset.unitPrice);
         
-        checkedItems.forEach(checkbox => {
-            const cartItem = checkbox.closest('.cart-item');
-            const quantity = parseInt(cartItem.querySelector('.quantity-display').textContent);
-            const unitPrice = parseFloat(checkbox.dataset.unitPrice);
-            
-            totalItems += quantity;
-            totalPrice += unitPrice * quantity;
-        });
-        
-        // update display
-        const totalItemsElement = document.querySelector('.total-section span:first-child');
-        const totalPriceElement = document.querySelector('.price-color.fs-4');
-        
+        totalItems += quantity;
+        totalPrice += unitPrice * quantity;
+    });
+    
+    // 更新选择器以匹配新的固定底部栏
+    const totalItemsElement = document.querySelector('.fixed-bottom .me-3'); // 选择"Total (x Items):"元素
+    const totalPriceElement = document.querySelector('.fixed-bottom .price-color.fs-4'); // 选择总价元素
+    
+    // 更新显示
+    if (totalItemsElement && totalPriceElement) {
         totalItemsElement.textContent = `Total (${totalItems} ${totalItems === 1 ? 'Item' : 'Items'}):`;
         totalPriceElement.textContent = `RM${totalPrice.toFixed(2)}`;
         
-        // if no item select then total quantity and product is 0
+        // 如果没有选中任何商品
         if (checkedItems.length === 0) {
             totalItemsElement.textContent = 'Total (0 Items):';
             totalPriceElement.textContent = 'RM0.00';
         }
     }
+}
     
     // delete selected product
     // handle all delete button click events
@@ -623,54 +435,57 @@
 
     // unified delete function
     function deleteItems(productIds) {
-        // create an array of delete requests
-        const deletePromises = productIds.map(productId => {
-            return fetch('cart.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `delete_item=1&product_id=${productId}`
-            }).then(response => response.json());
+    const deletePromises = productIds.map(productId => {
+        return fetch('cart.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `delete_item=1&product_id=${productId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(`Response for ${productId}:`, data); // 🟢 调试信息
+            return data;
         });
-        
-        // execute all delete request
-        Promise.all(deletePromises)
-            .then(results => {
-                const allSuccess = results.every(result => result.success);
-                
-                if (allSuccess) {
-                    // remove the deleted item from the DOM
-                    productIds.forEach(productId => {
-                        const item = document.querySelector(`[data-product-id="${productId}"]`).closest('.cart-item');
-                        if (item) {
-                            item.style.transition = 'all 0.3s ease';
-                            item.style.opacity = '0';
-                            item.style.height = '0';
-                            item.style.padding = '0';
-                            item.style.margin = '0';
-                            setTimeout(() => {
-                                item.remove();
-                                // update cart total after delete
-                                updateCartTotals();
-                            }, 300);
-                        }
-                    });
+    });
 
-                    showToastMessage(productIds.length > 1 
-                        ? `${productIds.length} items deleted` 
-                        : 'Item deleted');
-                } else {
-                    showToastMessage('Some items could not be deleted');
-                    location.reload();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToastMessage('Error occurred while deleting items');
+    Promise.all(deletePromises)
+        .then(results => {
+            console.log("All delete responses:", results); // 🟢 调试信息
+            
+            const allSuccess = results.every(result => result.success);
+            
+            if (allSuccess) {
+                productIds.forEach(productId => {
+                    const item = document.querySelector(`[data-product-id="${productId}"]`).closest('.cart-item');
+                    if (item) {
+                        item.style.transition = 'all 0.3s ease';
+                        item.style.opacity = '0';
+                        item.style.height = '0';
+                        item.style.padding = '0';
+                        item.style.margin = '0';
+                        setTimeout(() => {
+                            item.remove();
+                            updateCartTotals();
+                        }, 300);
+                    }
+                });
+
+                showToastMessage(productIds.length > 1 
+                    ? `${productIds.length} items deleted` 
+                    : 'Item deleted');
+            } else {
+                showToastMessage('Some items could not be deleted');
                 location.reload();
-            });
-    }
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            showToastMessage('Error occurred while deleting items');
+            location.reload();
+        });
+}
 
     // show toast
     function showToastMessage(message) {
@@ -683,7 +498,7 @@
         toast.style.backgroundColor = '#333';
         toast.style.color = '#fff';
         toast.style.borderRadius = '5px';
-        toast.style.zIndex = '1000';
+        toast.style.zIndex = '9999';
         document.body.appendChild(toast);
         
         setTimeout(() => toast.remove(), 3000);
@@ -834,20 +649,20 @@
     if (!data.success) {
         validationPassed = false;
         errorMessage = data.message || "Some items exceed available stock";
-        // 移除了高亮相关代码
+       
     }
-} catch (error) {
-    console.error('Error:', error);
-    validationPassed = false;
-    errorMessage = "Error checking stock availability";
-}
+    } catch (error) {
+        console.error('Error:', error);
+        validationPassed = false;
+        errorMessage = "Error checking stock availability";
+    }
 
-if (!validationPassed) {
-    const alertModal = new bootstrap.Modal('#alertModal');
-    document.getElementById('alertMessage').innerHTML = errorMessage;
-    alertModal.show();
-    return;
-}
+    if (!validationPassed) {
+        const alertModal = new bootstrap.Modal('#alertModal');
+        document.getElementById('alertMessage').innerHTML = errorMessage;
+        alertModal.show();
+        return;
+    }
 
 
     // If validation passed, proceed with checkout
