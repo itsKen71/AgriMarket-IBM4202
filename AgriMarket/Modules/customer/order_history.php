@@ -1,5 +1,15 @@
 <?php
 session_start();
+
+include '../../includes/database.php';
+
+$user_id = $_SESSION['user_id'] ?? null;
+if (!$user_id) {
+    header("Location: ../../Modules/authentication/login.php"); // Redirect to login page
+    exit(); // 
+}
+
+$orderHistory = getOrderHistoryByUser($user_id, $conn);
 ?>
 
 <!DOCTYPE html>
@@ -18,9 +28,7 @@ session_start();
     <?php include '../../includes/header.php'; ?>
     <div class="container mt-5">
         <!-- Content Start Here -->
-
-
-
+        
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

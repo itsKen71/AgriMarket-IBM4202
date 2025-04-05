@@ -120,14 +120,14 @@ function showLowStockToast(product, index) {
     toastInstance.show();
 
     // Set a timeout to remove the toast after a delay
-    const delay = (toastContainer.children.length) * 1500; // Delay increases for each subsequent toast
+    const delay = (toastContainer.children.length) * 1200; // Delay increases for each subsequent toast
     setTimeout(() => {
         const newestToast = toastContainer.lastElementChild;
         if (newestToast) {
             newestToast.classList.remove('show');
             setTimeout(() => {
                 newestToast.remove();
-            }, 200); 
+            }, 50); 
         }
     }, delay);
 }

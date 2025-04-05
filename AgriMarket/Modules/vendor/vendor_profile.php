@@ -33,7 +33,6 @@ if (!$vendor) {
     <?php include '../../includes/header.php'; ?>
     
     <div class="container mt-5">
-        <!-- Content Start Here -->
         <h2 class="mb-5">Vendor Profile</h2> 
         <?php if ($vendor): ?>
             <div class="profile-card">

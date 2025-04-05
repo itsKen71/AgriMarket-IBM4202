@@ -35,7 +35,6 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriMarket - Product Listings</title>
     <link rel="icon" type="image/png" href="..\..\assets\img\logo.png">
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../css/product_listings.css">
     <script src="../../js/product_listings.js"></script>
@@ -48,7 +47,6 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
     <?php include '../../includes/header.php'; ?>
 
     <div class="container mt-5">
-        <!-- Content Start Here -->
         <h2 class="mb-4">Product Listings</h2>
         <div class="accordion" id="productAccordion">
 
@@ -84,7 +82,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                                             <td><?php echo htmlspecialchars($product['description']); ?></td>
                                             <td><?php echo $product['stock_quantity']; ?></td>
                                             <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
-                                            <td>$<?php echo number_format($product['unit_price'], 2); ?></td>
+                                            <td>RM<?php echo number_format($product['unit_price'], 2); ?></td>
                                             <td class="text-center align-middle">
                                                 <button class="btn btn-primary btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editProductModal"
                                                 data-id="<?php echo $product['product_id']; ?>"
@@ -142,7 +140,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                                                 <td><?php echo htmlspecialchars($product['description']); ?></td>
                                                 <td><?php echo $product['stock_quantity']; ?></td>
                                                 <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
-                                                <td>$<?php echo number_format($product['unit_price'], 2); ?></td>
+                                                <td>RM<?php echo number_format($product['unit_price'], 2); ?></td>
                                             </tr>
                                         <?php endwhile; ?>
                                     </tbody>
@@ -186,7 +184,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                                                 <td><?php echo htmlspecialchars($product['description']); ?></td>
                                                 <td><?php echo $product['stock_quantity']; ?></td>
                                                 <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
-                                                <td>$<?php echo number_format($product['unit_price'], 2); ?></td>
+                                                <td>RM<?php echo number_format($product['unit_price'], 2); ?></td>
                                             </tr>
                                         <?php endwhile; ?>
                                     </tbody>

@@ -2,7 +2,7 @@
 
 $servername = "localhost";
 $username = "root";
-$password = "1234";
+$password = "";
 $dbname = "agrimarket";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -751,5 +751,47 @@ function getPlanName($conn, $plan_id)
     $result = $stmt->get_result();
     $plan = $result->fetch_assoc();
     return $plan ? $plan['plan_name'] : null;
+}
+
+function getOrderHistoryByUser($userId, $conn) 
+{
+    $sql = "
+        SELECT o.order_id, o.order_date, o.delivery_date, o.price AS total_order_price,
+            poh.product_id, poh.quantity, poh.sub_price,
+            p.product_name, p.unit_price,
+            coh.status AS order_status, coh.order_date AS history_order_date
+        FROM orders o
+        INNER JOIN product_order poh ON o.order_id = poh.order_id
+        INNER JOIN product p ON poh.product_id = p.product_id
+        INNER JOIN customer_order_history coh ON o.order_id = coh.order_id
+        WHERE o.user_id = ?
+        ORDER BY o.order_date DESC, o.order_id DESC
+    ";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $orders = [];
+    while ($row = $result->fetch_assoc()) {
+        $orderId = $row['order_id'];
+        if (!isset($orders[$orderId])) {
+            $orders[$orderId] = [
+                'order_date' => $row['order_date'],
+                'delivery_date' => $row['delivery_date'],
+                'total_order_price' => $row['total_order_price'],
+                'order_status' => $row['order_status'],
+                'history_order_date' => $row['history_order_date'],
+                'products' => []
+            ];
+        }
+        $orders[$orderId]['products'][] = [
+            'product_id' => $row['product_id'],
+            'product_name' => $row['product_name'],
+            'unit_price' => $row['unit_price'],
+            'quantity' => $row['quantity'],
+            'sub_price' => $row['sub_price']
+        ];
+    }
+    return $orders;
 }
 ?>
