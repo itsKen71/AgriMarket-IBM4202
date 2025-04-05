@@ -51,13 +51,13 @@ if (!$vendor) {
                 
                 <!-- Request Assistance Button -->
                 <?php if (!empty($vendor['staff_assisstance_id']) && $vendor['has_staff_support'] == 1): ?>
-                    <button class="btn btn-primary request-assistance-btn" data-bs-toggle="modal" data-bs-target="#requestAssistanceModal">
+                    <button class="btn request-assistance-btn" data-bs-toggle="modal" data-bs-target="#requestAssistanceModal">
                         Request Assistance
                     </button>
                 <?php endif; ?>
 
 
-                <button class="btn btn-primary edit-btn" data-bs-toggle="modal" data-bs-target="#editModal">Edit Store Profile</button>
+                <button class="btn edit-btn" data-bs-toggle="modal" data-bs-target="#editModal">Edit Store Profile</button>
             </div>
         <?php else: ?>
             <p>No vendor profile found. Please complete your registration.</p>
