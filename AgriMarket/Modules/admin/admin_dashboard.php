@@ -27,6 +27,14 @@ $staffList = getStaffList();
     <?php include '../../includes/header.php'; ?>
     <div class="container mt-5">
 
+        <?php if (isset($_GET['success']) && $_GET['success'] === 'staff_added'): ?>
+            <div class="alert alert-success">Staff/Admin added successfully!</div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] === 'password_mismatch'): ?>
+            <div class="alert alert-danger">Passwords do not match.</div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] === 'duplicate_entry'): ?>
+            <div class="alert alert-danger">The username, email, or phone number is already registered.</div>
+        <?php endif; ?>
+
         <!--Listing-->
         <div class="accordion" id="accordionPanels">
 
@@ -126,27 +134,28 @@ $staffList = getStaffList();
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
                         <strong>Staff Listing</strong>
-                        <a href="../../Modules/authentication/sign_up.php">
-                            <img src="../../Assets/img/addStaff.png" alt="Add Staff Button" style="width: 25px; height: 25px;">
-                        </a>
                     </button>
                 </h2>
                 <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse">
                     <div class="accordion-body">
+                        <!-- Temporary Button // change the place to a better one -->
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+                            <img src="../../Assets/img/addStaff.png" alt="Add Staff Button" style="width: 25px; height: 25px;">
+                            Add Staff/Admin
+                        </button>
+
                         <?php if (!empty($staffList)): ?>
                             <?php foreach ($staffList as $staff): ?>
-
-                                <!--Staff Card-->
+                                <!-- Staff Card -->
                                 <div class="Staff-Card">
-
-                                    <!--Header Section(Display Staff Name)-->
+                                    <!-- Header Section (Display Staff Name) -->
                                     <div class="Staff-Listing-Container-Header">
                                         <h2><?= htmlspecialchars($staff['Name']); ?></h2>
                                     </div>
 
                                     <div class="Staff-Card-Body">
                                         <div class="Staff-Listing-Container-Content">
-                                            <!--Content Section(Display Last Online, Performance Tracking)-->
+                                            <!-- Content Section (Display Last Online, Performance Tracking) -->
                                             <span class="label">Last Online</span> <span class="colon">:</span> <?= $staff['last_online']; ?>
                                             <span class="label">Total Request Received</span> <span class="colon">:</span> <?= $staff['totalRequest']; ?>
                                             <span class="label">Total Request Solved</span> <span class="colon">:</span> <?= $staff['totalCompleted']; ?>
@@ -164,20 +173,76 @@ $staffList = getStaffList();
                                         </div>
                                     </div>
                                 </div>
-
                             <?php endforeach; ?>
                         <?php else: ?>
                             <div class="No-Data">
                                 <p>---No Staff Found---</p>
                             </div>
                         <?php endif; ?>
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Add Staff/Admin Modal -->
+    <div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addStaffModalLabel">Add Staff/Admin</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addStaffForm" action="../../includes/add_staff_admin.php" method="POST">
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone_number" class="form-label">Phone Number</label>
+                            <input type="text" class="form-control" id="phone_number" name="phone_number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="home_address" class="form-label">Home Address</label>
+                            <textarea class="form-control" id="home_address" name="home_address" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Role</label>
+                            <select class="form-select" id="role" name="role" required>
+                                <option value="Staff">Staff</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Add</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <?php include '../../includes/footer_2.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
