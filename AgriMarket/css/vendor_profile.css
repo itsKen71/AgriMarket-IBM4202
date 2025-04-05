@@ -54,10 +54,38 @@ body.vendor_profile {
     height: 40px;
 }
 
+.btn-primary {
+    width: 160px !important;
+    background-color: #d9f2da !important;
+    border-color: #c8e6c9 !important;
+    color: #7a997a !important;
+    font-weight: bold !important;
+    transition: background-color 0.3s ease !important;
+}
+
 .edit-btn {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    width: 160px;
+    width: 180px;
     height: 40px;
+    background-color: #d9f2da !important;
+    border-color: #c8e6c9 !important;
+    color: #7a997a !important;
+    font-weight: bold !important;
+    transition: background-color 0.3s ease !important;
+}
+
+.request-assistance-btn {
+    width: 180px;
+    background-color: #d9f2da !important;
+    border-color: #c8e6c9 !important;
+    color: #7a997a !important;
+    font-weight: bold !important;
+    transition: background-color 0.3s ease !important;
+}
+
+.edit-btn:hover, .btn-primary:hover, .request-assistance-btn:hover {
+    background-color: #c8e6c9 !important;
+    border-color: #b2d8b2 !important;
 }
