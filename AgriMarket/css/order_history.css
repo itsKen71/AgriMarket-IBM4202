@@ -6,8 +6,7 @@ body.order_history {
     width: 80px !important;
     background-color: #d9f2da !important;
     border-color: #c8e6c9 !important;
-    color: #7a997a !important;
-    font-weight: bold !important;
+    color: #5b725b !important;
     transition: background-color 0.3s ease !important;
 }
 
@@ -28,3 +27,34 @@ body.order_history {
     color: #333;
 }
 
+.alert.alert-info {
+    border-left: 6px solid #0dcaf0; 
+    background-color: #e9f7fc; 
+    color: #055160; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
+    margin-top: 1rem;
+    border-radius: 8px;
+}
+
+.alert .custom-message {
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 0.3px;
+}
+
+.product-preview {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Gap between image and text */
+}
+
+.product-preview img {
+    max-width: 250px; /* Control the image size */
+    height: auto;
+}
+
+.product-preview div {
+    flex: 1;
+}

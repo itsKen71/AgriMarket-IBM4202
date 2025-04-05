@@ -149,7 +149,7 @@ if (!$user_id) {
         </div>
 
         <!-- Hidden Success Modal (used only for passing values) -->
-        <div class="modal fade d-none" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal fade d-none" id="successSubscribeModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered d-none">
                 <div class="modal-content d-none">
                     <di class="modal-header d-none">
