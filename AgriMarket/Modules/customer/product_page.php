@@ -221,7 +221,7 @@
         <div class="row align-items-center">
             <!-- Vendor Image -->
             <div class="col-md-2 text-center">
-                    <a href="vendor.php?vendor_id=<?php echo urlencode($vendor_id); ?>">
+                    <a href="vendor.php?vendor_id=<?php echo urlencode($vendor_id); ?>"> <!--  Change Vendor Profile -->
                         <img src="../../Assets/img/product_img/vendor_image.jpeg" 
                             alt="Vendor Image" 
                             class="img-fluid rounded-circle" 
