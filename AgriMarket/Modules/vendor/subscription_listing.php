@@ -123,7 +123,9 @@ if (!$user_id) {
                             <!-- Select Subscription Duration -->
                             <div class="mb-3">
                                 <label class="form-label">Select Subscription Duration (months):</label>
-                                <input type="number" id="subscriptionMonths" class="form-control" min="1" max="12" value="1" required>
+                                <input type="number" id="subscriptionMonths" class="form-control" min="1" max="12" value="1" required 
+                                onkeydown="return event.key === 'ArrowUp' || event.key === 'ArrowDown';">
+
                             </div>
                             <!-- Display Subscription Details -->
                                <div class="mb-3">
