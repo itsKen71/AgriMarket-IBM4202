@@ -1,3 +1,61 @@
 body.cart {
     background-color: #f5f1eb; 
 }
+
+        .cart {
+            background-color: #f8f9fa;
+        }
+        .price-color {
+            color: #dc3545;
+        }
+        .quantity-control button {
+            width: 30px;
+        }
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        .checkout-btn:hover {
+            background-color: #c82333;
+        }
+        .cart-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .container.mt-5 {
+            padding-bottom: 65px;
+        }
+
+        #compareModal .modal-dialog {
+            max-width: 90%;
+        }
+
+        .compare-product-image {
+            max-height: 200px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        #compareModal .card {
+            height: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        #compareModal .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            #compareModal .modal-dialog {
+                margin: 0.5rem auto;
+            }
+            
+            #compareModal .row {
+                flex-direction: column;
+            }
+            
+            #compareModal .col-md-6 {
+                margin-bottom: 1rem;
+            }
+        }

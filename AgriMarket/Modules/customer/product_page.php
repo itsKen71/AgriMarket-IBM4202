@@ -1,6 +1,7 @@
 <?php
     session_start();
     include '..\..\includes\database.php';
+    include '..\..\includes\product_page_functions.php';
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
         $_SESSION['selected_product_id'] = $_POST['product_id'];
@@ -14,30 +15,23 @@
     }
 
     $product_id = $_SESSION['selected_product_id'];
-    $user_id = 1;
+    $user_id = $_SESSION['user_id'] ?? null;
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: ../authentication/login.php");
+        exit();
+    }
 
     $selected_rating = isset($_GET['rating']) ? intval($_GET['rating']) : 0;
 
-    //get product info
-    $query = "SELECT * FROM product WHERE product_id = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $product_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $product = $result->fetch_assoc();
+    $product = getCompleteProductData($conn, $product_id);
 
-    //get total rating and average rating
-    $query = "SELECT COUNT(*) as total_reviews, AVG(rating) as avg_rating FROM review WHERE product_id = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $product_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $review_stats = $result->fetch_assoc();
-    $stmt->close();
+    if (!$product) {
+        die("Product not found");
+    }
 
-    $avg_rating = $review_stats['avg_rating'] ?? 0;
-    $rounded_rating = round($avg_rating);
-    $total_reviews = $review_stats['total_reviews'] ?? 0;
+    $avg_rating = $product['avg_rating'];
+    $rounded_rating = $product['rounded_rating']; 
+    $total_reviews = $product['total_reviews'];
 
     //display star
     function displayStars($rating) {
@@ -62,59 +56,28 @@
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart']) && isset($_POST['quantity'])) {
         $product_id = $_SESSION['selected_product_id'];
-        $quantity = max(1, intval($_POST['quantity'])); // at least quantity = 1
-        $user_id = 1;
+        $quantity = $_POST['quantity'];
+        $user_id = $_SESSION['user_id'];
+
+        $result = addToCart($conn, $product_id, $quantity, $user_id);
         
-        // First check available stock
-        $stock_query = "SELECT stock_quantity FROM product WHERE product_id = ?";
-        $stock_stmt = $conn->prepare($stock_query);
-        $stock_stmt->bind_param("i", $product_id);
-        $stock_stmt->execute();
-        $stock_result = $stock_stmt->get_result();
-        $product_stock = $stock_result->fetch_assoc()['stock_quantity'];
-        $stock_stmt->close();
-        
-        if ($quantity > $product_stock) {
-            // Redirect back with error message if quantity exceeds stock
-            header("Location: product_page.php?error=stock&available=" . $product_stock);
-            exit();
-        }
-        
-        // check if the product is already in the cart
-        $check_query = "SELECT * FROM cart WHERE user_id = ? AND product_id = ?";
-        $check_stmt = $conn->prepare($check_query);
-        $check_stmt->bind_param("ii", $user_id, $product_id);
-        $check_stmt->execute();
-        $result = $check_stmt->get_result();
-        
-        if ($result->num_rows >= 1) {
-            // if product exists, check if adding this quantity would exceed stock
-            $cart_item = $result->fetch_assoc();
-            $new_quantity = $cart_item['quantity'] + $quantity;
-            
-            if ($new_quantity > $product_stock) {
-                header("Location: product_page.php?error=stock&available=" . $product_stock);
-                exit();
-            }
-            
-            // update quantity
-            $update_query = "UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?";
-            $update_stmt = $conn->prepare($update_query);
-            $update_stmt->bind_param("iii", $quantity, $user_id, $product_id);
-            $update_stmt->execute();
-            $update_stmt->close();
+        if ($result['success']) {
+            header("Location: product_page.php?added=1");
         } else {
-            // if product doesn't exist, add it to cart
-            $insert_query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)";
-            $insert_stmt = $conn->prepare($insert_query);
-            $insert_stmt->bind_param("iii", $user_id, $product_id, $quantity);
-            $insert_stmt->execute();
-            $insert_stmt->close();
+            header("Location: product_page.php?error=" . $result['error'] . "&available=" . $result['available']);
         }
-        
-        $check_stmt->close();
-        header("Location: product_page.php?added=1");
         exit();
+    }
+
+    $vendor = VendorDetail($conn, $product_id);
+    if ($vendor) {
+        $store_name = $vendor['store_name'];
+        $vendor_id = $vendor['vendor_id'];
+        
+        $vendor_rating = VendorRating($conn, $vendor_id);
+    } else {
+        $store_name = "Unknown Store";
+        $vendor_rating = 0;
     }
 
     
@@ -166,156 +129,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <!-- Put CSS & JS Link Here-->
-    <link rel="stylesheet" href="../../css/product_page.css">
-    <style>
-        .product-image {
-            width: 100%;
-            max-width: 450px;
-            max-height: 450px;
-            object-fit: contain;
-            cursor: pointer;
-        }
-
-        .text-muted i {
-            color: gold; /* Make stars gold/yellow */
-            margin-right: 2px; 
-        }
-
-        .custom-price {
-            font-size: 40px;
-            font-weight: bold;
-        }
- 
-       
-        .shopping-protection-container {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .shopping-protection-content {
-            display: none;
-            position: absolute;
-            z-index: 1000;
-            min-width: 300px;
-            left: 0;
-        }
-        
-        .shopping-protection-trigger:hover + .shopping-protection-content,
-        .shopping-protection-content:hover {
-            display: block;
-        }
-
-        .product-box {
-            border: 2px solid rgba(25, 25, 25, 0.1);
-            border-radius: 5px; 
-            padding-left: 25px; 
-            padding-top: 20px;
-            padding-bottom: 30px;
-            background: white; 
-            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1); 
-        }
-        
-        .comment-box{
-            border: 2px solid rgba(25, 25, 25, 0.1);
-            border-radius: 5px; 
-            padding-left: 25px; 
-            padding-top: 20px;
-            padding-bottom: 30px;
-            background: white; 
-            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1); 
-            margin-top: 20px; 
-            max-height: 500px; 
-            overflow-y: auto;
-        }
-
-        .comment-box::-webkit-scrollbar {
-            width: 8px; 
-        }
-
-        .comment-box::-webkit-scrollbar-track {
-            background: #f1f1f1; 
-            border-radius: 5px;
-        }
-
-        .comment-box::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 5px;
-        }
-
-        .comment-box::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        .related-box {
-            border: 2px solid rgba(25, 25, 25, 0.1);
-            border-radius: 5px; 
-            padding: 25px; 
-            padding-top: 20px;
-            background: white; 
-            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 30px;
-        }
-
-        .related-product-card {
-            transition: transform 0.3s ease;
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-
-        .related-product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-        .related-product-card .card-img-top {
-            transition: transform 0.3s ease;
-        }
-
-        .related-product-card:hover .card-img-top {
-            transform: scale(1.05);
-        }
-
-        .space{
-            margin-top: 30px;
-        }
-        
-        .btn-outline-danger {
-            background-color: #FFF5F5;
-            border-color: #EB5757;
-            color: #EB5757;
-            font-weight: 500;
-        }
-
-        .btn-danger {
-            background-color: #EB5757;
-            border-color: #EB5757;
-            font-weight: 500;
-        }
-
-        .btn {
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        .rating-filter .btn-outline-secondary.active {
-            background-color: #EB5757;
-            color: white;
-            border-color: #EB5757;
-        }
-
-        .badge {
-            padding: 4px 8px;
-            border-radius: 10px;
-            font-weight: normal;
-        }
-
-        .rating-filter .btn-outline-secondary.active {
-            background-color: #EB5757;
-            color: white;
-            border-color: #EB5757;
-        }
-
-        
-    </style>
+    <link rel="stylesheet" href="../../css/product_page.css?v=<?= filemtime('../../css/product_page.css') ?>">
 </head>
 
 <body class="product_page">
@@ -349,7 +163,7 @@
                         <p class="mb-0"><?php echo htmlspecialchars($product['weight']); ?></p>
                     </div>
                 </div>
-                
+
                 <!-- dropdown shopping protection -->
                 <div class="mt-4 shopping-protection-container">
                 <div class="shopping-protection-trigger d-inline-block">
@@ -357,8 +171,6 @@
                     <span>Shopping Protection</span>
                     <small class="text-muted ms-2">15-Day Free Return · Cash On Delivery (COD)</small>
                 </div>
-                
-
                 <div class="shopping-protection-content">
                     <div class="card card-body bg-light mt-2 p-3">
                     <div class="mb-3">
@@ -403,6 +215,38 @@
             </div>
         </div>
     </div>
+
+    <!-- Vendor -->
+    <div class="product-box p-4 mt-4">
+        <div class="row align-items-center">
+            <!-- Vendor Image -->
+            <div class="col-md-2 text-center">
+                    <a href="vendor.php?vendor_id=<?php echo urlencode($vendor_id); ?>"> <!--  Change Vendor Profile -->
+                        <img src="../../Assets/img/product_img/vendor_image.jpeg" 
+                            alt="Vendor Image" 
+                            class="img-fluid rounded-circle" 
+                            style="width: 150px; height: 150px; object-fit: cover;">
+                     </a>
+            </div>
+
+            <!-- Vendor Info -->
+            <div class="col-md-10">
+                <h4 class="mb-2"><?php echo htmlspecialchars($store_name); ?></h4>
+                <p class="mb-1">
+                    Vendor Rating: 
+                    <?php 
+                    if ($vendor_rating > 0) {
+                        echo htmlspecialchars($vendor_rating) . ' / 5 ';
+                        echo '<span class="text-muted">' . displayStars($vendor_rating) . '</span>';
+                    } else {
+                        echo 'No Rating Yet';
+                    }
+                    ?>
+                </p>
+            </div>
+        </div>
+    </div>
+
     
     <!-- comment section -->
     <section id="comment">
@@ -577,134 +421,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-    // add to cart form validate
-    document.addEventListener('DOMContentLoaded', function() {
-        const quantityModal = document.getElementById('quantityModal');
-        const cartForm = document.getElementById('cartForm');
-        const quantityInput = document.getElementById('quantityInput');
-        const submitButton = cartForm.querySelector('button[type="submit"]');
-        let stockQuantity = 0;
-
-        // when modal opens, get the stock quantity from the button
-        quantityModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            stockQuantity = parseInt(button.getAttribute('data-stock-quantity'));
-            document.getElementById('availableStock').textContent = stockQuantity;
-            
-            // reset form state when opening
-            quantityInput.classList.remove('is-invalid');
-            quantityInput.value = 1;
-            submitButton.disabled = false;
-        });
-
-        // real-time validate quantity
-        quantityInput.addEventListener('input', function() {
-            validateQuantity();
-        });
-
-        // form submission handler
-        cartForm.addEventListener('submit', function(e) {
-            if (!validateQuantity()) {
-                e.preventDefault();
-            }
-        });
-
-        function validateQuantity() {
-            const quantity = parseInt(quantityInput.value) || 0;
-            let isValid = true;
-            
-            // clear previous invalid states
-            quantityInput.classList.remove('is-invalid');
-            
-            // check if quantity is at least 1 and a number
-            if (quantity < 1 || isNaN(quantity)) {
-                quantityInput.classList.add('is-invalid');
-                quantityInput.nextElementSibling.textContent = 'The quantity must be at least 1';
-                isValid = false;
-            } 
-            // check if quantity exceeds stock
-            else if (quantity > stockQuantity) {
-                quantityInput.classList.add('is-invalid');
-                quantityInput.nextElementSibling.textContent = `Only ${stockQuantity} items available in stock`;
-                isValid = false;
-            }
-            
-            // disable submit button if invalid
-            submitButton.disabled = !isValid;
-            
-            return isValid;
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-    const buyNowModal = document.getElementById('buyNowModal');
-    const buyNowForm = document.getElementById('buyNowForm');
-    const quantityInput = document.getElementById('buyNowQuantity');
-    const submitButton = buyNowForm.querySelector('button[type="submit"]');
-    let stockQuantity = 0;
-
-    // When modal opens, get the stock quantity from the button
-    buyNowModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        stockQuantity = parseInt(button.getAttribute('data-stock-quantity'));
-        
-        // Reset form state when opening
-        quantityInput.classList.remove('is-invalid');
-        quantityInput.value = 1;
-        submitButton.disabled = false;
-    });
-
-    // Validate quantity on input change
-    quantityInput.addEventListener('input', function() {
-        validateQuantity();
-    });
-
-    // Form submission handler
-    buyNowForm.addEventListener('submit', function(e) {
-        if (!validateQuantity()) {
-            e.preventDefault();
-        }
-    });
-
-    function validateQuantity() {
-        const quantity = parseInt(quantityInput.value);
-        let isValid = true;
-        
-        // Clear previous invalid states
-        quantityInput.classList.remove('is-invalid');
-        
-        // Check if quantity is at least 1 and a number
-        if (isNaN(quantity) || quantity < 1) {
-            quantityInput.classList.add('is-invalid');
-            quantityInput.nextElementSibling.textContent = 'The quantity must be at least 1';
-            isValid = false;
-        } 
-        // Check if quantity exceeds stock
-        else if (quantity > stockQuantity) {
-            quantityInput.classList.add('is-invalid');
-            quantityInput.nextElementSibling.textContent = `Only ${stockQuantity} items available in stock`;
-            isValid = false;
-        }
-        
-        // Disable submit button if invalid
-        submitButton.disabled = !isValid;
-        
-        return isValid;
-    }
-
-    buyNowModal.addEventListener('show.bs.modal', function(event) {
-    const button = event.relatedTarget;
-    stockQuantity = parseInt(button.getAttribute('data-stock-quantity'));
-    document.getElementById('availableStock').textContent = stockQuantity;
-    
-    // Reset form state when opening
-    quantityInput.classList.remove('is-invalid');
-    quantityInput.value = 1;
-    submitButton.disabled = false;
-});
-});
-</script>
+    <script src="../../js/main_page.js"></script>
 </body>
 
 </html>
