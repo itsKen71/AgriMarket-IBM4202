@@ -121,19 +121,21 @@ if (!$user_id) {
                                     </select>
                                 </div>
 
-                                <!-- Select Subscription Duration -->
-                                <div class="mb-3">
-                                    <label class="form-label">Select Subscription Duration (months):</label>
-                                    <input type="number" id="subscriptionMonths" class="form-control" min="1" max="12"
-                                        value="1" required>
-                                </div>
-                                <!-- Display Subscription Details -->
-                                <div class="mb-3">
-                                    <h5>Subscription Details</h5>
-                                    <p><strong>Start Date:</strong> <span id="startDate"></span></p>
-                                    <p><strong> End Date :</strong> <span id="endDate"></span></p>
-                                    <p><strong>Total Price:</strong> $ <span id="totalPrice">0.00</span></p>
-                                </div>
+                            <!-- Select Subscription Duration -->
+                            <div class="mb-3">
+                                <label class="form-label">Select Subscription Duration (months):</label>
+                                <input type="number" id="subscriptionMonths" class="form-control" min="1" max="12" value="1" required 
+                                onkeydown="return event.key === 'ArrowUp' || event.key === 'ArrowDown';">
+
+                            </div>
+                            <!-- Display Subscription Details -->
+                               <div class="mb-3">
+                                <h5>Subscription Details</h5>
+                                <p><strong>Start Date:</strong> <span id="startDate"></span></p>
+                                <p><strong> End Date :</strong> <span id="endDate"></span></p>
+                                <p><strong>Total Price:</strong> $ <span id="totalPrice">0.00</span></p>
+                            </div>
+                              
                             </form>
                         </div>
                         <div class="modal-footer">

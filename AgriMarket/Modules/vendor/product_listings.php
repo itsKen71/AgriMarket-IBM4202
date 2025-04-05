@@ -84,7 +84,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                                             <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
                                             <td>RM<?php echo number_format($product['unit_price'], 2); ?></td>
                                             <td class="text-center align-middle">
-                                                <button class="btn btn-primary btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editProductModal"
+                                                <button class="btn btn-success btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editProductModal"
                                                 data-id="<?php echo $product['product_id']; ?>"
                                                 data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
                                                 data-category="<?php echo htmlspecialchars($product['category_name']); ?>"
