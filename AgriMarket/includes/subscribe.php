@@ -28,6 +28,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!$is_vendor) {
         // Upgrade user to vendor
         $success = upgradeToVendor($conn, $user_id, $plan_id, $end_date);
+        if ($success) {
+            $_SESSION['role'] = 'Vendor'; 
+        }
     } else {
         // Update vendor subscription
         $success = updateVendorSubscription($conn, $user_id, $plan_id, $end_date);
@@ -38,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $planParam = ($plan_id == 1) ? "tier1" : (($plan_id == 2) ? "tier2" : "tier3");
 
         // Redirect with parameters
-        header("Location: ../Modules/vendor/subscription_listing.php?subscribe=success&plan=$planParam&months=$months");
+        header("Location: ../Modules/vendor/product_listings.php?subscribe=success&plan=$planParam&months=$months");
         exit();
     } else {
         echo "Error Subscribing Plan.";
