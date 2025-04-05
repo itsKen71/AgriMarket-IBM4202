@@ -200,6 +200,73 @@ function getApprovedProducts($category_id = null, $search_query = '', $filter = 
     return $products;
 }
 
+function getVendorDetailsById($conn, $vendor_id)
+{
+    $query = "SELECT v.store_name, u.first_name, u.last_name, u.email, u.phone_number 
+              FROM vendor v 
+              JOIN user u ON v.user_id = u.user_id 
+              WHERE v.vendor_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $vendor_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_assoc();
+}
+
+function getVendorProducts($conn, $vendor_id, $search_query = '', $filter = '')
+{
+    $sql = "SELECT * FROM product WHERE vendor_id = ? AND product_status = 'Approved'";
+    $params = [$vendor_id];
+    $types = "i";
+
+    if (!empty($search_query)) {
+        $sql .= " AND (product_name LIKE ? OR description LIKE ?)";
+        $search_term = '%' . $search_query . '%';
+        $params[] = $search_term;
+        $params[] = $search_term;
+        $types .= "ss";
+    }
+
+    // Apply filters
+    switch ($filter) {
+        case 'price_asc':
+            $sql .= " ORDER BY unit_price ASC";
+            break;
+        case 'price_desc':
+            $sql .= " ORDER BY unit_price DESC";
+            break;
+        case 'stock_asc':
+            $sql .= " ORDER BY stock_quantity ASC";
+            break;
+        case 'stock_desc':
+            $sql .= " ORDER BY stock_quantity DESC";
+            break;
+        case 'sold_asc':
+            $sql .= " ORDER BY sold_quantity ASC";
+            break;
+        case 'sold_desc':
+            $sql .= " ORDER BY sold_quantity DESC";
+            break;
+        case 'weight_asc':
+            $sql .= " ORDER BY weight ASC";
+            break;
+        case 'weight_desc':
+            $sql .= " ORDER BY weight DESC";
+            break;
+        case 'recent':
+            $sql .= " ORDER BY product_id DESC";
+            break;
+        default:
+            $sql .= " ORDER BY RAND()";
+    }
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+
 /*Staff Dashboard*/
 function update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by)
 {
@@ -753,7 +820,7 @@ function getPlanName($conn, $plan_id)
     return $plan ? $plan['plan_name'] : null;
 }
 
-function getOrderHistoryByUser($userId, $conn) 
+function getOrderHistoryByUser($userId, $conn)
 {
     $sql = "
         SELECT o.order_id, o.order_date, o.delivery_date, o.price AS total_order_price,
