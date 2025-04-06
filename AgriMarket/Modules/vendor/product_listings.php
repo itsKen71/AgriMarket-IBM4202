@@ -48,7 +48,12 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
     <?php include '../../includes/header.php'; ?>
 
     <div class="container mt-5">
-        <h2 class="mb-4">Product Listings</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Product Listings</h2>
+            <img src="../../assets/img/add-circle.png" alt="Add Product" class="add-btn" id="addProductBtn"
+                data-bs-toggle="modal" data-bs-target="#addProductModal"
+                <?php if ($pendingCount >= $uploadLimit) echo 'style="pointer-events: none; opacity: 0.5;"'; ?>>
+        </div>
         <div class="accordion" id="productAccordion">
 
             <!-- Products Section -->
@@ -395,11 +400,6 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                 </div>
             </div>
         </div>
-
-<!-- Add Button -->
-<img src="../../assets/img/add-circle.png" alt="Add Product" class="add-btn" id="addProductBtn"
-    data-bs-toggle="modal" data-bs-target="#addProductModal"
-    <?php if ($pendingCount >= $uploadLimit) echo 'style="pointer-events: none; opacity: 0.5;"'; ?> >
 
     <?php include '../../includes/footer.php'; ?>
     <script>window.lowStockProducts = <?php echo $lowStockProductsJson; ?>;</script> <!-- Pass php data to js -->

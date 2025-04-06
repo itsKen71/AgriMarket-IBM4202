@@ -3,18 +3,16 @@ body.product_listings {
 }
 
 .add-btn {
-    position: fixed;
     bottom: 20px;
     right: 20px;
-    width: 40px; 
-    height: 40px;
+    width: 35px; 
+    height: 35px;
     cursor: pointer;
-    z-index: 1000;
     transition: transform 0.2s ease-in-out;
 }
 
 .add-btn:hover {
-    transform: scale(1.1); 
+    transform: scale(1.05); 
 }
 
 .btn-success {
@@ -39,3 +37,4 @@ body.product_listings {
     background-color: #c8e6c9 !important;
     border-color: #b2d8b2 !important;
 }
+
