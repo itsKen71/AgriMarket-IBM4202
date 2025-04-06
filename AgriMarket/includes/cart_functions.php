@@ -1,7 +1,7 @@
 <?php
 include_once 'database.php';
 
-// ✅ 获取用户购物车中的商品
+// get all item in user cart
 function getUserCart($conn, $user_id) {
     $query = "SELECT product_id, quantity FROM cart WHERE user_id = ?";
     $stmt = $conn->prepare($query);
@@ -17,9 +17,9 @@ function getUserCart($conn, $user_id) {
     $products = [];
     while ($row = $result->fetch_assoc()) {
         $product_id = $row['product_id'];
-        $quantity = $row['quantity']; // 获取购物车数量
+        $quantity = $row['quantity']; // get cart quantity
 
-        // 获取商品信息
+        // get item info
         $query_product = "SELECT * FROM product WHERE product_id = ?";
         $stmt_product = $conn->prepare($query_product);
 
@@ -32,7 +32,7 @@ function getUserCart($conn, $user_id) {
         $result_product = $stmt_product->get_result();
 
         if ($product = $result_product->fetch_assoc()) {
-            $product['quantity'] = $quantity; // 把购物车数量放入数组
+            $product['quantity'] = $quantity; // Put the shopping cart quantity into an array
             $products[] = $product;
         }
     }
@@ -64,7 +64,7 @@ function deleteCartItem($conn, $user_id, $product_id) {
     }
 }
 
-// ✅ 更新购物车商品数量
+// update cart item quantity
 function updateCartQuantity($conn, $user_id, $product_id, $new_quantity, $unit_price) {
     $new_quantity = max(1, (int)$new_quantity);
 
@@ -93,20 +93,20 @@ function getAverageRating($conn, $productId) {
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
-    return round($row['avg_rating'], 1) ?? 0; // 保留 1 位小数
+    return round($row['avg_rating'], 1) ?? 0; // keep 1 decimal place
 }
 
 function switchCartProduct($conn, $user_id, $current_product_id, $compare_product_id) {
     $conn->begin_transaction();
 
     try {
-        // 删除当前商品
+        // dlt current item
         $delete_query = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
         $stmt_delete = $conn->prepare($delete_query);
         $stmt_delete->bind_param("ii", $user_id, $current_product_id);
         $stmt_delete->execute();
 
-        // 添加新商品
+        // add new item
         $insert_query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, 1)
                         ON DUPLICATE KEY UPDATE quantity = 1";
         $stmt_insert = $conn->prepare($insert_query);
