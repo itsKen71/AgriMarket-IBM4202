@@ -16,7 +16,7 @@ foreach ($input['products'] as $item) {
     $productId = $item['product_id'];
     $quantity = $item['quantity'];
     
-    // 获取产品信息和库存
+    // get product and stock info
     $query = "SELECT product_name, stock_quantity FROM product WHERE product_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $productId);
@@ -44,7 +44,6 @@ foreach ($input['products'] as $item) {
 }
 
 if (count($outOfStockItems) > 0) {
-    // 构建详细的错误消息
     $errorMessages = array_map(function($item) {
         return sprintf(
             "%s (Requested: %d, Available: %d)",

@@ -1,11 +1,11 @@
 <?php
-include_once 'database.php';// product_page_functions.php
+include_once 'database.php';
 
 function addToCart($conn, $product_id, $quantity, $user_id) {
-    // 验证数量至少为1
+    // quantity at least 1
     $quantity = max(1, intval($quantity));
     
-    // 检查库存
+    // check stock_quantity
     $stock_query = "SELECT stock_quantity FROM product WHERE product_id = ?";
     $stock_stmt = $conn->prepare($stock_query);
     $stock_stmt->bind_param("i", $product_id);
@@ -22,7 +22,7 @@ function addToCart($conn, $product_id, $quantity, $user_id) {
         ];
     }
     
-    // 检查商品是否已在购物车
+    // check item in cart already or not
     $check_query = "SELECT * FROM cart WHERE user_id = ? AND product_id = ?";
     $check_stmt = $conn->prepare($check_query);
     $check_stmt->bind_param("ii", $user_id, $product_id);
@@ -42,19 +42,19 @@ function addToCart($conn, $product_id, $quantity, $user_id) {
 
             if ($stock_result->num_rows > 0) {
                 $row = $stock_result->fetch_assoc();
-                $quantity = $row['stock_quantity']; // 这才是获取库存值
+                $quantity = $row['stock_quantity'];
             }
             $stock_stmt->close();
         }
         
-        // 更新数量
+        // update quantity
         $update_query = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
         $update_stmt = $conn->prepare($update_query);
         $update_stmt->bind_param("iii", $quantity, $user_id, $product_id);
         $update_stmt->execute();
         $update_stmt->close();
     } else {
-        // 添加新商品到购物车
+        // add new item to cart
         $insert_query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)";
         $insert_stmt = $conn->prepare($insert_query);
         $insert_stmt->bind_param("iii", $user_id, $product_id, $quantity);
@@ -76,9 +76,7 @@ function getProductDetails($conn, $product_id) {
     return $result->fetch_assoc();
 }
 
-/**
- * 获取产品评分统计
- */
+//get each product rating
 function getProductReviewStats($conn, $product_id) {
     $query = "SELECT COUNT(*) as total_reviews, AVG(rating) as avg_rating FROM review WHERE product_id = ?";
     $stmt = $conn->prepare($query);
@@ -95,9 +93,7 @@ function getProductReviewStats($conn, $product_id) {
     ];
 }
 
-/**
- * 获取完整产品数据（包含基本信息和评分）
- */
+//get complete product data (including basic information and ratings)
 function getCompleteProductData($conn, $product_id) {
     $product = getProductDetails($conn, $product_id);
     if (!$product) {
@@ -122,9 +118,7 @@ function getProductRatingCounts($conn, $product_id) {
     return $rating_counts;
 }
 
-/**
- * 获取产品的评价列表（可筛选和排序）
- */
+//get the product review list (filterable and sortable)
 function getProductReviews($conn, $product_id, $selected_rating = 0) {
     $query = "SELECT r.rating, r.review_description, r.review_date, 
                      u.first_name, u.last_name 
@@ -132,12 +126,12 @@ function getProductReviews($conn, $product_id, $selected_rating = 0) {
               JOIN `user` u ON r.user_id = u.user_id 
               WHERE r.product_id = ?";
     
-    // 添加评价筛选条件
+    // Add review filter
     if ($selected_rating > 0) {
         $query .= " AND r.rating = ?";
     }
     
-    // 添加默认排序
+    // Add default sort
     $query .= " ORDER BY r.review_date DESC";
     
     $stmt = $conn->prepare($query);
@@ -153,9 +147,7 @@ function getProductReviews($conn, $product_id, $selected_rating = 0) {
     return $result->fetch_all(MYSQLI_ASSOC);
 }
 
-/**
- * 获取完整的评价数据（包含统计和列表）
- */
+//get complete review data (including statistics and lists)
 function getCompleteReviewData($conn, $product_id, $selected_rating = 0) {
     return [
         'rating_counts' => getProductRatingCounts($conn, $product_id),
@@ -183,9 +175,9 @@ function VendorDetail($conn, $product_id) {
 }
 
 function VendorRating($conn, $vendor_id) {
-    // 全局平均评分和评价数（需要提前查询或配置）
-    $global_avg = 3.5; // 假设全局平均3.5星
-    $min_reviews = 5;  // 最小评价数
+    // global average rating and number of reviews (need to be queried or configured in advance)
+    $global_avg = 3.5; // assuming the global average is 3.5 stars
+    $min_reviews = 5;  
     
     $query = "SELECT 
                  AVG(r.rating) AS avg_rating,
@@ -207,7 +199,7 @@ function VendorRating($conn, $vendor_id) {
             return 0;
         }
         
-        // 贝叶斯计算：加权全局平均和实际平均
+        // Bayesian Computation: Weighted Global Average and Actual Average
         $bayesian_avg = ($min_reviews * $global_avg + $review_count * $avg_rating) 
                        / ($min_reviews + $review_count);
         
@@ -215,5 +207,4 @@ function VendorRating($conn, $vendor_id) {
     }
     return 0;
 }
-
 ?>

@@ -81,7 +81,7 @@
     }
 
     
-    //11get each rating
+    //get each rating
     $rating_counts = [];
     for ($i = 1; $i <= 5; $i++) {
     $query = "SELECT COUNT(*) FROM review WHERE product_id = ? AND rating = ?";
@@ -166,53 +166,53 @@
 
                 <!-- dropdown shopping protection -->
                 <div class="mt-4 shopping-protection-container">
-                <div class="shopping-protection-trigger d-inline-block">
-                <i class="bi bi-shield-fill-check"></i>&nbsp;
-                    <span>Shopping Protection</span>
-                    <small class="text-muted ms-2">15-Day Free Return · Cash On Delivery (COD)</small>
-                </div>
-                <div class="shopping-protection-content">
-                    <div class="card card-body bg-light mt-2 p-3">
-                    <div class="mb-3">
-                        <div class="d-flex align-items-center mb-2"> 
-                            <i class="bi bi-box-arrow-in-left me-2"></i> 
-                            <h6 class="fw-bold mb-0">15-Day Free Return</h6>  
-                        </div>
-                        <p class="mb-0 small">
-                            Enjoy unconditional full refund within 15 days. Applies to eligible items. Electronic products must remain sealed (original packaging unbroken/unmodified). See terms for eligible products.
-                        </p>
+                    <div class="shopping-protection-trigger d-inline-block">
+                    <i class="bi bi-shield-fill-check"></i>&nbsp;
+                        <span>Shopping Protection</span>
+                        <small class="text-muted ms-2">15-Day Free Return · Cash On Delivery (COD)</small>
                     </div>
+                    <div class="shopping-protection-content">
+                        <div class="card card-body bg-light mt-2 p-3">
                         <div class="mb-3">
-                            <h6 class="fw-bold"><img src="../../Assets/img/cash-on-delivery-cod-icon-260nw-2302469373 (1)-Photoroom.png" alt="COD Icon" style="height: 20px;"> Cash On Delivery (COD)</h6>
-                            <div class="small">
-                                <ol class="mb-0 ps-3">
-                                    <li class="small">In Malaysia, Shopee offers COD for door-to-door deliveries or orders below RM250.</li>
-                                    <li class="small">Your order will be delivered by Shopee Express, DHL eCommerce or Ninjavan. </li>
-                                    <li class="small">Pay cash upon delivery.</li>
-                                    <li class="small">Note: Payment amount will be rounded to the nearest 5 sen.</li>
-                                    <li class="small">Important: Beware of fraud - never pay sellers directly for COD orders.</li>
-                                </ol>
+                            <div class="d-flex align-items-center mb-2"> 
+                                <i class="bi bi-box-arrow-in-left me-2"></i> 
+                                <h6 class="fw-bold mb-0">15-Day Free Return</h6>  
+                            </div>
+                            <p class="mb-0 small">
+                                Enjoy unconditional full refund within 15 days. Applies to eligible items. Electronic products must remain sealed (original packaging unbroken/unmodified). See terms for eligible products.
+                            </p>
+                        </div>
+                            <div class="mb-3">
+                                <h6 class="fw-bold"><img src="../../Assets/img/cash-on-delivery-cod-icon-260nw-2302469373 (1)-Photoroom.png" alt="COD Icon" style="height: 20px;"> Cash On Delivery (COD)</h6>
+                                <div class="small">
+                                    <ol class="mb-0 ps-3">
+                                        <li class="small">In Malaysia, Shopee offers COD for door-to-door deliveries or orders below RM250.</li>
+                                        <li class="small">Your order will be delivered by Shopee Express, DHL eCommerce or Ninjavan. </li>
+                                        <li class="small">Pay cash upon delivery.</li>
+                                        <li class="small">Note: Payment amount will be rounded to the nearest 5 sen.</li>
+                                        <li class="small">Important: Beware of fraud - never pay sellers directly for COD orders.</li>
+                                    </ol>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
  
 
                 <!-- button -->
-                <div class="mt-4 d-flex gap-3">
+            <div class="mt-4 d-flex gap-3">
                 <button type="button" class="btn btn-outline-danger px-4 py-2" style="width: 180px;" 
-                        data-bs-toggle="modal" data-bs-target="#quantityModal"
-                        data-stock-quantity="<?php echo $product['stock_quantity']; ?>">
+                    data-bs-toggle="modal" data-bs-target="#quantityModal"
+                    data-stock-quantity="<?php echo $product['stock_quantity']; ?>">
                     <i class="fas fa-shopping-cart me-2"></i> Add to Cart
                 </button>
                 <button class="btn btn-danger px-4 py-2" style="width: 180px;" 
-                        data-bs-toggle="modal" data-bs-target="#buyNowModal"
-                        data-stock-quantity="<?php echo $product['stock_quantity']; ?>">
-                        Buy Now
+                    data-bs-toggle="modal" data-bs-target="#buyNowModal"
+                    data-stock-quantity="<?php echo $product['stock_quantity']; ?>">
+                    Buy Now
                 </button>
-                </div>
             </div>
+        </div>
         </div>
     </div>
 

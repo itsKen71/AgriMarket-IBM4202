@@ -15,7 +15,6 @@ try {
         throw new Exception("Discount code is required");
     }
     
-    // 使用字符串比较确保类型一致
     $sql = "SELECT discount_percentage, min_amount_purchase 
             FROM discount 
             WHERE discount_code = ?";
@@ -25,7 +24,6 @@ try {
         throw new Exception("Database error: " . $conn->error);
     }
     
-    // 始终作为字符串绑定
     $stmt->bind_param("s", $discountCode);
     
     if (!$stmt->execute()) {
@@ -35,7 +33,7 @@ try {
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
-        // 获取所有可用折扣码用于错误提示
+        // Get all available discount codes for error messages
         $allCodes = $conn->query("SELECT discount_code FROM discount");
         $codes = [];
         while ($row = $allCodes->fetch_assoc()) {
