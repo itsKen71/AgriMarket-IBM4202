@@ -34,16 +34,21 @@ function addToCart($conn, $product_id, $quantity, $user_id) {
         $new_quantity = $cart_item['quantity'] + $quantity;
         
         if ($new_quantity > $product_stock) {
-            $check_stmt->close();
-            return [
-                'success' => false,
-                'error' => 'stock',
-                'available' => $product_stock
-            ];
+            $stock_query = "SELECT stock_quantity FROM product WHERE product_id = ?";
+            $stock_stmt = $conn->prepare($stock_query);
+            $stock_stmt->bind_param("i", $product_id);
+            $stock_stmt->execute();
+            $stock_result = $stock_stmt->get_result();
+
+            if ($stock_result->num_rows > 0) {
+                $row = $stock_result->fetch_assoc();
+                $quantity = $row['stock_quantity']; // 这才是获取库存值
+            }
+            $stock_stmt->close();
         }
         
         // 更新数量
-        $update_query = "UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?";
+        $update_query = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
         $update_stmt = $conn->prepare($update_query);
         $update_stmt->bind_param("iii", $quantity, $user_id, $product_id);
         $update_stmt->execute();
@@ -178,9 +183,13 @@ function VendorDetail($conn, $product_id) {
 }
 
 function VendorRating($conn, $vendor_id) {
+    // 全局平均评分和评价数（需要提前查询或配置）
+    $global_avg = 3.5; // 假设全局平均3.5星
+    $min_reviews = 5;  // 最小评价数
+    
     $query = "SELECT 
-                  SUM(r.rating) AS total_rating,
-                  SUM(p.sold_quantity) AS total_sold
+                 AVG(r.rating) AS avg_rating,
+                 COUNT(r.review_id) AS review_count
               FROM review r
               JOIN product p ON r.product_id = p.product_id
               WHERE p.vendor_id = ?";
@@ -191,18 +200,20 @@ function VendorRating($conn, $vendor_id) {
     $result = $stmt->get_result();
     
     if ($row = $result->fetch_assoc()) {
-        $total_rating = $row['total_rating'] ?? 0;
-        $total_sold = $row['total_sold'] ?? 0;
+        $avg_rating = $row['avg_rating'] ?? 0;
+        $review_count = $row['review_count'] ?? 0;
         
-        if ($total_rating == 0 || $total_sold == 0) {
-            return 0; 
+        if ($review_count == 0) {
+            return 0;
         }
         
-        $rating_score = $total_rating / ($total_sold * 5);
-        return round($rating_score * 5, 2);
-    } else {
-        return 0;
+        // 贝叶斯计算：加权全局平均和实际平均
+        $bayesian_avg = ($min_reviews * $global_avg + $review_count * $avg_rating) 
+                       / ($min_reviews + $review_count);
+        
+        return round($bayesian_avg, 2);
     }
+    return 0;
 }
 
 ?>

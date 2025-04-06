@@ -221,14 +221,13 @@
         <div class="row align-items-center">
             <!-- Vendor Image -->
             <div class="col-md-2 text-center">
-                    <a href="vendor.php?vendor_id=<?php echo urlencode($vendor_id); ?>"> <!--  Change Vendor Profile -->
+            <a href="../vendor/vendor_product_page.php?vendor_id=<?php echo htmlspecialchars($vendor_id); ?>" class="btn p-0 border-0 bg-transparent"><!--  Change Vendor Profile -->
                         <img src="../../Assets/img/product_img/vendor_image.jpeg" 
                             alt="Vendor Image" 
                             class="img-fluid rounded-circle" 
                             style="width: 150px; height: 150px; object-fit: cover;">
                      </a>
             </div>
-
             <!-- Vendor Info -->
             <div class="col-md-10">
                 <h4 class="mb-2"><?php echo htmlspecialchars($store_name); ?></h4>
@@ -419,9 +418,12 @@
         </div>
     </div>
     </div>
+</div>
 
+    <?php include '../../includes/footer.php';?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/main_page.js"></script>
+    <script src="../../js/product_page.js"></script>
 </body>
 
 </html>

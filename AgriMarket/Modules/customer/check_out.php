@@ -1,9 +1,13 @@
 <?php
 include '..\..\includes\database.php';
 
-
 session_start();
-
+$user_id = $_SESSION['user_id'] ?? null;
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: ../authentication/login.php");
+        exit();
+    }
+    
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Initialize variables to track the source
     $source = '';
@@ -107,6 +111,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
+// 获取用户地址
+$user_address = "";
+$stmt = $conn->prepare("SELECT home_address FROM user WHERE user_id = ?");
+$stmt->bind_param("i", $_SESSION['user_id']);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $user_data = $result->fetch_assoc();
+    $user_address = htmlspecialchars($user_data['home_address']);
+}
+$stmt->close();
+
 ?>
 
 <!DOCTYPE html>
@@ -122,7 +139,55 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/check_out.css">
+    <link rel="stylesheet" href="../../css/check_out.css?v=<?= filemtime('../../css/check_out.css') ?>">
+    <style>
+
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    background: #fff;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s ease;
+    font-family: Arial, sans-serif;
+}
+
+/* Show animation */
+.popup.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Popup Text */
+.popup h4 {
+    margin: 0 0 10px;
+    font-size: 20px;
+    color: #333;
+}
+
+/* Close Button */
+.popup button {
+    margin-top: 15px;
+    padding: 8px 20px;
+    background: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.popup button:hover {
+    background: #45a049;
+}
+
+    </style>
 </head>
 <body class="check_out bg-light">
     <?php include '../../includes/header.php'; ?>
@@ -136,11 +201,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <h4 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Shipping Address</h4>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <label for="address" class="form-label">Delivery Address</label>
-                            <textarea class="form-control" id="address" name="address" rows="3" required placeholder="Enter your complete delivery address"></textarea>
-                        </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Delivery Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3" required 
+                                placeholder="Enter your complete delivery address"><?php echo $user_address; ?></textarea>
                     </div>
+                    <!-- 添加一个复选框允许用户修改地址 -->
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="editAddress">
+                        <label class="form-check-label" for="editAddress">Use Other Address</label>
+                    </div>
+                </div>
                 </div>
                 
                 <!-- Products Summary -->
@@ -157,6 +228,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                         <th class="text-center">Image</th>
                                         <th class="text-center">Unit Price</th>
                                         <th class="text-center">Quantity</th>
+                                        <th class="text-end">Packaging</th>
                                         <th class="text-end">Subtotal</th>
                                     </tr>
                                 </thead>
@@ -170,6 +242,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             </td>
                                             <td class="text-center">$<?php echo number_format($product['price'], 2); ?></td>
                                             <td class="text-center"><?php echo $product['quantity']; ?></td>
+                                            <td class="text-center">
+                                                <select name="protection_option[]" class="form-select">
+                                                    <option value="normal" selected>Normal</option>
+                                                    <option value="more_protection">More Protection</option>
+                                                </select>
+                                            </td>
                                             <td class="text-end">$<?php echo number_format($product['subtotal'], 2); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -196,8 +274,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <h2 class="accordion-header">
                                     <div class="form-check p-0">
                                         <input class="form-check-input position-static ms-3 mt-3" type="radio" name="paymentMethod" id="creditCard" value="credit_card" data-bs-toggle="collapse" data-bs-target="#creditCardForm" aria-expanded="true">
-                                        <label class="accordion-button" for="creditCard">
-                                            <span class="fw-bold">Credit Card</span>
+                                        <label class="accordion-button collapsed" for="creditCard">
+                                            <span class="fw-bold">Credit</span>
                                         </label>
                                     </div>
                                 </h2>
@@ -341,7 +419,293 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
+    <div id="popup" class="popup">
+        <h4 id="popup-message">Discount applied successfully!</h4>
+        <button onclick="closePopup()">OK</button>
+    </div>
+
+    <?php include '../../includes/footer.php';?>
+
+    <input type="hidden" name="applied_discount_code" id="appliedDiscountCode" value="">
+<input type="hidden" name="discount_percentage" id="discountPercentage" value="0">
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+function showPopup(message) {
+    const popup = document.getElementById('popup');
+    const popupMessage = document.getElementById('popup-message');
+    
+    popupMessage.textContent = message;
+    popup.classList.add('show');
+    
+    // Auto close after 3 seconds (optional)
+    setTimeout(() => {
+        closePopup();
+    }, 3000);
+}
+
+function closePopup() {
+    const popup = document.getElementById('popup');
+    popup.classList.remove('show');
+}
+
+    document.getElementById('applyDiscount').addEventListener('click', function() {
+    var discountCode = document.getElementById('discountCode').value.trim();
+    var totalAmount = <?php echo $total_amount ?? 0; ?>;
+    
+    if (discountCode === '') {
+        alert('Please enter a discount code');
+        return;
+    }
+    
+    // Make AJAX call to check discount code
+    fetch('../../includes/check_discount.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `discount_code=${encodeURIComponent(discountCode)}&total_amount=${totalAmount}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Apply discount
+            const discountAmount = totalAmount * (data.discount_percentage / 100);
+            const newTotal = totalAmount - discountAmount;
+            
+            // Update UI
+            document.querySelector('.discount-row').style.display = 'flex';
+            document.querySelector('.discount-amount').textContent = `-$${discountAmount.toFixed(2)}`;
+            document.querySelector('.total-amount').textContent = `$${newTotal.toFixed(2)}`;
+            
+            // Store discount info in hidden fields for form submission
+            document.getElementById('discountCode').setAttribute('data-valid', 'true');
+            document.getElementById('discountCode').setAttribute('data-percentage', data.discount_percentage);
+            
+            showPopup('Discount applied successfully!');
+        } else {
+            showPopup('Invalid discount code!');
+            document.querySelector('.discount-row').style.display = 'none';
+            document.querySelector('.total-amount').textContent = `$${totalAmount.toFixed(2)}`;
+            document.getElementById('discountCode').setAttribute('data-valid', 'false');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while applying discount');
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const addressField = document.getElementById('address');
+    const editCheckbox = document.getElementById('editAddress');
+    
+    // 初始禁用编辑（如果地址存在）
+    if (addressField.value.trim() !== '') {
+        addressField.readOnly = true;
+    }
+    
+    // 切换编辑状态
+    editCheckbox.addEventListener('change', function() {
+        addressField.readOnly = !this.checked;
+        if (this.checked) {
+            addressField.focus();
+        } else {
+            // 如果取消编辑，恢复原始地址
+            addressField.value = '<?php echo $user_address; ?>';
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
+    
+    // Add change event to all payment methods
+    paymentMethods.forEach(method => {
+        method.addEventListener('change', function() {
+            updateRequiredFields();
+        });
+    });
+
+    function updateRequiredFields() {
+        // First, remove required from all payment method fields
+        const allPaymentInputs = document.querySelectorAll(`
+            #creditCardForm input, #creditCardForm select,
+            #bankTransferForm input, #bankTransferForm select
+        `);
+        
+        allPaymentInputs.forEach(input => {
+            input.required = false;
+            input.removeAttribute('aria-required');
+        });
+
+        // Get the currently selected payment method
+        const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+        
+        if (!selectedMethod) return;
+
+        // Set required fields based on selected method
+        let targetInputs = [];
+        
+        if (selectedMethod.id === 'creditCard') {
+            targetInputs = document.querySelectorAll(`
+                #cardName, #cardNumber, #expMonth, #expYear, #cvv
+            `);
+        } 
+        else if (selectedMethod.id === 'bankTransfer') {
+            targetInputs = document.querySelectorAll(`
+                #accountName, #bankName, #accountNumber
+            `);
+        }
+        // Cash on delivery doesn't require any additional fields
+        
+        // Set required attribute on the relevant fields
+        targetInputs.forEach(input => {
+            input.required = true;
+            input.setAttribute('aria-required', 'true');
+        });
+    }
+
+    // Initialize on page load
+    updateRequiredFields();
+
+    // Also update when accordion expands/collapses (in case user manually toggles)
+    const paymentAccordion = document.getElementById('paymentAccordion');
+    if (paymentAccordion) {
+        paymentAccordion.addEventListener('shown.bs.collapse', updateRequiredFields);
+        paymentAccordion.addEventListener('hidden.bs.collapse', updateRequiredFields);
+    }
+});
+
+document.getElementById('checkoutBtn').addEventListener('click', function() {
+    // Validate address
+    const address = document.getElementById('address').value.trim();
+    if (!address) {
+        showPopup('Please enter a delivery address');
+        return;
+    }
+
+    // Validate payment method
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+    if (!paymentMethod) {
+        showPopup('Please select a payment method');
+        return;
+    }
+
+    // Validate payment details based on selected method
+    let paymentValid = true;
+    let paymentDetails = {};
+    
+    if (paymentMethod.id === 'creditCard') {
+        const cardName = document.getElementById('cardName').value.trim();
+        const cardNumber = document.getElementById('cardNumber').value.trim();
+        const cvv = document.getElementById('cvv').value.trim();
+        
+        if (!cardName || !cardNumber || !cvv) {
+            showPopup('Please fill in all credit card details');
+            paymentValid = false;
+        } else {
+            paymentDetails = {
+                type: 'Credit Card',
+                cardName: cardName,
+                cardNumber: cardNumber,
+                expMonth: document.getElementById('expMonth').value,
+                expYear: document.getElementById('expYear').value,
+                cvv: cvv
+            };
+        }
+    } 
+    else if (paymentMethod.id === 'bankTransfer') {
+        const accountName = document.getElementById('accountName').value.trim();
+        const bankName = document.getElementById('bankName').value.trim();
+        const accountNumber = document.getElementById('accountNumber').value.trim();
+        
+        if (!accountName || !bankName || !accountNumber) {
+            showPopup('Please fill in all bank transfer details');
+            paymentValid = false;
+        } else {
+            paymentDetails = {
+                type: 'Bank Transfer',
+                accountName: accountName,
+                bankName: bankName,
+                accountNumber: accountNumber
+            };
+        }
+    }
+    else if (paymentMethod.id === 'cashOnDelivery') {
+        paymentDetails = {
+            type: 'Cash On Delivery'
+        };
+    }
+
+    if (!paymentValid) return;
+
+    // Collect product data - FIXED THIS SECTION
+    const products = [];
+    const productRows = document.querySelectorAll('tbody tr');
+    
+    // Get the PHP product data as JavaScript array
+    const phpProducts = <?php echo json_encode($selected_products ?? []); ?>;
+    
+    productRows.forEach((row, index) => {
+        // Skip if it's the "no products" row
+        if (row.querySelector('td[colspan]')) return;
+        
+        // Get the corresponding product from PHP data
+        if (index < phpProducts.length) {
+            const product = phpProducts[index];
+            const protectionOption = row.querySelector('select[name="protection_option[]"]').value;
+            
+            products.push({
+                product_id: product.product_id,
+                quantity: product.quantity,
+                packaging: protectionOption
+            });
+        }
+    });
+
+    // Collect discount data if applied
+    const discountCode = document.getElementById('discountCode').value;
+    const discountPercentage = document.getElementById('discountCode').getAttribute('data-percentage') || 0;
+    const discountAmount = <?php echo $total_amount ?? 0; ?> * (discountPercentage / 100);
+
+    // Prepare order data
+    const orderData = {
+        user_id: <?php echo $user_id ?? 'null'; ?>,
+        address: address,
+        products: products,
+        payment_method: paymentDetails,
+        total_amount: <?php echo $total_amount ?? 0; ?>,
+        discount_code: discountCode,
+        discount_amount: discountAmount,
+        final_amount: <?php echo $total_amount ?? 0; ?> - discountAmount,
+        source: '<?php echo $source ?? ""; ?>' // Add the source information
+    };
+
+    // Submit order via AJAX
+    fetch('../../includes/process_order.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Redirect to order confirmation page with order ID
+            window.location.href = 'main_page.php?';
+        } else {
+            showPopup('Order failed: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showPopup('An error occurred while processing your order');
+    });
+});
+</script>
 </body>
 
 </html>
