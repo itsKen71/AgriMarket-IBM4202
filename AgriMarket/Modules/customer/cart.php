@@ -108,7 +108,7 @@
                     <label for="selectAll" class="ms-5 fw-medium px-4">Item</label>
                 </div>
                 <div class="d-flex" style="width: 60%;">
-                    <div class="fw-medium" style="width: 25%; margin-left: 135px;">Price</div>  <!-- 手动调整左边距 -->
+                    <div class="fw-medium" style="width: 25%; margin-left: 135px;">Price</div>
                     <div class="fw-medium" style="width: 20%; margin-right: 25px;">Quantity</div>
                     <div class="fw-medium" style="width: 20%; margin-left: 25px; margin-right: 45px;">Subtotal</div>
                     <div class="fw-medium" style="width: 10%; margin-left: px;">Operation</div>
@@ -387,16 +387,16 @@
         totalPrice += unitPrice * quantity;
     });
     
-    // 更新选择器以匹配新的固定底部栏
+    // update selectors to match new fixed bottom bar
     const totalItemsElement = document.querySelector('.fixed-bottom .me-3'); // 选择"Total (x Items):"元素
     const totalPriceElement = document.querySelector('.fixed-bottom .price-color.fs-4'); // 选择总价元素
     
-    // 更新显示
+    // update display
     if (totalItemsElement && totalPriceElement) {
         totalItemsElement.textContent = `Total (${totalItems} ${totalItems === 1 ? 'Item' : 'Items'}):`;
         totalPriceElement.textContent = `RM${totalPrice.toFixed(2)}`;
         
-        // 如果没有选中任何商品
+        // if no item is selected
         if (checkedItems.length === 0) {
             totalItemsElement.textContent = 'Total (0 Items):';
             totalPriceElement.textContent = 'RM0.00';
@@ -445,14 +445,14 @@
         })
         .then(response => response.json())
         .then(data => {
-            console.log(`Response for ${productId}:`, data); // 🟢 调试信息
+            console.log(`Response for ${productId}:`, data); // Debug Information
             return data;
         });
     });
 
     Promise.all(deletePromises)
         .then(results => {
-            console.log("All delete responses:", results); // 🟢 调试信息
+            console.log("All delete responses:", results); // Debug Information
             
             const allSuccess = results.every(result => result.success);
             

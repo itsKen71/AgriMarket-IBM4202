@@ -102,7 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// 获取用户地址
+// get user address
 $user_address = "";
 $stmt = $conn->prepare("SELECT home_address FROM user WHERE user_id = ?");
 $stmt->bind_param("i", $_SESSION['user_id']);
@@ -149,7 +149,7 @@ $stmt->close();
                         <textarea class="form-control" id="address" name="address" rows="3" required 
                                 placeholder="Enter your complete delivery address"><?php echo $user_address; ?></textarea>
                     </div>
-                    <!-- 添加一个复选框允许用户修改地址 -->
+                    <!-- Add a checkbox to allow the user to modify the address -->
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" id="editAddress">
                         <label class="form-check-label" for="editAddress">Use Other Address</label>
@@ -183,7 +183,7 @@ $stmt->close();
                                             <td class="text-center">
                                                 <img src="../../<?php echo htmlspecialchars($product['image']); ?>" width="50" alt="<?php echo htmlspecialchars($product['name']); ?>">
                                             </td>
-                                            <td class="text-center">$<?php echo number_format($product['price'], 2); ?></td>
+                                            <td class="text-center">RM<?php echo number_format($product['price'], 2); ?></td>
                                             <td class="text-center"><?php echo $product['quantity']; ?></td>
                                             <td class="text-center">
                                                 <select name="protection_option[]" class="form-select">
@@ -191,7 +191,7 @@ $stmt->close();
                                                     <option value="More Protection">More Protection</option>
                                                 </select>
                                             </td>
-                                            <td class="text-end">$<?php echo number_format($product['subtotal'], 2); ?></td>
+                                            <td class="text-end">RM<?php echo number_format($product['subtotal'], 2); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else : ?>
@@ -372,20 +372,20 @@ $stmt->close();
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal:</span>
-                            <span>$<?php echo number_format($total_amount ?? 0, 2); ?></span>
+                            <span>RM<?php echo number_format($total_amount ?? 0, 2); ?></span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 discount-row" style="display: none !important;">
                             <span>Discount:</span>
-                            <span class="discount-amount text-success">-$0.00</span>
+                            <span class="discount-amount text-success">-RM0.00</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Shipping:</span>
-                            <span>$0.00</span>
+                            <span>RM0.00</span>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between mb-2 fw-bold">
                             <span>Total:</span>
-                            <span class="total-amount">$<?php echo number_format($total_amount ?? 0, 2); ?></span>
+                            <span class="total-amount">RM<?php echo number_format($total_amount ?? 0, 2); ?></span>
                         </div>
                         
                         <!-- Checkout Button -->
@@ -408,7 +408,7 @@ $stmt->close();
     <?php include '../../includes/footer.php';?>
 
     <input type="hidden" name="applied_discount_code" id="appliedDiscountCode" value="">
-<input type="hidden" name="discount_percentage" id="discountPercentage" value="0">
+    <input type="hidden" name="discount_percentage" id="discountPercentage" value="0">
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -482,18 +482,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const addressField = document.getElementById('address');
     const editCheckbox = document.getElementById('editAddress');
     
-    // 初始禁用编辑（如果地址存在）
+    // Initially disable editing (if address exists)
     if (addressField.value.trim() !== '') {
         addressField.readOnly = true;
     }
     
-    // 切换编辑状态
+    // change to edit status
     editCheckbox.addEventListener('change', function() {
         addressField.readOnly = !this.checked;
         if (this.checked) {
             addressField.focus();
         } else {
-            // 如果取消编辑，恢复原始地址
+            // if cancel change address will replace by address found in database
             addressField.value = '<?php echo $user_address; ?>';
         }
     });
