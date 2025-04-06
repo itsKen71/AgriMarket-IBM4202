@@ -457,8 +457,8 @@ function closePopup() {
             
             // Update UI
             document.querySelector('.discount-row').style.display = 'flex';
-            document.querySelector('.discount-amount').textContent = `-$${discountAmount.toFixed(2)}`;
-            document.querySelector('.total-amount').textContent = `$${newTotal.toFixed(2)}`;
+            document.querySelector('.discount-amount').textContent = `-RM${discountAmount.toFixed(2)}`;
+            document.querySelector('.total-amount').textContent = `RM${newTotal.toFixed(2)}`;
             
             // Store discount info in hidden fields for form submission
             document.getElementById('discountCode').setAttribute('data-valid', 'true');
@@ -468,7 +468,7 @@ function closePopup() {
         } else {
             showPopup('Invalid discount code | No meet the requirement');
             document.querySelector('.discount-row').style.display = 'none';
-            document.querySelector('.total-amount').textContent = `$${totalAmount.toFixed(2)}`;
+            document.querySelector('.total-amount').textContent = `RM${totalAmount.toFixed(2)}`;
             document.getElementById('discountCode').setAttribute('data-valid', 'false');
         }
     })
