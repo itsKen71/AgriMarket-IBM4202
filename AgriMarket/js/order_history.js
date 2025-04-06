@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const previewButtons = document.querySelectorAll(".btn-preview");
 
-    previewButtons.forEach(button => {
+    previewButtons.forEach(button => { //Handle Preview Function
         button.addEventListener("click", async () => {
             const productId = button.dataset.productId;
             const modalBody = document.getElementById("productPreviewBody");
@@ -51,4 +51,80 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+
+    const reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));
+    const reviewStars = document.getElementById('reviewStars');
+    const ratingValue = document.getElementById('ratingValue');
+
+    // Open modal when review button is clicked
+    document.querySelectorAll('.btn-review').forEach(button => {
+        button.addEventListener('click', () => {
+            const productId = button.dataset.productId;
+            const productName = button.dataset.productName;
+            const productImage = button.dataset.productImage;
+
+            document.getElementById('reviewProductId').value = productId;
+            document.getElementById('reviewProductName').innerText = productName;
+            document.getElementById('reviewProductImage').src = productImage;
+
+            generateStars(); // Reset and generate stars
+            document.getElementById('reviewDescription').value = '';
+
+            reviewModal.show();
+        });
+    });
+
+    function generateStars() {
+        const defaultRating = 1;
+        ratingValue.value = defaultRating;
+        reviewStars.innerHTML = '';
+    
+        for (let i = 1; i <= 5; i++) {
+            const star = document.createElement('i');
+            star.className = 'bi bi-star-fill mx-1';
+            star.dataset.value = i;
+            star.style.cursor = 'pointer';
+    
+            // Default star coloring
+            if (i <= defaultRating) {
+                star.classList.add('text-warning');
+            } else {
+                star.classList.add('text-secondary');
+            }
+    
+            star.addEventListener('click', () => {
+                ratingValue.value = i;
+                document.querySelectorAll('#reviewStars i').forEach((el, index) => {
+                    el.classList.toggle('text-warning', index < i);
+                    el.classList.toggle('text-secondary', index >= i);
+                });
+            });
+    
+            reviewStars.appendChild(star);
+        }
+    }
+    
+
+    // Submit review via AJAX
+    document.getElementById('reviewForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+
+        fetch('../../includes/submit_review.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.text())
+        .then(data => {
+            reviewModal.hide();
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('There was an error submitting your review.');
+        });
+    });
+    
 });

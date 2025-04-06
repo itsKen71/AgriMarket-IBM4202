@@ -47,7 +47,7 @@ body.order_history {
 .product-preview {
     display: flex;
     align-items: center;
-    gap: 20px; /* Gap between image and text */
+    gap: 20px; 
 }
 
 .product-preview img {
@@ -58,3 +58,8 @@ body.order_history {
 .product-preview div {
     flex: 1;
 }
+
+#reviewStars i {
+    transition: color 0.3s ease; /* Transition for color change */
+}
+

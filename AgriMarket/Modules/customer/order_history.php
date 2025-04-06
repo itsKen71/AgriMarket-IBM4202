@@ -24,6 +24,7 @@ if (empty($orderHistory)) {
     <title>AgriMarket - Order History</title>
     <link rel="icon" type="image/png" href="..\..\assets\img\logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="../../css/order_history.css">
     <script src="../../js/order_history.js"></script>
 </head>
@@ -68,17 +69,26 @@ if (empty($orderHistory)) {
                         <tbody>
                             <?php foreach ($order['products'] as $product): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($product['product_name']) ?></td>
+                                <td class="d-flex justify-content-between align-items-center">
+                                    <?= htmlspecialchars($product['product_name']) ?>
+                                    <button class="btn btn-success btn-sm btn-preview" 
+                                    data-product-id="<?= $product['product_id'] ?>">
+                                        Preview <!-- Preview Button -->
+                                    </button>
+                                </td>
                                     <td><?= number_format($product['unit_price'], 2) ?></td>
                                     <td><?= $product['quantity'] ?></td>
                                     <td><?= number_format($product['unit_price'] * $product['quantity'], 2) ?></td>
                                     <td class="w-25">
-                                        <!-- Preview, Refund, and Reorder Buttons for each product -->
+                                        <!-- Review, Refund, and Reorder Buttons for each product -->
                                         <div class="d-flex justify-content-center align-items-center w-100">
-                                            <button class="btn btn-success btn-sm mx-2 btn-preview" 
-                                            data-product-id="<?= $product['product_id'] ?>">
-                                            Preview
-                                            </button>
+                                        <button class="btn btn-success btn-sm mx-2 btn-review"
+                                        data-product-id="<?= $product['product_id'] ?>"
+                                        data-product-name="<?= htmlspecialchars($product['product_name']) ?>"
+                                        data-product-image="../../<?= $product['product_image'] ?>"
+                                        >
+                                            Review
+                                        </button>
                                             <button class="btn btn-success btn-sm mx-2">Refund</button> 
                                             <button class="btn btn-success btn-sm mx-2">Reorder</button>
                                         </div>
@@ -120,7 +130,56 @@ if (empty($orderHistory)) {
   </div>
 </div>
 
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <form id="reviewForm">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reviewModalLabel">Leave a Review</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="product_id" id="reviewProductId">
+          <div class="text-center mb-3">
+            <img id="reviewProductImage" src="" alt="Product Image" class="img-fluid rounded" style="max-height: 150px;">
+            <h5 id="reviewProductName" class="mt-2"></h5>
+          </div>
+          <div class="mb-3 text-center">
+            <label class="form-label">Rating:</label>
+            <div id="reviewStars"></div><!-- Stars will be dynamically generated -->
+            <input type="hidden" name="rating" id="ratingValue" value="1">
+          </div>
+          <div class="mb-3">
+            <label for="reviewDescription" class="form-label">Review:</label>
+            <textarea name="review" id="reviewDescription" class="form-control" rows="4" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
+<!-- Review Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Review Submitted!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Thank you for your review. Your feedback is valuable to us!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -825,7 +825,7 @@ function getOrderHistoryByUser($userId, $conn)
     $sql = "
         SELECT o.order_id, o.order_date, o.price AS total_order_price,
             poh.product_id, poh.quantity, poh.sub_price,
-            p.product_name, p.unit_price,
+            p.product_name, p.unit_price, p.product_image,
             coh.status AS order_status
         FROM orders o
         INNER JOIN product_order poh ON o.order_id = poh.order_id
@@ -834,17 +834,14 @@ function getOrderHistoryByUser($userId, $conn)
         WHERE o.user_id = ?
         ORDER BY o.order_date DESC, o.order_id DESC
     ";
-
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
         die("SQL Error: " . $conn->error);
     }
-
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
     $orders = [];
-
     while ($row = $result->fetch_assoc()) {
         $orderId = $row['order_id'];
         if (!isset($orders[$orderId])) {
@@ -858,12 +855,12 @@ function getOrderHistoryByUser($userId, $conn)
         $orders[$orderId]['products'][] = [
             'product_id' => $row['product_id'],
             'product_name' => $row['product_name'],
+            'product_image' => $row['product_image'],
             'unit_price' => $row['unit_price'],
             'quantity' => $row['quantity'],
             'sub_price' => $row['sub_price']
         ];
     }
-
     return $orders;
 }
 ?>
