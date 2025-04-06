@@ -46,6 +46,7 @@ CREATE TABLE orders (
     user_id INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     order_date DATE,
+    delivery_date DATE,
     shipping_address VARCHAR(200) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
 );
