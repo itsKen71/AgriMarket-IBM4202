@@ -823,7 +823,7 @@ function getPlanName($conn, $plan_id)
 function getOrderHistoryByUser($userId, $conn)
 {
     $sql = "
-        SELECT o.order_id, o.order_date, o.delivery_date, o.price AS total_order_price,
+        SELECT o.order_id, o.order_date, o.price AS total_order_price,
             poh.product_id, poh.quantity, poh.sub_price,
             p.product_name, p.unit_price,
             coh.status AS order_status
@@ -834,17 +834,22 @@ function getOrderHistoryByUser($userId, $conn)
         WHERE o.user_id = ?
         ORDER BY o.order_date DESC, o.order_id DESC
     ";
+
     $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die("SQL Error: " . $conn->error);
+    }
+
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
     $orders = [];
+
     while ($row = $result->fetch_assoc()) {
         $orderId = $row['order_id'];
         if (!isset($orders[$orderId])) {
             $orders[$orderId] = [
                 'order_date' => $row['order_date'],
-                'delivery_date' => $row['delivery_date'],
                 'total_order_price' => $row['total_order_price'],
                 'order_status' => $row['order_status'],
                 'products' => []
@@ -858,6 +863,7 @@ function getOrderHistoryByUser($userId, $conn)
             'sub_price' => $row['sub_price']
         ];
     }
+
     return $orders;
 }
 ?>
