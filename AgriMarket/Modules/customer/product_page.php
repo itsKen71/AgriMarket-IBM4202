@@ -115,6 +115,9 @@ if ($selected_rating > 0) {
 $stmt->execute();
 $reviews_result = $stmt->get_result();
 $reviews = $reviews_result->fetch_all(MYSQLI_ASSOC);
+
+// Check if the user is a staff member
+$is_staff = $_SESSION['role'];
 ?>
 
 <!DOCTYPE html>
@@ -127,7 +130,6 @@ $reviews = $reviews_result->fetch_all(MYSQLI_ASSOC);
     <link rel="icon" type="image/png" href="..\..\assets\img\logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <!-- Put CSS & JS Link Here-->
     <link rel="stylesheet" href="../../css/product_page.css?v=<?= filemtime('../../css/product_page.css') ?>">
@@ -212,16 +214,18 @@ $reviews = $reviews_result->fetch_all(MYSQLI_ASSOC);
 
                     <!-- button -->
                     <div class="mt-4 d-flex gap-3">
-                        <button type="button" class="btn btn-outline-danger px-4 py-2" style="width: 180px;"
-                            data-bs-toggle="modal" data-bs-target="#quantityModal"
-                            data-stock-quantity="<?php echo $product['stock_quantity']; ?>">
-                            <i class="fas fa-shopping-cart me-2"></i> Add to Cart
-                        </button>
-                        <button class="btn btn-danger px-4 py-2" style="width: 180px;" data-bs-toggle="modal"
-                            data-bs-target="#buyNowModal"
-                            data-stock-quantity="<?php echo $product['stock_quantity']; ?>">
-                            Buy Now
-                        </button>
+                        <?php if ($is_staff !== 'Staff'): ?>
+                            <button type="button" class="btn btn-outline-danger px-4 py-2" style="width: 180px;"
+                                data-bs-toggle="modal" data-bs-target="#quantityModal"
+                                data-stock-quantity="<?php echo $product['stock_quantity']; ?>">
+                                <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                            </button>
+                            <button class="btn btn-danger px-4 py-2" style="width: 180px;" data-bs-toggle="modal"
+                                data-bs-target="#buyNowModal"
+                                data-stock-quantity="<?php echo $product['stock_quantity']; ?>">
+                                Buy Now
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

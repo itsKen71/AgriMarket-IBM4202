@@ -60,7 +60,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="icon" type="image/png" href="..\..\assets\img\logo.png">
     <link rel="stylesheet" href="../../css/staff_dashboard.css">
     <script src="../../js/staff_dashboard.js"></script>
-
 </head>
 
 <body class="staff_dashboard">
@@ -176,21 +175,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                         <!--Button for Approve/ Decline Pending-->
                                         <div class="Pending-Listing-Container-Button">
-
-                                            <button type="button" class="viewDetails"
-                                                data-store="<?= htmlspecialchars($pending['store_name']); ?>"
-                                                data-product="<?= htmlspecialchars($pending['product_name']); ?>"
-                                                data-category="<?= htmlspecialchars($pending['category_name']); ?>"
-                                                data-description="<?= htmlspecialchars($pending['description']); ?>"
-                                                data-stock="<?= htmlspecialchars($pending['stock_quantity']); ?>"
-                                                data-weight="<?= htmlspecialchars($pending['weight']); ?>"
-                                                data-price="<?= htmlspecialchars($pending['unit_price']); ?>"
-                                                onclick="showPendingDetails(this)">View</button>
-
                                             <form method="POST">
+                                                <button type="button" class="btn btn-primary btn-sm btn-preview"
+                                                    data-product-id="<?= $pending['product_id']; ?>">
+                                                    Preview
+                                                </button>
                                                 <input type="hidden" name="product_id" value="<?= $pending['product_id']; ?>">
-                                                <button type="submit" name="approve" class="approve">Approve</button>
-                                                <button type="submit" name="reject" class="reject">Reject</button>
+                                                <button type="submit" name="approve" class="btn btn-success btn-sm">Approve</button>
+                                                <button type="submit" name="reject" class="btn btn-danger btn-sm">Reject</button>
                                             </form>
                                         </div>
                                     </div>
@@ -242,6 +234,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             <div class="Details_Label"><strong>Unit Price</strong></div>
                             <div class="Details_Value">RM<span id="show-price"></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--Product Preview Modal-->
+            <div class="modal fade" id="productPreviewModal" tabindex="-1" aria-labelledby="productPreviewModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="productPreviewModalLabel">Product Preview</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="productPreviewBody">
+                            <div class="row">
+                                <div class="col-md-5 text-center">
+                                    <img id="productPreviewImage" src="" alt="Product Image" class="img-fluid rounded border">
+                                </div>
+                                <div class="col-md-7">
+                                    <h4 id="productPreviewName"></h4>
+                                    <p><strong>Category:</strong> <span id="productPreviewCategory"></span></p>
+                                    <p><strong>Description:</strong> <span id="productPreviewDescription"></span></p>
+                                    <p><strong>Stock:</strong> <span id="productPreviewStock"></span></p>
+                                    <p><strong>Weight:</strong> <span id="productPreviewWeight"></span></p>
+                                    <p><strong>Price:</strong> <span id="productPreviewPrice"></span></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
