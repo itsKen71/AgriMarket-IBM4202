@@ -34,7 +34,7 @@ INSERT INTO category (category_name) VALUES
 -- Products Data
 INSERT INTO product (vendor_id, category_id, product_name, product_image, description, stock_quantity, weight, unit_price, product_status, sold_quantity) 
 VALUES  
-	(1, 1, 'Dairy Cow', 'Assets/img/product_img/dairy_cow.png', 'High-yield dairy cow, ideal for milk production.', 10, 500.00, 1200.00, 'Approved', 0),
+	(1, 1, 'Dairy Cow', 'Assets/img/product_img/dairy_cow.png', 'High-yield dairy cow, ideal for milk production.', 10, 500.00, 1200.00, 'Pending', 0),
 	(1, 1, 'Free-Range Chicken', 'Assets/img/product_img/free_range_chicken.png', 'Healthy free-range chickens, excellent for meat or egg production.', 50, 2.50, 15.00, 'Approved', 0),
 	(1, 1, 'Boer Goat', 'Assets/img/product_img/boer_goat.png', 'Strong and healthy Boer goats, perfect for meat production.', 15, 70.00, 300.00, 'Approved', 0),
 	(1, 1, 'Piglet', 'Assets/img/product_img/piglet.png', 'Well-fed piglets, ideal for pig farming and meat production.', 20, 25.00, 150.00, 'Approved', 0),
