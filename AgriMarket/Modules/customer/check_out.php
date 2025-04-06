@@ -132,7 +132,7 @@ $stmt->close();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../../css/check_out.css?v=<?= filemtime('../../css/check_out.css') ?>">
 </head>
-<body class="check_out bg-light">
+<body class="check_out">
     <?php include '../../includes/header.php'; ?>
     
     <div class="container my-5">
