@@ -99,15 +99,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 die("Product ID $product_id not found.");
             }
         }
-        
-        // Now $selected_products contains all the information you need
-        // You can use $source variable to know where it came from
-        
-        // Example output:
-        echo "<h2>Order Source: " . htmlspecialchars($source) . "</h2>";
-        echo "<pre>" . print_r($selected_products, true) . "</pre>";
-        echo "<h2>Total Items: " . htmlspecialchars($total_items) . "</h2>";
-        echo "<h2>Total Amount: $" . number_format($total_amount, 2) . "</h2>";
     }
 }
 
@@ -140,54 +131,6 @@ $stmt->close();
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../../css/check_out.css?v=<?= filemtime('../../css/check_out.css') ?>">
-    <style>
-
-.popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.8);
-    background: #fff;
-    padding: 20px 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    z-index: 9999;
-    opacity: 0;
-    transition: all 0.3s ease;
-    font-family: Arial, sans-serif;
-}
-
-/* Show animation */
-.popup.show {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-}
-
-/* Popup Text */
-.popup h4 {
-    margin: 0 0 10px;
-    font-size: 20px;
-    color: #333;
-}
-
-/* Close Button */
-.popup button {
-    margin-top: 15px;
-    padding: 8px 20px;
-    background: #4CAF50;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.popup button:hover {
-    background: #45a049;
-}
-
-    </style>
 </head>
 <body class="check_out bg-light">
     <?php include '../../includes/header.php'; ?>
@@ -244,8 +187,8 @@ $stmt->close();
                                             <td class="text-center"><?php echo $product['quantity']; ?></td>
                                             <td class="text-center">
                                                 <select name="protection_option[]" class="form-select">
-                                                    <option value="normal" selected>Normal</option>
-                                                    <option value="more_protection">More Protection</option>
+                                                    <option value="Normal" selected>Normal</option>
+                                                    <option value="More Protection">More Protection</option>
                                                 </select>
                                             </td>
                                             <td class="text-end">$<?php echo number_format($product['subtotal'], 2); ?></td>
@@ -334,7 +277,45 @@ $stmt->close();
                                             </div>
                                             <div class="col-12">
                                                 <label for="bankName" class="form-label">Bank Name</label>
-                                                <input type="text" class="form-control" id="bankName">
+                                                <select class="form-select" id="bankName">
+                                                    <option value="Affin Bank">Affin Bank</option>
+                                                    <option value="Affin Islamic Bank">Affin Islamic Bank</option>
+                                                    <option value="Alliance Bank">Alliance Bank</option>
+                                                    <option value="Alliance Islamic Bank">Alliance Islamic Bank</option>
+                                                    <option value="AmBank">AmBank</option>
+                                                    <option value="AmIslamic Bank">AmIslamic Bank</option>
+                                                    <option value="Bangkok Bank Malaysia">Bangkok Bank Malaysia</option>
+                                                    <option value="Bank Islam Malaysia">Bank Islam Malaysia</option>
+                                                    <option value="Bank Kerjasama Rakyat Malaysia">Bank Kerjasama Rakyat Malaysia</option>
+                                                    <option value="Bank Muamalat Malaysia">Bank Muamalat Malaysia</option>
+                                                    <option value="Bank of China Malaysia">Bank of China Malaysia</option>
+                                                    <option value="Bank Pembangunan Malaysia">Bank Pembangunan Malaysia</option>
+                                                    <option value="Bank Pertanian Malaysia (Agrobank)">Bank Pertanian Malaysia (Agrobank)</option>
+                                                    <option value="Bank Rakyat">Bank Rakyat</option>
+                                                    <option value="Bank Simpanan Nasional">Bank Simpanan Nasional</option>
+                                                    <option value="BNP Paribas Malaysia">BNP Paribas Malaysia</option>
+                                                    <option value="CIMB Bank">CIMB Bank</option>
+                                                    <option value="CIMB Islamic Bank">CIMB Islamic Bank</option>
+                                                    <option value="Citibank Malaysia">Citibank Malaysia</option>
+                                                    <option value="Deutsche Bank Malaysia">Deutsche Bank Malaysia</option>
+                                                    <option value="Export-Import Bank of Malaysia">Export-Import Bank of Malaysia</option>
+                                                    <option value="Hong Leong Bank">Hong Leong Bank</option>
+                                                    <option value="Hong Leong Islamic Bank">Hong Leong Islamic Bank</option>
+                                                    <option value="HSBC Bank Malaysia">HSBC Bank Malaysia</option>
+                                                    <option value="Industrial and Commercial Bank of China Malaysia">Industrial and Commercial Bank of China Malaysia</option>
+                                                    <option value="J.P. Morgan Chase Bank Malaysia">J.P. Morgan Chase Bank Malaysia</option>
+                                                    <option value="Maybank">Maybank</option>
+                                                    <option value="Maybank Islamic">Maybank Islamic</option>
+                                                    <option value="OCBC Bank Malaysia">OCBC Bank Malaysia</option>
+                                                    <option value="Public Bank">Public Bank</option>
+                                                    <option value="Public Islamic Bank">Public Islamic Bank</option>
+                                                    <option value="RHB Bank">RHB Bank</option>
+                                                    <option value="RHB Islamic Bank">RHB Islamic Bank</option>
+                                                    <option value="SME Bank">SME Bank</option>
+                                                    <option value="Standard Chartered Bank Malaysia">Standard Chartered Bank Malaysia</option>
+                                                    <option value="The Bank of Tokyo-Mitsubishi UFJ Malaysia">The Bank of Tokyo-Mitsubishi UFJ Malaysia</option>
+                                                    <option value="United Overseas Bank Malaysia">United Overseas Bank Malaysia</option>
+                                                </select>
                                             </div>
                                             <div class="col-12">
                                                 <label for="accountNumber" class="form-label">Account Number</label>
@@ -485,7 +466,7 @@ function closePopup() {
             
             showPopup('Discount applied successfully!');
         } else {
-            showPopup('Invalid discount code!');
+            showPopup('Invalid discount code | No meet the requirement');
             document.querySelector('.discount-row').style.display = 'none';
             document.querySelector('.total-amount').textContent = `$${totalAmount.toFixed(2)}`;
             document.getElementById('discountCode').setAttribute('data-valid', 'false');
