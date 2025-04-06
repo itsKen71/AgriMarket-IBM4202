@@ -121,19 +121,21 @@ if (!$user_id) {
                                     </select>
                                 </div>
 
-                                <!-- Select Subscription Duration -->
-                                <div class="mb-3">
-                                    <label class="form-label">Select Subscription Duration (months):</label>
-                                    <input type="number" id="subscriptionMonths" class="form-control" min="1" max="12"
-                                        value="1" required>
-                                </div>
-                                <!-- Display Subscription Details -->
-                                <div class="mb-3">
-                                    <h5>Subscription Details</h5>
-                                    <p><strong>Start Date:</strong> <span id="startDate"></span></p>
-                                    <p><strong> End Date :</strong> <span id="endDate"></span></p>
-                                    <p><strong>Total Price:</strong> $ <span id="totalPrice">0.00</span></p>
-                                </div>
+                            <!-- Select Subscription Duration -->
+                            <div class="mb-3">
+                                <label class="form-label">Select Subscription Duration (months):</label>
+                                <input type="number" id="subscriptionMonths" class="form-control" min="1" max="12" value="1" required 
+                                onkeydown="return event.key === 'ArrowUp' || event.key === 'ArrowDown';">
+
+                            </div>
+                            <!-- Display Subscription Details -->
+                               <div class="mb-3">
+                                <h5>Subscription Details</h5>
+                                <p><strong>Start Date:</strong> <span id="startDate"></span></p>
+                                <p><strong> End Date :</strong> <span id="endDate"></span></p>
+                                <p><strong>Total Price:</strong> $ <span id="totalPrice">0.00</span></p>
+                            </div>
+                              
                             </form>
                         </div>
                         <div class="modal-footer">
@@ -146,24 +148,24 @@ if (!$user_id) {
             </div>
         </div>
 
-        <!-- Success Modal -->
-        <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
+        <!-- Hidden Success Modal (used only for passing values) -->
+        <div class="modal fade d-none" id="successSubscribeModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered d-none">
+                <div class="modal-content d-none">
+                    <di class="modal-header d-none">
                         <h5 class="modal-title" id="successModalLabel">Subscription Successful</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p id="subscriptionSuccessText"></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-                    </div>
-                </div>
+                </div> 
+            <div class="modal-body d-none">
+                <p id="subscriptionSuccessText"></p>
+            </div>
+            <div class="modal-footer d-none">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
             </div>
         </div>
     </div>
+
 
     <!-- Warning Modal for Missing Payment Method -->
     <div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel" aria-hidden="true">

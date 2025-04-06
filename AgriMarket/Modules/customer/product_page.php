@@ -221,12 +221,13 @@
         <div class="row align-items-center">
             <!-- Vendor Image -->
             <div class="col-md-2 text-center">
-            <a href="../vendor/vendor_product_page.php?vendor_id=<?php echo htmlspecialchars($vendor_id); ?>" class="btn p-0 border-0 bg-transparent"><!--  Change Vendor Profile -->
-                        <img src="../../Assets/img/product_img/vendor_image.jpeg" 
-                            alt="Vendor Image" 
-                            class="img-fluid rounded-circle" 
-                            style="width: 150px; height: 150px; object-fit: cover;">
-                     </a>
+
+                <a href="../vendor/vendor_product_page.php?vendor_id=<?php echo htmlspecialchars($vendor_id); ?>" class="btn p-0 border-0 bg-transparent">
+                    <img src="../../Assets/img/product_img/vendor_image.jpeg" 
+                        alt="Vendor Image" 
+                        class="img-fluid rounded-circle" 
+                        style="width: 150px; height: 150px; object-fit: cover;">
+                </a>
             </div>
             <!-- Vendor Info -->
             <div class="col-md-10">

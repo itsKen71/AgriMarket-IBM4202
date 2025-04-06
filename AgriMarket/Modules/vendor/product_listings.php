@@ -38,6 +38,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../css/product_listings.css">
     <script src="../../js/product_listings.js"></script>
+    <script src="../../js/subscription_listing.js"></script>
 </head>
 
 <body class="product_listings" 
@@ -84,7 +85,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                                             <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
                                             <td>RM<?php echo number_format($product['unit_price'], 2); ?></td>
                                             <td class="text-center align-middle">
-                                                <button class="btn btn-primary btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editProductModal"
+                                                <button class="btn btn-success btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editProductModal"
                                                 data-id="<?php echo $product['product_id']; ?>"
                                                 data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
                                                 data-category="<?php echo htmlspecialchars($product['category_name']); ?>"
@@ -377,6 +378,23 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
     <!-- JS add toast per product -->
 </div>
 
+<!-- Success Subscribe Modal -->
+<div class="modal fade" id="successSubscribeModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="successModalLabel">Subscription Successful</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="subscriptionSuccessText"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 <!-- Add Button -->
 <img src="../../assets/img/add-circle.png" alt="Add Product" class="add-btn" id="addProductBtn"
@@ -384,8 +402,8 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
     <?php if ($pendingCount >= $uploadLimit) echo 'style="pointer-events: none; opacity: 0.5;"'; ?> >
 
     <?php include '../../includes/footer.php'; ?>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>window.lowStockProducts = <?php echo $lowStockProductsJson; ?>;</script> <!-- Pass php data to js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

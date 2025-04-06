@@ -7,11 +7,12 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Temp
-$vendor_id = 3;
+$vendor_id = intval($_GET['vendor_id']); 
 
+// Fetch vendor details
 $vendor = getVendorDetailsById($conn, $vendor_id);
 
+// Fetch vendor products
 $search_query = $_GET['search'] ?? '';
 $filter = $_GET['filter'] ?? '';
 $products = getVendorProducts($conn, $vendor_id, $search_query, $filter);
