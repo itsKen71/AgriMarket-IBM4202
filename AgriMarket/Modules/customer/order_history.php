@@ -34,21 +34,21 @@ if (empty($orderHistory)) {
     <div class="container mt-5">
         <!-- Content Start Here -->
         <h2 class="mb-4">Order History</h2>
-
-    <?php if (isset($noOrderMessage)): ?>
+        
+        <?php if (isset($noOrderMessage)): ?>
         <!-- Display when there are no orders -->
         <div class="alert alert-info" role="alert">
             <div class="custom-message">
             <?= $noOrderMessage ?>
             </div>
         </div>
-    <?php else: ?>
+        <?php else: ?>
         <!-- Loop order if there are orderHistory -->
         <?php foreach ($orderHistory as $orderId => $order): ?>
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Order_ID: <?= $orderId ?> | <small><?= $order['order_date'] ?></small></h5>
-                        <button class="btn btn-success btn-sm ms-auto btn-reorder"
+                        <button class="btn btn-success btn-sm ms-auto btn-reorderWhole"
                         data-order-id="<?= $orderId ?>"
                         data-order-products='<?= json_encode($order['products']) ?>'>
                         Reorder
@@ -85,12 +85,15 @@ if (empty($orderHistory)) {
                                         <button class="btn btn-success btn-sm mx-2 btn-review"
                                         data-product-id="<?= $product['product_id'] ?>"
                                         data-product-name="<?= htmlspecialchars($product['product_name']) ?>"
-                                        data-product-image="../../<?= $product['product_image'] ?>"
-                                        >
+                                        data-product-image="../../<?= $product['product_image'] ?>">
                                             Review
                                         </button>
-                                            <button class="btn btn-success btn-sm mx-2">Refund</button> 
-                                            <button class="btn btn-success btn-sm mx-2">Reorder</button>
+                                        <button class="btn btn-success btn-sm mx-2">Refund</button> 
+                                        <button class="btn btn-success btn-sm btn-reorder"
+                                        data-product-id="<?= $product['product_id'] ?>"
+                                        data-stock="<?= $product['stock_quantity'] ?>">
+                                            Reorder
+                                        </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -99,8 +102,8 @@ if (empty($orderHistory)) {
                     </table>
                 </div>
             </div>
-        <?php endforeach; ?>
-    <?php endif; ?>
+          <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 
 <!-- Product Preview Modal -->
@@ -152,7 +155,7 @@ if (empty($orderHistory)) {
           </div>
           <div class="mb-3">
             <label for="reviewDescription" class="form-label">Review:</label>
-            <textarea name="review" id="reviewDescription" class="form-control" rows="4" required></textarea>
+            <textarea name="review_description" id="reviewDescription" class="form-control" rows="4" required></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -163,8 +166,48 @@ if (empty($orderHistory)) {
   </div>
 </div>
 
+<!-- Reorder Modal -->
+<div class="modal fade" id="reorderModal" tabindex="-1" aria-labelledby="reorderModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form id="reorderForm" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reorderModalLabel">Reorder Product</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="product_id" id="reorderProductId">
+        <div class="mb-3">
+          <label for="reorderQuantity" class="form-label">Quantity <span class="text-muted">(Available: <span id="availableStock">0</span>)</span></label>
+          <input type="number" name="quantity" id="reorderQuantity" class="form-control" min="1" step="1" readonly onfocus="this.removeAttribute('readonly');" onkeydown="return false;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-reorderproduct">Add to Cart</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Reorder Whole Order Modal -->
+<div class="modal fade" id="reorderWholeModal" tabindex="-1" aria-labelledby="reorderWholeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <form id="reorderWholeForm" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reorderWholeModalLabel">Reorder Entire Order</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="reorderWholeProductList"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-reorderwhole">Add to Cart</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Review Success Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+<div class="modal fade" id="reviewSuccessModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -173,6 +216,24 @@ if (empty($orderHistory)) {
             </div>
             <div class="modal-body">
                 Thank you for your review. Your feedback is valuable to us!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reorder Success Modal -->
+<div class="modal fade" id="reorderSuccessModal" tabindex="-1" aria-labelledby="reorderSuccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Reorder Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Product(s) added to cart successfully!
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-success" data-bs-dismiss="modal">Close</button>
