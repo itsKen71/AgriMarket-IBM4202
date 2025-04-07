@@ -32,79 +32,85 @@ if (empty($orderHistory)) {
 <body class="order_history">
     <?php include '../../includes/header.php'; ?>
     <div class="container mt-5">
-        <!-- Content Start Here -->
-        <h2 class="mb-4">Order History</h2>
-        
-        <?php if (isset($noOrderMessage)): ?>
-        <!-- Display when there are no orders -->
-        <div class="alert alert-info" role="alert">
-            <div class="custom-message">
-            <?= $noOrderMessage ?>
+    <!-- Order History Title -->
+    <h2 class="mb-4">Order History</h2>
+
+    <?php if (isset($noOrderMessage)): ?>
+    <!-- Display when there are no orders -->
+    <div class="alert alert-info" role="alert">
+        <div class="custom-message"><?= $noOrderMessage ?></div>
+    </div>
+    <?php else: ?>
+    <!-- Loop through orders if there are any -->
+    <?php foreach ($orderHistory as $orderId => $order): ?>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                <h5 class="mb-0">
+                    Order ID: <span class="text-primary"><?= $orderId ?></span> |
+                    <small class="text-muted"><?= $order['order_date'] ?></small>
+                </h5>
+                <button class="btn btn-outline-success btn-sm ms-auto btn-reorderWhole"
+                    data-order-id="<?= $orderId ?>"
+                    data-order-products='<?= json_encode($order['products']) ?>'>
+                    Reorder All
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Loop through each product in the order -->
+                <table class="table table-hover table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="productNameColumn">Product Name</th>
+                            <th>Unit Price (RM)</th>
+                            <th>Quantity</th>
+                            <th>Total Price (RM)</th>
+                            <th class="w-25 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($order['products'] as $product): ?>
+                        <tr>
+                            <td class="d-flex justify-content-between align-items-center">
+                                <span><?= htmlspecialchars($product['product_name']) ?></span>
+                                <button class="btn btn-outline-success btn-sm btn-preview" data-product-id="<?= $product['product_id'] ?>">
+                                    Preview
+                                </button>
+                            </td>
+                            <td><?= number_format($product['unit_price'], 2) ?></td>
+                            <td><?= $product['quantity'] ?></td>
+                            <td><?= number_format($product['unit_price'] * $product['quantity'], 2) ?></td>
+                            <td class="text-center">
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-danger btn-sm">Refund</button>
+                                    <button class="btn btn-outline-primary btn-sm btn-review" data-product-id="<?= $product['product_id'] ?>"
+                                        data-product-name="<?= htmlspecialchars($product['product_name']) ?>" data-product-image="../../<?= $product['product_image'] ?>">
+                                        Review
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm btn-reorder" data-product-id="<?= $product['product_id'] ?>"
+                                        data-stock="<?= $product['stock_quantity'] ?>">
+                                        Reorder
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="4" class="fw-bold"></td>
+                            <td class="text-center fw-bold">Total: RM
+                              <?= number_format(array_reduce($order['products'], function($carry, $item) {
+                                    return $carry + ($item['unit_price'] * $item['quantity']);
+                                }, 0), 2) ?></td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
-        <?php else: ?>
-        <!-- Loop order if there are orderHistory -->
-        <?php foreach ($orderHistory as $orderId => $order): ?>
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Order_ID: <?= $orderId ?> | <small><?= $order['order_date'] ?></small></h5>
-                        <button class="btn btn-success btn-sm ms-auto btn-reorderWhole"
-                        data-order-id="<?= $orderId ?>"
-                        data-order-products='<?= json_encode($order['products']) ?>'>
-                        Reorder
-                        </button>
-                </div>
-                <div class="card-body">
-                    <!-- Loopeach product in the order -->
-                    <table class="table table-bordered table-striped">
-                        <thead class="table-success">
-                            <tr>
-                                <th class="w-25">Product Name</th>
-                                <th>Unit Price (RM)</th>
-                                <th>Quantity</th>
-                                <th>Total Price (RM)</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($order['products'] as $product): ?>
-                                <tr>
-                                <td class="d-flex justify-content-between align-items-center">
-                                    <?= htmlspecialchars($product['product_name']) ?>
-                                    <button class="btn btn-success btn-sm btn-preview" 
-                                    data-product-id="<?= $product['product_id'] ?>">
-                                        Preview <!-- Preview Button -->
-                                    </button>
-                                </td>
-                                    <td><?= number_format($product['unit_price'], 2) ?></td>
-                                    <td><?= $product['quantity'] ?></td>
-                                    <td><?= number_format($product['unit_price'] * $product['quantity'], 2) ?></td>
-                                    <td class="w-25">
-                                        <!-- Review, Refund, and Reorder Buttons for each product -->
-                                        <div class="d-flex justify-content-center align-items-center w-100">
-                                        <button class="btn btn-success btn-sm mx-2 btn-review"
-                                        data-product-id="<?= $product['product_id'] ?>"
-                                        data-product-name="<?= htmlspecialchars($product['product_name']) ?>"
-                                        data-product-image="../../<?= $product['product_image'] ?>">
-                                            Review
-                                        </button>
-                                        <button class="btn btn-success btn-sm mx-2">Refund</button> 
-                                        <button class="btn btn-success btn-sm btn-reorder"
-                                        data-product-id="<?= $product['product_id'] ?>"
-                                        data-stock="<?= $product['stock_quantity'] ?>">
-                                            Reorder
-                                        </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-          <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
+    <?php endforeach; ?>
+    <?php endif; ?>
+</div>
+
 
 <!-- Product Preview Modal -->
 <div class="modal fade" id="productPreviewModal" tabindex="-1" aria-labelledby="productPreviewModalLabel" aria-hidden="true">

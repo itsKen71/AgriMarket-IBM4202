@@ -43,7 +43,8 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
 
 <body class="product_listings" 
     data-success="<?php echo isset($_GET['add']) && $_GET['add'] == 'success' ? 'true' : 'false'; ?>" 
-    data-edit-success="<?php echo isset($_GET['edit']) && $_GET['edit'] == 'success' ? 'true' : 'false'; ?>">
+    data-edit-success="<?php echo isset($_GET['edit']) && $_GET['edit'] == 'success' ? 'true' : 'false'; ?>"
+    data-delete-success="<?php echo isset($_GET['delete']) && $_GET['delete'] == 'success' ? 'true' : 'false'; ?>">
     
     <?php include '../../includes/header.php'; ?>
 
@@ -99,7 +100,8 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                                                 data-weight="<?php echo $product['weight']; ?>"
                                                 data-price="<?php echo $product['unit_price']; ?>"
                                                 data-image="<?php echo !empty($product['product_image']) ? htmlspecialchars($product['product_image']) : ''; ?>"
-                                                > 
+                                                data-status="<?php echo $product['product_status']; 
+                                                ?>"> 
                                                 Edit
                                                 </button>
                                             </td>
@@ -180,6 +182,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                                             <th>Stock</th>
                                             <th>Weight (kg)</th>
                                             <th>Price</th>
+                                            <th class="text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -191,6 +194,19 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                                                 <td><?php echo $product['stock_quantity']; ?></td>
                                                 <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
                                                 <td>RM<?php echo number_format($product['unit_price'], 2); ?></td>
+                                                <td class="text-center align-middle">
+                                                <button class="btn btn-success btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editProductModal"
+                                                data-id="<?php echo $product['product_id']; ?>"
+                                                data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
+                                                data-category="<?php echo htmlspecialchars($product['category_name']); ?>"
+                                                data-description="<?php echo htmlspecialchars($product['description']); ?>"
+                                                data-stock="<?php echo $product['stock_quantity']; ?>"
+                                                data-weight="<?php echo $product['weight']; ?>"
+                                                data-price="<?php echo $product['unit_price']; ?>"
+                                                data-image="<?php echo !empty($product['product_image']) ? htmlspecialchars($product['product_image']) : ''; ?>"
+                                                data-status="<?php echo $product['product_status']; ?>" >
+                                                    Edit
+                                                </button>
                                             </tr>
                                         <?php endwhile; ?>
                                     </tbody>
@@ -206,7 +222,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
     </div>
 
     <!-- Edit Product Modal -->
-    <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -216,12 +232,11 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
             <div class="modal-body">
                 <form action="../../includes/edit_products.php" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="product_id" id="editProductId">
-
+                    <input type="hidden" name="product_status" id="editProductStatus">
                     <div class="mb-3">
                         <label class="form-label">Product Name</label>
                         <input type="text" class="form-control" id="editProductName" readonly> <!-- Read-only input -->
                     </div>
-
                     <!-- Product Image Upload -->
                     <div class="mb-3">
                         <label for="editProductImage" class="form-label">Product Image</label>
@@ -243,17 +258,17 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
 
                     <div class="mb-3">
                         <label for="editStock" class="form-label">Stock Quantity</label>
-                        <input type="number" class="form-control" name="stock_quantity" id="editStock" required>
+                        <input type="number" class="form-control" name="stock_quantity" id="editStock" min="0" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="editWeight" class="form-label">Weight (kg)</label>
-                        <input type="number" step="0.01" class="form-control" name="weight" id="editWeight">
+                        <input type="number" step="0.01" class="form-control" name="weight" id="editWeight" min="0" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="editPrice" class="form-label">Price</label>
-                        <input type="number" step="0.01" class="form-control" name="unit_price" id="editPrice" required>
+                        <input type="number" step="0.01" class="form-control" name="unit_price" id="editPrice" min="0" required>
                     </div>
 
                     <div class="mb-3">
@@ -267,15 +282,21 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                             ?>
                         </select>
                     </div>
-
                     <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
+                <div> 
+                        <form action="../../includes/delete_product.php" method="POST">
+                            <input type="hidden" name="product_id" id="deleteProductId">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Add Product Modal -->
 <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
@@ -331,7 +352,6 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                             ?>
                         </select>
                     </div>
-
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Add Product</button>
@@ -384,22 +404,40 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
 </div>
 
 <!-- Success Subscribe Modal -->
-<div class="modal fade" id="successSubscribeModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="successModalLabel">Subscription Successful</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p id="subscriptionSuccessText"></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-                    </div>
-                </div>
+<div class="modal fade" id="successSubscribeModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">\
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Subscription Successful</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="subscriptionSuccessText"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Success Delete Modal -->
+<div class="modal fade" id="deleteSuccessModal" tabindex="-1" aria-labelledby="deleteSuccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteSuccessModalLabel">Product Deleted</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                The product has been successfully deleted.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <?php include '../../includes/footer.php'; ?>
     <script>window.lowStockProducts = <?php echo $lowStockProductsJson; ?>;</script> <!-- Pass php data to js -->
