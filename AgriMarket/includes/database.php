@@ -651,7 +651,8 @@ function getLowStockProducts($vendor_id, $conn, $threshold = 10)
     $query = "
         SELECT product_id, product_name, stock_quantity 
         FROM product 
-        WHERE vendor_id = ? AND stock_quantity < ?
+        WHERE vendor_id = ? AND stock_quantity < ? AND product_status = 'Approved'
+        ORDER BY stock_quantity ASC
     ";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ii", $vendor_id, $threshold);
