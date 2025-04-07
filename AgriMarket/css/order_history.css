@@ -63,3 +63,10 @@ body.order_history {
     transition: color 0.3s ease; /* Transition for color change */
 }
 
+.btn-reorderproduct,.btn-reorderwhole{
+    width: 140px !important;
+    background-color: #d9f2da !important;
+    border-color: #c8e6c9 !important;
+    color: #5b725b !important;
+    transition: background-color 0.3s ease !important;
+}

@@ -112,7 +112,7 @@ function generateStars(defaultRating = 1) {
             });
         });
 
-        // Optional: Add hover animation
+        // Add hover animation
         star.addEventListener('mouseenter', () => {
             document.querySelectorAll('#reviewStars i').forEach((el, index) => {
                 el.classList.toggle('text-warning', index < i);
@@ -144,7 +144,7 @@ function generateStars(defaultRating = 1) {
         .then(res => res.text())
         .then(data => {
             reviewModal.hide();
-            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            const successModal = new bootstrap.Modal(document.getElementById('reviewSuccessModal'));
             successModal.show();
         })
         .catch(err => {
@@ -153,4 +153,112 @@ function generateStars(defaultRating = 1) {
         });
     });
     
+//Reorder Product
+const reorderModal = new bootstrap.Modal(document.getElementById('reorderModal'));
+const reorderForm = document.getElementById('reorderForm');
+const reorderQuantityInput = document.getElementById('reorderQuantity');
+const reorderStockLabel = document.getElementById('availableStock');
+
+document.querySelectorAll('.btn-reorder').forEach(button => {
+    button.addEventListener('click', () => {
+        const productId = button.dataset.productId;
+        const stock = parseInt(button.dataset.stock);
+
+        document.getElementById('reorderProductId').value = productId;
+        reorderStockLabel.innerText = stock;
+        reorderQuantityInput.max = stock;
+        reorderQuantityInput.value = 1;
+
+        reorderModal.show();
+    });
+});
+
+reorderQuantityInput.addEventListener('input', () => {
+    const max = parseInt(reorderQuantityInput.max);
+    if (parseInt(reorderQuantityInput.value) > max) {
+        reorderQuantityInput.value = max;
+    } else if (parseInt(reorderQuantityInput.value) < 1) {
+        reorderQuantityInput.value = 1;
+    }
+});
+
+reorderForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch('../../includes/reorder_product.php', {
+        method: 'POST',
+        body: formData
+    })
+        .then(res => res.text())
+        .then(data => {
+            reorderModal.hide();
+            const successModal = new bootstrap.Modal(document.getElementById('reorderSuccessModal'));
+            successModal.show();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Failed to reorder the product.');
+        });
+});
+
+//Reorder whole order
+const reorderWholeModal = new bootstrap.Modal(document.getElementById('reorderWholeModal'));
+const reorderWholeForm = document.getElementById('reorderWholeForm');
+const reorderWholeProductList = document.getElementById('reorderWholeProductList');
+
+// Handle "Reorder" button for whole order
+document.querySelectorAll('.btn-reorderWhole').forEach(button => {
+    button.addEventListener('click', () => {
+        const orderProducts = JSON.parse(button.dataset.orderProducts); // array of products
+
+        reorderWholeProductList.innerHTML = ''; // clear list first
+
+        orderProducts.forEach(product => {
+            const row = document.createElement('div');
+            row.classList.add('mb-3');
+            row.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong>${product.product_name}</strong>
+                    <span class="text-muted">Available: ${product.stock_quantity}</span>
+                </div>
+                <input type="number" 
+                       class="form-control mt-1" 
+                       name="products[${product.product_id}]" 
+                       min="1" 
+                       max="${product.stock_quantity}" 
+                       value="1"
+                       onkeydown="return false;"
+                       oninput="if (this.value > ${product.stock_quantity}) this.value = ${product.stock_quantity};">
+                <hr>
+            `;
+            reorderWholeProductList.appendChild(row);
+        });
+
+        reorderWholeModal.show();
+    });
+});
+
+// Handle reorder form submission
+reorderWholeForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch('../../includes/reorder_whole_order.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.text())
+    .then(data => {
+        reorderWholeModal.hide();
+        const successModal = new bootstrap.Modal(document.getElementById('reorderSuccessModal'));
+        successModal.show();
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Failed to reorder.');
+    });
+});
+
 });
