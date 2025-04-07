@@ -30,6 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             // If the update fails
             echo "Error updating product.";
+            exit();
         }
     } catch (Exception $e) {
         // If image upload fails

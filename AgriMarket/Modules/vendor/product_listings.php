@@ -43,7 +43,8 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
 
 <body class="product_listings" 
     data-success="<?php echo isset($_GET['add']) && $_GET['add'] == 'success' ? 'true' : 'false'; ?>" 
-    data-edit-success="<?php echo isset($_GET['edit']) && $_GET['edit'] == 'success' ? 'true' : 'false'; ?>">
+    data-edit-success="<?php echo isset($_GET['edit']) && $_GET['edit'] == 'success' ? 'true' : 'false'; ?>"
+    data-delete-success="<?php echo isset($_GET['delete']) && $_GET['delete'] == 'success' ? 'true' : 'false'; ?>">
     
     <?php include '../../includes/header.php'; ?>
 
@@ -221,7 +222,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
     </div>
 
     <!-- Edit Product Modal -->
-    <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -281,15 +282,21 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                             ?>
                         </select>
                     </div>
-
                     <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
+                <div> 
+                        <form action="../../includes/delete_product.php" method="POST">
+                            <input type="hidden" name="product_id" id="deleteProductId">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Add Product Modal -->
 <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
@@ -345,7 +352,6 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                             ?>
                         </select>
                     </div>
-
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Add Product</button>
@@ -398,22 +404,40 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
 </div>
 
 <!-- Success Subscribe Modal -->
-<div class="modal fade" id="successSubscribeModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="successModalLabel">Subscription Successful</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p id="subscriptionSuccessText"></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-                    </div>
-                </div>
+<div class="modal fade" id="successSubscribeModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">\
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Subscription Successful</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="subscriptionSuccessText"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Success Delete Modal -->
+<div class="modal fade" id="deleteSuccessModal" tabindex="-1" aria-labelledby="deleteSuccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteSuccessModalLabel">Product Deleted</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                The product has been successfully deleted.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <?php include '../../includes/footer.php'; ?>
     <script>window.lowStockProducts = <?php echo $lowStockProductsJson; ?>;</script> <!-- Pass php data to js -->

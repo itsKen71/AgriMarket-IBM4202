@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editWeight").value = this.dataset.weight;
             document.getElementById("editPrice").value = this.dataset.price;
             document.getElementById("editProductStatus").value = this.dataset.status;  
-
+            document.getElementById("deleteProductId").value = this.dataset.id;
             // Reset file input and image name field
             editImageInput.value = "";
             currentImageNameInput.value = "";
@@ -63,6 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Handle success messages
     const isAddSuccess = document.body.getAttribute("data-success");
     const isEditSuccess = document.body.getAttribute("data-edit-success");
+    const isDeleteSuccess = document.body.getAttribute("data-delete-success");
 
     function showModal(modalId, param) {
         var modal = new bootstrap.Modal(document.getElementById(modalId));
@@ -80,6 +81,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (isEditSuccess === "true") {
         showModal("editSuccessModal", "edit");
+    }
+    if (isDeleteSuccess === "true") {
+        showModal("deleteSuccessModal", "delete");
     }
 
     // Check if the lowStockProducts array is available and has data
