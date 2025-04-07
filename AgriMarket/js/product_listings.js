@@ -15,9 +15,12 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editStock").value = this.dataset.stock;
             document.getElementById("editWeight").value = this.dataset.weight;
             document.getElementById("editPrice").value = this.dataset.price;
+            document.getElementById("editProductStatus").value = this.dataset.status;  
+
             // Reset file input and image name field
             editImageInput.value = "";
             currentImageNameInput.value = "";
+
             // Set category dropdown selection
             const selectedCategoryName = this.dataset.category;
             const editCategoryDropdown = document.getElementById("editCategory");
@@ -27,6 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     break;
                 }
             }
+
             // Get current image path from data attribute
             const currentImagePath = this.dataset.image;
 

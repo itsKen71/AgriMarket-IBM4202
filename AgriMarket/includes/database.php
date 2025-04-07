@@ -616,6 +616,7 @@ function getProductsByStatus($conn, $vendor_id, $status)
 {
     $sql = "
         SELECT p.product_id, p.product_name, p.description, p.stock_quantity, p.weight, p.unit_price, p.product_status, p.product_image,
+        p.product_status,
         c.category_name
         FROM product p
         JOIN category c ON p.category_id = c.category_id
@@ -733,14 +734,14 @@ function updateProductImage($file, $current_image, $upload_dir = "../Assets/img/
     return $image_path;
 }
 
-function updateProduct($conn, $product_id, $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price)
+function updateProduct($conn, $product_id, $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status)
 {
     $query = "UPDATE product 
-              SET category_id = ?, product_image = ?, description = ?, stock_quantity = ?, weight = ?, unit_price = ? 
+              SET category_id = ?, product_image = ?, description = ?, stock_quantity = ?, weight = ?, unit_price = ? , product_status = ? 
               WHERE product_id = ?";
 
     if ($stmt = $conn->prepare($query)) {
-        $stmt->bind_param("issdids", $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_id);
+        $stmt->bind_param("issiddsi", $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status, $product_id);
         return $stmt->execute(); // Return true if successful, false if failed
     }
     return false;

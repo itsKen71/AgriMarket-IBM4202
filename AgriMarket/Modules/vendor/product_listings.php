@@ -99,7 +99,8 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                                                 data-weight="<?php echo $product['weight']; ?>"
                                                 data-price="<?php echo $product['unit_price']; ?>"
                                                 data-image="<?php echo !empty($product['product_image']) ? htmlspecialchars($product['product_image']) : ''; ?>"
-                                                > 
+                                                data-status="<?php echo $product['product_status']; 
+                                                ?>"> 
                                                 Edit
                                                 </button>
                                             </td>
@@ -180,6 +181,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                                             <th>Stock</th>
                                             <th>Weight (kg)</th>
                                             <th>Price</th>
+                                            <th class="text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -191,6 +193,19 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                                                 <td><?php echo $product['stock_quantity']; ?></td>
                                                 <td><?php echo $product['weight'] ? $product['weight'] : 'N/A'; ?></td>
                                                 <td>RM<?php echo number_format($product['unit_price'], 2); ?></td>
+                                                <td class="text-center align-middle">
+                                                <button class="btn btn-success btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editProductModal"
+                                                data-id="<?php echo $product['product_id']; ?>"
+                                                data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
+                                                data-category="<?php echo htmlspecialchars($product['category_name']); ?>"
+                                                data-description="<?php echo htmlspecialchars($product['description']); ?>"
+                                                data-stock="<?php echo $product['stock_quantity']; ?>"
+                                                data-weight="<?php echo $product['weight']; ?>"
+                                                data-price="<?php echo $product['unit_price']; ?>"
+                                                data-image="<?php echo !empty($product['product_image']) ? htmlspecialchars($product['product_image']) : ''; ?>"
+                                                data-status="<?php echo $product['product_status']; ?>" >
+                                                    Edit
+                                                </button>
                                             </tr>
                                         <?php endwhile; ?>
                                     </tbody>
@@ -216,12 +231,11 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
             <div class="modal-body">
                 <form action="../../includes/edit_products.php" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="product_id" id="editProductId">
-
+                    <input type="hidden" name="product_status" id="editProductStatus">
                     <div class="mb-3">
                         <label class="form-label">Product Name</label>
                         <input type="text" class="form-control" id="editProductName" readonly> <!-- Read-only input -->
                     </div>
-
                     <!-- Product Image Upload -->
                     <div class="mb-3">
                         <label for="editProductImage" class="form-label">Product Image</label>
@@ -243,17 +257,17 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
 
                     <div class="mb-3">
                         <label for="editStock" class="form-label">Stock Quantity</label>
-                        <input type="number" class="form-control" name="stock_quantity" id="editStock" required>
+                        <input type="number" class="form-control" name="stock_quantity" id="editStock" min="0" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="editWeight" class="form-label">Weight (kg)</label>
-                        <input type="number" step="0.01" class="form-control" name="weight" id="editWeight">
+                        <input type="number" step="0.01" class="form-control" name="weight" id="editWeight" min="0" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="editPrice" class="form-label">Price</label>
-                        <input type="number" step="0.01" class="form-control" name="unit_price" id="editPrice" required>
+                        <input type="number" step="0.01" class="form-control" name="unit_price" id="editPrice" min="0" required>
                     </div>
 
                     <div class="mb-3">
