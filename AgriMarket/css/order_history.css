@@ -15,18 +15,6 @@ body.order_history {
     border-color: #b2d8b2 !important;
 }
 
-.card-header {
-    background-color: #e8f5e9 !important;
-    border-bottom: 1px solid #b2dfdb !important;
-    color: #2e4d2c;
-    font-weight: bold;
-}
-
-.card-body {
-    background-color: #f0f8f2 !important;
-    color: #333;
-}
-
 .alert.alert-info {
     border-left: 6px solid #0dcaf0; 
     background-color: #e9f7fc; 
@@ -69,4 +57,89 @@ body.order_history {
     border-color: #c8e6c9 !important;
     color: #5b725b !important;
     transition: background-color 0.3s ease !important;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+.card {
+    border-radius: 10px;
+}
+
+.card-header {
+    background-color: #e8f5e9 !important;
+    border-bottom: 1px solid #b2dfdb !important;
+    color: #2e4d2c;
+    font-weight: bold;
+}
+
+.card-body {
+    background-color: #fff;
+}
+
+table th,
+table td {
+    vertical-align: middle;
+}
+
+.table .productNameColumn {
+    width: 30rem; 
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.table-light th, .table-light td {
+    background-color: #f9f9f9;
+}
+
+.table-success th, .table-success td {
+    background-color: #e7f5e7;
+}
+
+.table-light tfoot {
+    background-color: #f9f9f9;
+}
+
+table .btn-group button {
+    margin-right: 5px;
+}
+
+.btn-reorderWhole {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-reorderWhole:hover {
+    background-color: #218838;
+}
+
+.btn-outline-success, .btn-outline-primary, .btn-outline-danger {
+    margin-right: 10px !important;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-primary {
+    color: #007bff !important;
+}
+
+.table-light th, .table-light td {
+    background-color: #f9f9f9;
+}
+
+.table-success th, .table-success td {
+    background-color: #e7f5e7;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-end {
+    text-align: right;
 }
