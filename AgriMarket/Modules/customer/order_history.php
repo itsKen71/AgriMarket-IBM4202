@@ -152,7 +152,7 @@ if (empty($orderHistory)) {
           </div>
           <div class="mb-3">
             <label for="reviewDescription" class="form-label">Review:</label>
-            <textarea name="review" id="reviewDescription" class="form-control" rows="4" required></textarea>
+            <textarea name="review_description" id="reviewDescription" class="form-control" rows="4" required></textarea>
           </div>
         </div>
         <div class="modal-footer">

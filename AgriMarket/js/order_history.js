@@ -56,54 +56,80 @@ document.addEventListener("DOMContentLoaded", () => {
     const reviewStars = document.getElementById('reviewStars');
     const ratingValue = document.getElementById('ratingValue');
 
-    // Open modal when review button is clicked
-    document.querySelectorAll('.btn-review').forEach(button => {
-        button.addEventListener('click', () => {
-            const productId = button.dataset.productId;
-            const productName = button.dataset.productName;
-            const productImage = button.dataset.productImage;
+   // Open modal when review button is clicked
+document.querySelectorAll('.btn-review').forEach(button => {
+    button.addEventListener('click', async () => {
+        const productId = button.dataset.productId;
+        const productName = button.dataset.productName;
+        const productImage = button.dataset.productImage;
 
-            document.getElementById('reviewProductId').value = productId;
-            document.getElementById('reviewProductName').innerText = productName;
-            document.getElementById('reviewProductImage').src = productImage;
+        document.getElementById('reviewProductId').value = productId;
+        document.getElementById('reviewProductName').innerText = productName;
+        document.getElementById('reviewProductImage').src = productImage;
 
-            generateStars(); // Reset and generate stars
-            document.getElementById('reviewDescription').value = '';
+        // Default values
+        let currentRating = 1;
+        let currentDescription = '';
 
-            reviewModal.show();
-        });
-    });
-
-    function generateStars() {
-        const defaultRating = 1;
-        ratingValue.value = defaultRating;
-        reviewStars.innerHTML = '';
-    
-        for (let i = 1; i <= 5; i++) {
-            const star = document.createElement('i');
-            star.className = 'bi bi-star-fill mx-1';
-            star.dataset.value = i;
-            star.style.cursor = 'pointer';
-    
-            // Default star coloring
-            if (i <= defaultRating) {
-                star.classList.add('text-warning');
-            } else {
-                star.classList.add('text-secondary');
+        // Fetch existing review if any
+        try {
+            const response = await fetch(`../../includes/get_review.php?product_id=${productId}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.rating) {
+                    currentRating = data.rating;
+                    currentDescription = data.review_description;
+                }
             }
-    
-            star.addEventListener('click', () => {
-                ratingValue.value = i;
-                document.querySelectorAll('#reviewStars i').forEach((el, index) => {
-                    el.classList.toggle('text-warning', index < i);
-                    el.classList.toggle('text-secondary', index >= i);
-                });
-            });
-    
-            reviewStars.appendChild(star);
+        } catch (err) {
+            console.warn("No existing review found.");
         }
+
+        // Set stars and description
+        generateStars(currentRating);
+        document.getElementById('ratingValue').value = currentRating;
+        document.getElementById('reviewDescription').value = currentDescription;
+
+        reviewModal.show();
+    });
+});
+
+
+function generateStars(defaultRating = 1) {
+    reviewStars.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('i');
+        star.className = 'bi bi-star-fill mx-1';
+        star.dataset.value = i;
+        star.style.cursor = 'pointer';
+        star.classList.add(i <= defaultRating ? 'text-warning' : 'text-secondary');
+
+        star.addEventListener('click', () => {
+            ratingValue.value = i;
+            document.querySelectorAll('#reviewStars i').forEach((el, index) => {
+                el.classList.toggle('text-warning', index < i);
+                el.classList.toggle('text-secondary', index >= i);
+            });
+        });
+
+        // Optional: Add hover animation
+        star.addEventListener('mouseenter', () => {
+            document.querySelectorAll('#reviewStars i').forEach((el, index) => {
+                el.classList.toggle('text-warning', index < i);
+                el.classList.toggle('text-secondary', index >= i);
+            });
+        });
+        star.addEventListener('mouseleave', () => {
+            const selectedRating = parseInt(ratingValue.value);
+            document.querySelectorAll('#reviewStars i').forEach((el, index) => {
+                el.classList.toggle('text-warning', index < selectedRating);
+                el.classList.toggle('text-secondary', index >= selectedRating);
+            });
+        });
+
+        reviewStars.appendChild(star);
     }
-    
+}
 
     // Submit review via AJAX
     document.getElementById('reviewForm').addEventListener('submit', function(e) {
