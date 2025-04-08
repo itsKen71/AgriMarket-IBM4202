@@ -1,6 +1,11 @@
 <?php
 session_start();
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../../Modules/authentication/login.php");
+    exit();
+}
+
 include '../../includes/database.php';
 
 //Fetch Vendor List
@@ -8,6 +13,9 @@ $vendorList = getVendorList();
 
 //Fetch Staff List
 $staffList = getStaffList();
+
+//Fetch admin list
+$adminList = getAdminList();
 ?>
 
 <!DOCTYPE html>
@@ -35,6 +43,13 @@ $staffList = getStaffList();
             <div class="alert alert-danger">The username, email, or phone number is already registered.</div>
         <?php endif; ?>
 
+        <!--Add admin/ staff-->
+        <div class="addRole">
+            <p>Add Admin/ Staff
+                <img src="../../Assets/img/addStaff.png" alt="Add Role Button" style="width:30px; height:auto;cursor:pointer;" class="addRoleBTN" data-bs-toggle="modal" data-bs-target=#addStaffModal>
+            <p>
+        </div>
+
         <!--Listing-->
         <div class="accordion" id="accordionPanels">
 
@@ -43,6 +58,7 @@ $staffList = getStaffList();
                 <!--Header-->
                 <h2 class="accordion-header">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                        <img src="../../Assets/img/vendor.png" alt="vendor icon" style="width:30px; height:auto;margin-right:10px;">
                         <strong>Vendor Listing</strong>
                     </button>
                 </h2>
@@ -56,9 +72,9 @@ $staffList = getStaffList();
                             <?php foreach ($vendorList as $vendor): ?>
 
                                 <!--Vendor Card-->
+                                <!-- Vendor Card -->
                                 <div class="Vendor-Card">
-
-                                    <!--Header Section(Display Store Name)--->
+                                    <!-- Header Section(Display Store Name) -->
                                     <div class="Vendor-Listing-Container-Header">
                                         <h2><?= htmlspecialchars($vendor['store_name']); ?></h2>
                                     </div>
@@ -70,7 +86,7 @@ $staffList = getStaffList();
                                             <span class="label">Staff Assistance</span> <span class="colon">:</span> <?= $vendor['staff_assistance']; ?>
                                         </div>
 
-                                        <!--Button for Assign Assistance(Tier 3 )-->
+                                        <!-- Button for Assign Assistance (Tier 3) -->
                                         <?php if ($vendor['plan_name'] == 'Tier_III'): ?>
                                             <div class="Vendor-Listing-Container-Button">
                                                 <img src="../../Assets/img/edit.png" alt="Add Assistance Button"
@@ -79,7 +95,7 @@ $staffList = getStaffList();
                                                     data-subscription-type="<?= htmlspecialchars($vendor['plan_name']); ?>"
                                                     data-expiration-date="<?= htmlspecialchars($vendor['subscription_end_date']); ?>"
                                                     data-assistance-name="<?= htmlspecialchars($vendor['staff_assistance']); ?>"
-                                                    data-assistance-id="<?= htmlspecialchars($vendor['staff_assisstance_id']); ?>"
+                                                    data-assistance-id="<?= htmlspecialchars($vendor['user_id']); ?>"
                                                     onclick="editVendorListing(this)">
                                             </div>
                                         <?php endif; ?>
@@ -95,6 +111,7 @@ $staffList = getStaffList();
                 </div>
             </div>
 
+            <!-- Modal for Editing Vendor Assistance -->
             <div class="modal fade" id="editVendorModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -129,20 +146,56 @@ $staffList = getStaffList();
                 </div>
             </div>
 
+            <!--Admin Listing-->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="false" aria-controls="panelsStayOpen-collapseThree">
+                        <img src="../../Assets/img/admin.png" alt="vendor icon" style="width:30px; height:auto; margin-right:10px">
+                        <strong>Admin Listing</strong>
+                    </button>
+                </h2>
+                <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+
+                        <?php if (!empty($adminList)): ?>
+                            <?php foreach ($adminList as $admin): ?>
+                                <!-- Admin Card -->
+                                <div class="Admin-Card">
+                                    <!-- Header Section (Display Admin Name) -->
+                                    <div class="Admin-Listing-Container-Header">
+                                        <h2><?= htmlspecialchars($admin['Name']); ?></h2>
+                                    </div>
+
+                                    <div class="Admin-Card-Body">
+                                        <div class="Admin-Listing-Container-Content">
+                                            <!-- Content Section -->
+                                            <span class="label">Phone Number</span> <span class="colon">:</span> <?= $admin['phone_number']; ?>
+                                            <span class="label">Home Address</span> <span class="colon">:</span> <?= $admin['home_address']; ?>
+                                            <span class="label">Last Online</span> <span class="colon">:</span> <?= $admin['last_online']; ?>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="No-Data">
+                                <p>---No Admin Found---</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
             <!--Staff Listing-->
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+                        <img src="../../Assets/img/staff.png" alt="staff icon" style="width:30px; height:auto; margin-right:10px">
                         <strong>Staff Listing</strong>
                     </button>
                 </h2>
                 <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse">
                     <div class="accordion-body">
-                        <!-- Temporary Button // change the place to a better one -->
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStaffModal">
-                            <img src="../../Assets/img/addStaff.png" alt="Add Staff Button" style="width: 25px; height: 25px;">
-                            Add Staff/Admin
-                        </button>
 
                         <?php if (!empty($staffList)): ?>
                             <?php foreach ($staffList as $staff): ?>
@@ -156,16 +209,16 @@ $staffList = getStaffList();
                                     <div class="Staff-Card-Body">
                                         <div class="Staff-Listing-Container-Content">
                                             <!-- Content Section (Display Last Online, Performance Tracking) -->
+                                            <span class="label">Phone Number</span> <span class="colon">:</span> <?= $staff['phone_number']; ?>
+                                            <span class="label">Home Address</span> <span class="colon">:</span> <?= $staff['home_address']; ?>
                                             <span class="label">Last Online</span> <span class="colon">:</span> <?= $staff['last_online']; ?>
-                                            <span class="label">Total Request Received</span> <span class="colon">:</span> <?= $staff['totalRequest']; ?>
-                                            <span class="label">Total Request Solved</span> <span class="colon">:</span> <?= $staff['totalCompleted']; ?>
                                             <span class="label">Performance</span> <span class="colon">:</span>
 
                                             <?php
                                             $progress = round($staff['progress_percentage'] ?? 0);
                                             ?>
 
-                                            <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="max-width: 150px;">
                                                 <div class="progress-bar bg-success" style="width: <?= $progress ?>%;">
                                                     <?= $progress ?>%
                                                 </div>
@@ -182,6 +235,8 @@ $staffList = getStaffList();
                     </div>
                 </div>
             </div>
+
+
         </div>
     </div>
 
@@ -241,6 +296,9 @@ $staffList = getStaffList();
             </div>
         </div>
     </div>
+
+
+
 
     <?php include '../../includes/footer_2.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

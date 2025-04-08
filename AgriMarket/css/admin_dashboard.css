@@ -3,6 +3,14 @@ body.admin_dashboard {
     background-color: #f5f1eb;
 }
 
+/* Add role */
+.addRole {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+
 /* Listing Container*/
 .accordion {
     margin-bottom: 100px;
@@ -10,7 +18,8 @@ body.admin_dashboard {
 
 /*Vendor& Staff Cards*/
 .Vendor-Card,
-.Staff-Card {
+.Staff-Card,
+.Admin-Card{
     border: 1px solid black;
     padding: 15px;
     margin-bottom: 30px;
@@ -21,13 +30,15 @@ body.admin_dashboard {
 
 /*Card Header */
 .Vendor-Listing-Container-Header h2,
-.Staff-Listing-Container-Header h2 {
+.Staff-Listing-Container-Header h2,
+.Admin-Listing-Container-Header h2 {
     font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif
 }
 
 /* Card Body */
 .Vendor-Card-Body,
-.Staff-Card-Body {
+.Staff-Card-Body,
+.Admin-Card-Body{
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -37,18 +48,21 @@ body.admin_dashboard {
 
 /*Card Content(Left)*/
 .Vendor-Listing-Container-Content,
-.Staff-Listing-Container-Content {
+.Staff-Listing-Container-Content,
+.Admin-Listing-Container-Content {
     display: grid;
     grid-template-columns: 200px 20px auto;
     gap: 10px;
 }
 
 /*Card Content(Right)*/
+.Admin-Listing-Container-Button,
 .Vendor-Listing-Container-Button{
     width:10%;
     margin-right:20px;
 }
 
+.Admin-Listing-Container-Button img,
 .Vendor-Listing-Container-Button img {
     width: 35px; 
     height: 35px;
