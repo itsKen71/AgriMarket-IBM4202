@@ -54,12 +54,11 @@ CREATE TABLE orders (
 -- Vendor Table
 CREATE TABLE vendor (
     vendor_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    user_id INT NULL,
     subscription_id INT,
     store_name VARCHAR(255) NOT NULL,
     subscription_start_date DATE,
     subscription_end_date DATE,
-    staff_assisstance_id INT NULL,
     FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
     FOREIGN KEY (subscription_id) REFERENCES subscription(subscription_id) ON DELETE SET NULL
 );

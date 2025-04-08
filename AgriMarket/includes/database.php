@@ -304,9 +304,9 @@ function getVendorList()
     global $conn;
 
     $sql = "SELECT v.vendor_id, v.store_name, s.plan_name, v.subscription_end_date, 
-            IFNULL(CONCAT(u.first_name, ' ', u.last_name), '-') AS staff_assistance, v.staff_assisstance_id
+            IFNULL(CONCAT(u.first_name, ' ', u.last_name), '-') AS staff_assistance, v.user_id
             FROM vendor v
-            LEFT JOIN user u ON u.user_id = v.staff_assisstance_id
+            LEFT JOIN user u ON u.user_id = v.user_id
             JOIN subscription s ON v.subscription_id = s.subscription_id";
 
     $result = $conn->query($sql);
@@ -314,15 +314,20 @@ function getVendorList()
     return ($result->num_rows > 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
 }
 
-function updateVendorAssistance($vendor_id, $staff_id)
+function updateVendorAssistance($vendorId, $staffId)
 {
     global $conn;
 
-    $sql = "UPDATE vendor SET staff_assisstance_id = ? WHERE vendor_id = ?";
+    $sql = "UPDATE vendor SET user_id = ? WHERE vendor_id = ?";
     $stmt = $conn->prepare($sql);
 
-    $stmt->bind_param("ii", $staff_id, $vendor_id);
-    return $stmt->execute();
+    $stmt->bind_param("ii", $staffId, $vendorId);
+
+    if ($stmt->execute()) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 function getVendorAssisstanceList($user_id)
@@ -332,7 +337,7 @@ function getVendorAssisstanceList($user_id)
     $sql = "SELECT v.store_name,r.request_description, r.request_type,r.request_date, r.request_id
           FROM request r JOIN vendor v
           ON r.vendor_id = v.vendor_id
-          WHERE v.staff_assisstance_id=? AND r.is_completed=FALSE
+          WHERE v.user_id=? AND r.is_completed=FALSE
           ORDER BY r.request_date ASC";
 
     $stmt = $conn->prepare($sql);
@@ -341,6 +346,21 @@ function getVendorAssisstanceList($user_id)
 
     $result = $stmt->get_result();
     return $result->fetch_all(MYSQLI_ASSOC);
+}
+
+function getReviewList()
+{
+    global $conn;
+
+    $sql = "SELECT CONCAT(u.first_name, ' ', u.last_name) AS Name, p.product_name, r.rating, r.review_description, r.review_date 
+            FROM product p
+            JOIN review r ON p.product_id = r.product_id
+            JOIN user u ON r.user_id = u.user_id
+            ORDER BY r.review_date ASC";
+
+    $result = $conn->query($sql);
+
+    return ($result->num_rows > 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
 }
 
 function updateAssisstanceRequestStatus($request_id, $status)
@@ -372,13 +392,32 @@ function getStaffList()
             u.last_online, 
             COUNT(r.request_id) AS totalRequest, 
             SUM(CASE WHEN r.is_completed = 1 THEN 1 ELSE 0 END) AS totalCompleted,
-            COALESCE((SUM(CASE WHEN r.is_completed = 1 THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(r.request_id), 0)), 0) AS progress_percentage
+            COALESCE((SUM(CASE WHEN r.is_completed = 1 THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(r.request_id), 0)), 0) AS progress_percentage,
+            u.phone_number,
+            u.home_address
             FROM user u
-            LEFT JOIN vendor v ON u.user_id = v.staff_assisstance_id  
+            LEFT JOIN vendor v ON u.user_id = v.user_id
             LEFT JOIN request r ON v.vendor_id = r.vendor_id
             WHERE u.role = 'Staff'
             GROUP BY u.user_id
             ORDER BY u.last_online DESC";
+
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        return $result->fetch_all(MYSQLI_ASSOC);
+    } else {
+        return [];
+    }
+}
+
+function getAdminList()
+{
+
+    global $conn;
+
+    $sql = "SELECT CONCAT(first_name , ' ' , last_name) AS Name, phone_number, home_address, last_online FROM user 
+          WHERE role='Admin'";
 
     $result = $conn->query($sql);
 
@@ -661,7 +700,7 @@ function getLowStockProducts($vendor_id, $conn, $threshold = 10)
 }
 
 function getPendingProductCount($vendor_id, $conn)
-{// Used to determine whether it exceed upload_limit
+{ // Used to determine whether it exceed upload_limit
     $query = "SELECT COUNT(*) AS pending_count FROM product WHERE vendor_id = ? AND product_status = 'Pending'";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $vendor_id);
@@ -777,7 +816,7 @@ function insertProduct($conn, $vendor_id, $category_id, $product_name, $image_pa
 }
 
 function checkIfVendor($conn, $user_id)
-{// Check if user is already a vendor
+{ // Check if user is already a vendor
     $query = "SELECT vendor_id FROM vendor WHERE user_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $user_id);
@@ -787,7 +826,7 @@ function checkIfVendor($conn, $user_id)
 }
 
 function upgradeToVendor($conn, $user_id, $plan_id, $end_date)
-{// Upgrade user to vendor and insert into vendor table
+{ // Upgrade user to vendor and insert into vendor table
     // Upgrade user role
     $update_user = "UPDATE user SET role = 'Vendor' WHERE user_id = ?";
     $stmt = $conn->prepare($update_user);
@@ -804,7 +843,7 @@ function upgradeToVendor($conn, $user_id, $plan_id, $end_date)
 }
 
 function updateVendorSubscription($conn, $user_id, $plan_id, $end_date)
-{// Update vendor's subscription
+{ // Update vendor's subscription
     $update_vendor = "UPDATE vendor SET subscription_id = ?, subscription_start_date = CURDATE(), subscription_end_date = ? WHERE user_id = ?";
     $stmt = $conn->prepare($update_vendor);
     $stmt->bind_param("isi", $plan_id, $end_date, $user_id);
@@ -812,7 +851,7 @@ function updateVendorSubscription($conn, $user_id, $plan_id, $end_date)
 }
 
 function getPlanName($conn, $plan_id)
-{// Get subscription plan name
+{ // Get subscription plan name
     $query = "SELECT plan_name FROM subscription WHERE subscription_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $plan_id);
@@ -866,4 +905,3 @@ function getOrderHistoryByUser($userId, $conn)
     }
     return $orders;
 }
-?>

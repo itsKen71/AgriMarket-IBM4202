@@ -32,6 +32,7 @@ body.staff_dashboard {
 
 
 /* Pending& Assitance Cards */
+.Review-Card,
 .Pending-Card,
 .Assisstance-Card {
     border: 1px solid black;
@@ -43,6 +44,7 @@ body.staff_dashboard {
 }
 
 /* Card Header */
+.Review-Listing-Container-Header h2
 .Pending-Listing-Container-Header h2,
 .Assisstance-Listing-Container-Header h2 {
     font-size: 28px;
@@ -50,6 +52,7 @@ body.staff_dashboard {
 }
 
 /* Card Body */
+.Review-Card-Body,
 .Pending-Card-Body,
 .Assisstance-Card-Body {
     display: flex;
@@ -59,6 +62,7 @@ body.staff_dashboard {
 }
 
 /* Card Content(Left) */
+.Review-Listing-Container-Content,
 .Pending-Listing-Container-Content,
 .Assisstance-Listing-Container-Content {
     display: grid;

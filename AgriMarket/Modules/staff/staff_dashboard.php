@@ -2,33 +2,41 @@
 session_start();
 include '../../includes/database.php';
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../../Modules/authentication/login.php");
+    exit();
+}
+
 //Fetch Pending Request List
 $pendingList = getPendingRequestList();
 
 //////////////////////////////Dummy Function///////////////////////////////////////////////////
 //Fetch Vendor Assistance List
-$assisstanceList = getVendorAssisstanceList(21);
+$assisstanceList = getVendorAssisstanceList(7);
+
+//Fetch review list
+$reviewList = getReviewList();
 
 //Handle Form Submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     //Pending Request(Approve)
-    if (isset($_POST['approve'])) {                     
+    if (isset($_POST['approve'])) {
         $product_id = $_POST['product_id'];
         updatePendingRequestStatus($product_id, "Approved");
 
-    //Pending Request(Reject)
-    } elseif (isset($_POST['reject'])) {               
+        //Pending Request(Reject)
+    } elseif (isset($_POST['reject'])) {
         $product_id = $_POST['product_id'];
         updatePendingRequestStatus($product_id, "Rejected");
 
-    //Assisstance Request
-    } elseif (isset($_POST['solve'])) {                    
+        //Assisstance Request
+    } elseif (isset($_POST['solve'])) {
         $request_id = $_POST['request_id'];
         updateAssisstanceRequestStatus($request_id, TRUE);
 
-    //Promotion Update
-    }elseif (isset($_POST['discountCode'], $_POST['promotionTitle'], $_POST['promotionMessage'], $_POST['startDate'], $_POST['endDate'], $_POST['discountPercentage'], $_POST['minPurchaseAmount'])) {
+        //Promotion Update
+    } elseif (isset($_POST['discountCode'], $_POST['promotionTitle'], $_POST['promotionMessage'], $_POST['startDate'], $_POST['endDate'], $_POST['discountPercentage'], $_POST['minPurchaseAmount'])) {
 
         $discountCode = $_POST['discountCode'];
         $promotionTitle = $_POST['promotionTitle'];
@@ -37,11 +45,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $endDate = $_POST['endDate'];
         $discountPercentage = $_POST['discountPercentage'];
         $minPurchaseAmount = $_POST['minPurchaseAmount'];
-        $isActive = 1; 
+        $isActive = 1;
         //////////////////////////////Dummy Function///////////////////////////////////////////////////
-        $created_by=21;
+        $created_by = 21;
 
-        update_Promotion_Discount( $discountCode,$promotionTitle,$promotionMessage,$startDate,$endDate, $discountPercentage,$minPurchaseAmount,$isActive,$created_by);
+        update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by);
     }
 
     //Refresh Page to Avoid Press Button Twice
@@ -90,12 +98,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <!--Discount Code (Auto-Generate)-->
                             <div class="mb-3">
                                 <label for="discountCode" class="form-label">Discount Code:</label>
-                                <input type="text" class="form-control" id="discountCode"  name="discountCode" readonly>
+                                <input type="text" class="form-control" id="discountCode" name="discountCode" readonly>
                             </div>
 
                             <div class="mb-3">
                                 <label for="promotiontitle" class="form-label">Promotion Title:</label>
-                                <input type="text" class="form-control" id="promotionTitle" name="promotionTitle"  required>
+                                <input type="text" class="form-control" id="promotionTitle" name="promotionTitle" required>
                             </div>
 
                             <div class="mb-3">
@@ -105,12 +113,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             <div class="mb-3">
                                 <label for="startDate" class="form-label">Start Date:</label>
-                                <input type="date" class="form-control" id="startDate" name="startDate"  required>
+                                <input type="date" class="form-control" id="startDate" name="startDate" required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="endDate" class="form-label">End Date:</label>
-                                <input type="date" class="form-control" id="endDate" name="endDate"  required>
+                                <input type="date" class="form-control" id="endDate" name="endDate" required>
                             </div>
 
                             <div class="mb-3">
@@ -144,6 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <!--Header-->
                 <h2 class="accordion-header">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                        <img src="../../Assets/img/pending.png" alt="pending icon" style="width:30px; height:auto;margin-right:10px;">
                         <strong>Pending Request</strong>
                     </button>
                 </h2>
@@ -269,6 +278,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+                        <img src="../../Assets/img/request.png" alt="request icon" style="width:30px; height:auto;margin-right:10px;">
                         <strong>Request Assistance</strong>
                     </button>
                 </h2>
@@ -307,6 +317,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <?php else: ?>
                             <div class="No-Data-Assisstant">
                                 <p>---No Assistant Request Found---</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!--Customer review-->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="false" aria-controls="panelsStayOpen-collapseThree">
+                        <img src="../../Assets/img/review.png" alt="review icon" style="width:30px; height:auto;margin-right:10px;">
+                        <strong>Customer Review</strong>
+                    </button>
+                </h2>
+                <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <?php if (!empty($reviewList)): ?>
+                            <?php foreach ($reviewList as $review): ?>
+
+                                <!--Review Card-->
+                                <div class="Review-Card">
+
+                                    <!--Header Section--->
+                                    <div class="Review-Listing-Container-Header">
+                                        <h2><?= htmlspecialchars($review['Name']); ?></h2>
+                                    </div>
+
+                                    <!--Review Body-->
+                                    <div class="Review-Card-Body">
+                                        <!--Content Section-->
+                                        <div class="Review-Listing-Container-Content">
+                                            <span class="label">Product Name</span> <span class="colon">:</span> <span class="value"><?= $review['product_name']; ?></span>
+                                            <span class="label">Review Description</span> <span class="colon">:</span> <span class="value"><?= $review['review_description']; ?></span>
+
+                                            <span class="label">Rating</span> <span class="colon">:</span>
+                                            <span class="value">
+                                                <?php
+                                                $rating = $review['rating'];
+                                                // Display  rating using stars
+                                                for ($i = 1; $i <= 5; $i++) {
+                                                    if ($i <= $rating) {
+                                                        echo "★"; 
+                                                    } else {
+                                                        echo "☆"; 
+                                                    }
+                                                }
+                                                ?>
+                                            </span>
+
+                                            <span class="label">Review Date</span> <span class="colon">:</span> <span class="value"><?= $review['review_date']; ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="No-Data-Review">
+                                <p>---No Review Request Found---</p>
                             </div>
                         <?php endif; ?>
                     </div>
