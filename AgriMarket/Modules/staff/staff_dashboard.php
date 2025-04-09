@@ -1,60 +1,146 @@
 <?php
 session_start();
-include '../../includes/database.php';
+$user_id = $_SESSION['user_id'] ?? null;
 
-if (!isset($_SESSION['user_id'])) {
+if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php");
     exit();
 }
 
-//Fetch Pending Request List
+include '../../includes/database.php';
+require '../../includes/PHPMailer/src/PHPMailer.php';
+require '../../includes/PHPMailer/src/SMTP.php';
+require '../../includes/PHPMailer/src/Exception.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// Fetch Lists
 $pendingList = getPendingRequestList();
+$assisstanceList = getVendorAssisstanceList($user_id);
+$refundList = getRefundList();
 
-//////////////////////////////Dummy Function///////////////////////////////////////////////////
-//Fetch Vendor Assistance List
-$assisstanceList = getVendorAssisstanceList(7);
-
-//Fetch review list
-$reviewList = getReviewList();
-
-//Handle Form Submission
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    //Pending Request(Approve)
-    if (isset($_POST['approve'])) {
-        $product_id = $_POST['product_id'];
-        updatePendingRequestStatus($product_id, "Approved");
-
-        //Pending Request(Reject)
-    } elseif (isset($_POST['reject'])) {
-        $product_id = $_POST['product_id'];
-        updatePendingRequestStatus($product_id, "Rejected");
-
-        //Assisstance Request
-    } elseif (isset($_POST['solve'])) {
-        $request_id = $_POST['request_id'];
-        updateAssisstanceRequestStatus($request_id, TRUE);
-
-        //Promotion Update
-    } elseif (isset($_POST['discountCode'], $_POST['promotionTitle'], $_POST['promotionMessage'], $_POST['startDate'], $_POST['endDate'], $_POST['discountPercentage'], $_POST['minPurchaseAmount'])) {
-
-        $discountCode = $_POST['discountCode'];
-        $promotionTitle = $_POST['promotionTitle'];
-        $promotionMessage = $_POST['promotionMessage'];
-        $startDate = $_POST['startDate'];
-        $endDate = $_POST['endDate'];
-        $discountPercentage = $_POST['discountPercentage'];
-        $minPurchaseAmount = $_POST['minPurchaseAmount'];
-        $isActive = 1;
-        //////////////////////////////Dummy Function///////////////////////////////////////////////////
-        $created_by = 21;
-
-        update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by);
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['ajax'])) {
+    // Approve or reject pending product
+    if ($_POST['action'] === 'approve_pending') {
+        updatePendingRequestStatus($_POST['product_id'], "Approved");
+        echo json_encode(['status' => 'success']);
+        exit();
     }
 
-    //Refresh Page to Avoid Press Button Twice
-    header("Location: ../../Modules/staff/staff_dashboard.php");
+    if ($_POST['action'] === 'reject_pending') {
+        updatePendingRequestStatus($_POST['product_id'], "Rejected");
+        echo json_encode(['status' => 'success']);
+        exit();
+    }
+
+    // Approve or reject refund
+    if ($_POST['action'] === 'refund' && isset($_POST['refund_id'], $_POST['status'])) {
+        $current_date = date("Y-m-d");
+        $status = $_POST['status'];
+        $request_id = $_POST['refund_id'];
+        updateRefund($request_id, $status, $current_date, $user_id);
+        echo json_encode(['status' => 'success']);
+        exit();
+    }
+
+    // Mark assistance request as completed
+    if ($_POST['action'] === 'assistance' && isset($_POST['request_id'])) {
+        updateAssisstanceRequestStatus($_POST['request_id'], TRUE);
+        echo json_encode(['status' => 'success']);
+        exit();
+    }
+
+    echo json_encode(['status' => 'error', 'message' => 'Invalid action.']);
     exit();
+}
+
+// Promotion update and email sending
+if (
+    isset(
+        $_POST['discountCode'],
+        $_POST['promotionTitle'],
+        $_POST['promotionMessage'],
+        $_POST['startDate'],
+        $_POST['endDate'],
+        $_POST['discountPercentage'],
+        $_POST['minPurchaseAmount']
+    )
+) {
+    $currentDate = date("Y-m-d");
+
+    // Promotion details
+    $discountCode = $_POST['discountCode'];
+    $promotionTitle = $_POST['promotionTitle'];
+    $promotionMessage = $_POST['promotionMessage'];
+    $startDate = $_POST['startDate'];
+    $endDate = $_POST['endDate'];
+    $discountPercentage = $_POST['discountPercentage'];
+    $minPurchaseAmount = $_POST['minPurchaseAmount'];
+    $isActive = 1;
+    $created_by = $user_id;
+
+    // Update DB
+    update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by);
+
+    // Get customers
+    $customers = getCustomerEmails();
+
+    if ($customers) {
+        foreach ($customers as $customer) {
+            $email = $customer['email'];
+            $fullName = $customer['full_name'];
+
+            try {
+                $mail = new PHPMailer(true);
+                $mail->isSMTP();
+                $mail->Host = 'smtp.gmail.com';
+                $mail->SMTPAuth = true;
+                $mail->Username = 'kenjichong88@gmail.com'; // Replace with your Gmail
+                $mail->Password = 'zqrg tdtj lxrv lgpk'; // Replace with your app password
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->Port = 587;
+
+                $mail->setFrom('agrimarketonline24@gmail.com', 'AgriMarket');
+                $mail->addAddress($email);
+
+                $mail->isHTML(true);
+                $mail->Subject = 'Promotion Update - AgriMarket';
+                $mail->Body = "
+                    <div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+                        <div style='text-align: center; padding: 20px; background-color: #f5f1eb; border-bottom: 2px solid #c9d8b6;'>
+                            <h2 style='color: #4CAF50; margin: 0;'>AgriMarket</h2>
+                            <p style='margin: 0; font-size: 14px;'>Your trusted agricultural marketplace</p>
+                        </div>
+                        <div style='padding: 20px;'>
+                            <p><strong>Dear $fullName,</strong></p>
+                            <h3 style='color: #4CAF50;'>$promotionTitle</h3>
+                            <p>$promotionMessage</p>
+                            <p>You are encouraged to use the discount code below to purchase goods to earn a <strong>$discountPercentage%</strong> discount with a minimum purchase of RM <strong>$minPurchaseAmount</strong>:</p>
+                            <div style='text-align: center; margin: 20px 0;'>
+                                <span style='font-size: 24px; font-weight: bold; color: #4CAF50; padding: 10px 20px; border: 2px dashed #4CAF50; display: inline-block;'>
+                                    $discountCode
+                                </span>
+                            </div>
+                            <p><strong>Important Notes:</strong><br>
+                            Please make sure to apply the discount code at checkout. The promotion is subject to terms and conditions and may have an expiration date.</p>
+                            <p>Thank you for being a valued customer of AgriMarket!</p>
+                            <p>Best regards,<br>The AgriMarket Team</p>
+                        </div>
+                        <div style='text-align: center; padding: 10px; background-color: #f5f1eb; border-top: 2px solid #c9d8b6; font-size: 12px; color: #777;'>
+                            <p style='margin: 0;'>© 2025 AgriMarket. All rights reserved.</p>
+                        </div>
+                    </div>
+                ";
+
+                $mail->send();
+            } catch (Exception $e) {
+                error_log("Mailer Error for $email: " . $mail->ErrorInfo);
+            }
+        }
+    } else {
+        echo "Failed to retrieve customer emails from the database.";
+    }
 }
 ?>
 
@@ -78,7 +164,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="Promotion">
             <p>Promotion Update
                 <img src="../../Assets/img/add-circle.png" alt="Add Promotion Button" style="width:30px; height:auto;cursor:pointer;" class="addPromotionBTN" data-bs-toggle="modal" data-bs-target="#addPromotionModal">
-            <p>
+            </p>
         </div>
 
         <!--Promotion Update Modal-->
@@ -94,7 +180,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <!--Body-->
                     <div class="modal-body">
-                        <form method="POST">
+                        <form id="promotionForm" method="POST">
                             <!--Discount Code (Auto-Generate)-->
                             <div class="mb-3">
                                 <label for="discountCode" class="form-label">Discount Code:</label>
@@ -102,7 +188,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </div>
 
                             <div class="mb-3">
-                                <label for="promotiontitle" class="form-label">Promotion Title:</label>
+                                <label for="promotionTitle" class="form-label">Promotion Title:</label>
                                 <input type="text" class="form-control" id="promotionTitle" name="promotionTitle" required>
                             </div>
 
@@ -123,17 +209,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             <div class="mb-3">
                                 <label for="discountPercentage" class="form-label">Discount Percentage(%):</label>
-                                <input type="number" class="form-control" id="discountPercentage" name="discountPercentage" min="1" max="100" required>
+                                <input type="number" step="0.01" class="form-control" id="discountPercentage" name="discountPercentage" min="1" max="100" required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="minPurchaseAmount" class="form-label">Minimum Purchase Amount(RM):</label>
-                                <input type="number" class="form-control" id="minPurchaseAmount" name="minPurchaseAmount" min="1" required>
+                                <input type="number" step="0.01" class="form-control" id="minPurchaseAmount" name="minPurchaseAmount" min="1" required>
                             </div>
 
                             <!--Submit Button-->
                             <div class="text-center">
-                                <button type="submit" id="submit-button" class="btn btn-primary">Update</button>
+                                <button type="submit" id="submit-button" class="btn btn-primary">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="submit-spinner"></span>
+                                    <span id="submit-text">Update</span>
+                                </button>
+
                             </div>
 
                         </form>
@@ -166,11 +256,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <?php foreach ($pendingList as $pending): ?>
 
                                 <!--Pending Card-->
-                                <div class="Pending-Card">
+                                <div class="Pending-Card" data-product-id="<?= $pending['product_id']; ?>">
 
                                     <!--Header Section(Display Store Name)--->
                                     <div class="Pending-Listing-Container-Header">
-                                        <h2><?= htmlspecialchars($pending['store_name']); ?></h2>
+                                        <h3><?= htmlspecialchars($pending['store_name']); ?></h3>
                                     </div>
 
                                     <!--Pending Request Body-->
@@ -184,15 +274,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                         <!--Button for Approve/ Decline Pending-->
                                         <div class="Pending-Listing-Container-Button">
-                                            <form method="POST">
-                                                <button type="button" class="btn btn-primary btn-sm btn-preview"
-                                                    data-product-id="<?= $pending['product_id']; ?>">
-                                                    Preview
-                                                </button>
-                                                <input type="hidden" name="product_id" value="<?= $pending['product_id']; ?>">
-                                                <button type="submit" name="approve" class="btn btn-success btn-sm">Approve</button>
-                                                <button type="submit" name="reject" class="btn btn-danger btn-sm">Reject</button>
-                                            </form>
+
+                                            <button type="button" class="btn btn-primary btn-sm btn-preview"
+                                                data-product-id="<?= $pending['product_id']; ?>">
+                                                Preview
+                                            </button>
+
+                                            <button type="button" class="btn btn-success btn-sm"
+                                                onclick="updatePendingStatus(<?= $pending['product_id']; ?>, 'approve_pending')">
+                                                Approve
+                                            </button>
+
+                                            <button type="button" class="btn btn-danger btn-sm"
+                                                onclick="updatePendingStatus(<?= $pending['product_id']; ?>, 'reject_pending')">
+                                                Reject
+                                            </button>
+
                                         </div>
                                     </div>
                                 </div>
@@ -275,6 +372,53 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
             </div>
 
+            <!--Refund List-->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="false" aria-controls="panelsStayOpen-collapseThree">
+                        <img src="../../Assets/img/refund.png" alt="refund icon" style="width:35px; height:auto;margin-right:10px;">
+                        <strong>Refund Listing</strong>
+                    </button>
+                </h2>
+                <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <?php if (!empty($refundList)): ?>
+                            <?php foreach ($refundList as $refund): ?>
+
+                                <!--Refund Card-->
+                                <div class="Refund-Card" data-refund-id="<?= $refund['refund_id']; ?>">
+
+                                    <!--Header Section--->
+                                    <div class="Refund-Listing-Container-Header">
+                                        <h3>Order ID : <?= htmlspecialchars($refund['order_id']); ?></h3>
+                                    </div>
+
+                                    <!--Refund Body-->
+                                    <div class="Refund-Card-Body">
+                                        <div class="Refund-Listing-Container-Content">
+                                            <span class="label">Product Name</span> <span class="colon">:</span> <span class="value"><?= $refund['product_name']; ?></span>
+                                            <span class="label">Refund Amount</span> <span class="colon">:</span> <span class="value">RM<?= $refund['refund_amount']; ?></span>
+                                            <span class="label">Refund Date</span> <span class="colon">:</span> <span class="value"><?= $refund['refund_date']; ?></span>
+                                        </div>
+
+                                        <!--Approve / Reject Buttons-->
+                                        <div class="Refund-Listing-Container-Button">
+                                            <button type="button" class="btn btn-success btn-sm" onclick="updateRefundStatus(<?= $refund['refund_id']; ?>, 'Approved')">Approve</button>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="updateRefundStatus(<?= $refund['refund_id']; ?>, 'Rejected')">Reject</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="No-Data-Refund">
+                                <p>---No Refund Found---</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!--Request Assistance List-->
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
@@ -287,29 +431,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <?php if (!empty($assisstanceList)): ?>
                             <?php foreach ($assisstanceList as $assisstance): ?>
 
-                                <!--Assisstance Card-->
-                                <div class="Assisstance-Card">
+                                <!--Assistance Card-->
+                                <div class="Assisstance-Card" data-request-id="<?= $assisstance['request_id']; ?>">
 
-                                    <!--Header Section(Display Store Name)--->
+                                    <!--Header Section-->
                                     <div class="Assisstance-Listing-Container-Header">
                                         <h2><?= htmlspecialchars($assisstance['store_name']); ?></h2>
                                     </div>
 
-                                    <!--Assisstance Body-->
+                                    <!--Assistance Body-->
                                     <div class="Assisstance-Card-Body">
-                                        <!--Content Section(Display Request Description, Type, Date)-->
                                         <div class="Assisstance-Listing-Container-Content">
                                             <span class="label">Description</span> <span class="colon">:</span> <span class="value"><?= $assisstance['request_description']; ?></span>
                                             <span class="label">Type</span> <span class="colon">:</span> <span class="value"><?= $assisstance['request_type']; ?></span>
                                             <span class="label">Date& Time</span> <span class="colon">:</span> <span class="value"><?= $assisstance['request_date']; ?></span>
                                         </div>
 
-                                        <!--Button for Mark Complete Request Assistance-->
+                                        <!--Mark as Complete Button-->
                                         <div class="Assisstance-Listing-Container-Button">
-                                            <form method="POST">
-                                                <input type="hidden" name="request_id" value="<?= $assisstance['request_id']; ?>">
-                                                <button type="submit" name="solve" class="solve">Complete</button>
-                                            </form>
+                                            <button type="button" class="btn btn-success btn-sm" onclick="markAssistanceComplete(<?= $assisstance['request_id']; ?>)">Complete</button>
                                         </div>
                                     </div>
                                 </div>
@@ -322,68 +462,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 </div>
             </div>
-
-            <!--Customer review-->
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="false" aria-controls="panelsStayOpen-collapseThree">
-                        <img src="../../Assets/img/review.png" alt="review icon" style="width:30px; height:auto;margin-right:10px;">
-                        <strong>Customer Review</strong>
-                    </button>
-                </h2>
-                <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse">
-                    <div class="accordion-body">
-                        <?php if (!empty($reviewList)): ?>
-                            <?php foreach ($reviewList as $review): ?>
-
-                                <!--Review Card-->
-                                <div class="Review-Card">
-
-                                    <!--Header Section--->
-                                    <div class="Review-Listing-Container-Header">
-                                        <h2><?= htmlspecialchars($review['Name']); ?></h2>
-                                    </div>
-
-                                    <!--Review Body-->
-                                    <div class="Review-Card-Body">
-                                        <!--Content Section-->
-                                        <div class="Review-Listing-Container-Content">
-                                            <span class="label">Product Name</span> <span class="colon">:</span> <span class="value"><?= $review['product_name']; ?></span>
-                                            <span class="label">Review Description</span> <span class="colon">:</span> <span class="value"><?= $review['review_description']; ?></span>
-
-                                            <span class="label">Rating</span> <span class="colon">:</span>
-                                            <span class="value">
-                                                <?php
-                                                $rating = $review['rating'];
-                                                // Display  rating using stars
-                                                for ($i = 1; $i <= 5; $i++) {
-                                                    if ($i <= $rating) {
-                                                        echo "★"; 
-                                                    } else {
-                                                        echo "☆"; 
-                                                    }
-                                                }
-                                                ?>
-                                            </span>
-
-                                            <span class="label">Review Date</span> <span class="colon">:</span> <span class="value"><?= $review['review_date']; ?></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="No-Data-Review">
-                                <p>---No Review Request Found---</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
     <?php include '../../includes/footer_2.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 
 </html>

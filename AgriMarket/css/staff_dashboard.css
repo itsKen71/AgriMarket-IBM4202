@@ -15,8 +15,7 @@ body.staff_dashboard {
 
 .modal-title {
     text-align: center;
-    flex-grow: 1;
-    font-size:25px !important;
+    font-size:1px !important;
     font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
@@ -32,7 +31,7 @@ body.staff_dashboard {
 
 
 /* Pending& Assitance Cards */
-.Review-Card,
+.Refund-Card,
 .Pending-Card,
 .Assisstance-Card {
     border: 1px solid black;
@@ -44,7 +43,7 @@ body.staff_dashboard {
 }
 
 /* Card Header */
-.Review-Listing-Container-Header h2
+.Refund-Listing-Container-Header h2
 .Pending-Listing-Container-Header h2,
 .Assisstance-Listing-Container-Header h2 {
     font-size: 28px;
@@ -52,7 +51,7 @@ body.staff_dashboard {
 }
 
 /* Card Body */
-.Review-Card-Body,
+.Refund-Card-Body,
 .Pending-Card-Body,
 .Assisstance-Card-Body {
     display: flex;
@@ -62,7 +61,7 @@ body.staff_dashboard {
 }
 
 /* Card Content(Left) */
-.Review-Listing-Container-Content,
+.Refund-Listing-Container-Content,
 .Pending-Listing-Container-Content,
 .Assisstance-Listing-Container-Content {
     display: grid;
@@ -141,7 +140,8 @@ body.staff_dashboard {
 
 /* No Data Messages */
 .No-Data-Assisstant p,
-.No-Data-Pending p {
+.No-Data-Pending p,
+.No-Data-Refund p {
     font-size: 20px;
     text-align: center;
     color: #aca8a8;

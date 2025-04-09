@@ -299,14 +299,38 @@ function update_Promotion_Discount($discountCode, $promotionTitle, $promotionMes
     }
 }
 
+function getCustomerEmails() {
+    global $conn;
+
+    $sql="SELECT first_name, last_name, email FROM user WHERE role = 'Customer' ";
+    $result=mysqli_query($conn,$sql);
+
+    $customers=[];
+
+    if($result){
+        while($row = mysqli_fetch_assoc($result)){
+            $fullName = $row['first_name'] . ' ' . $row['last_name'];
+
+            $customers[] = [
+                'email' => $row['email'],
+                'full_name' => $fullName
+            ];
+
+        }
+    }
+    return $customers;
+}
+
+
 function getVendorList()
 {
     global $conn;
 
     $sql = "SELECT v.vendor_id, v.store_name, s.plan_name, v.subscription_end_date, 
-            IFNULL(CONCAT(u.first_name, ' ', u.last_name), '-') AS staff_assistance, v.user_id
+                   IFNULL(CONCAT(u.first_name, ' ', u.last_name), '-') AS staff_assistance, 
+                   v.assist_by
             FROM vendor v
-            LEFT JOIN user u ON u.user_id = v.user_id
+            LEFT JOIN user u ON u.user_id = v.assist_by
             JOIN subscription s ON v.subscription_id = s.subscription_id";
 
     $result = $conn->query($sql);
@@ -318,7 +342,7 @@ function updateVendorAssistance($vendorId, $staffId)
 {
     global $conn;
 
-    $sql = "UPDATE vendor SET user_id = ? WHERE vendor_id = ?";
+    $sql = "UPDATE vendor SET assist_by = ? WHERE vendor_id = ?";
     $stmt = $conn->prepare($sql);
 
     $stmt->bind_param("ii", $staffId, $vendorId);
@@ -334,11 +358,11 @@ function getVendorAssisstanceList($user_id)
 {
     global $conn;
 
-    $sql = "SELECT v.store_name,r.request_description, r.request_type,r.request_date, r.request_id
-          FROM request r JOIN vendor v
-          ON r.vendor_id = v.vendor_id
-          WHERE v.user_id=? AND r.is_completed=FALSE
-          ORDER BY r.request_date ASC";
+    $sql = "SELECT v.store_name, r.request_description, r.request_type, r.request_date, r.request_id
+            FROM request r 
+            JOIN vendor v ON r.vendor_id = v.vendor_id
+            WHERE v.assist_by = ? AND r.is_completed = FALSE
+            ORDER BY r.request_date ASC";
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $user_id);
@@ -348,19 +372,38 @@ function getVendorAssisstanceList($user_id)
     return $result->fetch_all(MYSQLI_ASSOC);
 }
 
-function getReviewList()
+
+function getRefundList()
 {
     global $conn;
 
-    $sql = "SELECT CONCAT(u.first_name, ' ', u.last_name) AS Name, p.product_name, r.rating, r.review_description, r.review_date 
+    $sql = "SELECT  r.refund_id,r.order_id, p.product_name, r.refund_amount, r.refund_date ,r.reason
             FROM product p
-            JOIN review r ON p.product_id = r.product_id
+            JOIN refund r ON p.product_id = r.product_id
             JOIN user u ON r.user_id = u.user_id
-            ORDER BY r.review_date ASC";
+            WHERE r.refund_status='Pending'
+            ORDER BY r.refund_date ASC";
 
     $result = $conn->query($sql);
 
     return ($result->num_rows > 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
+}
+
+function updateRefund($request_id,$status,$current_date,$user_id){
+    global $conn;
+
+    //Update refund status
+    $sql = "UPDATE refund SET refund_status=?, refund_approve_date=?, approve_by=? WHERE refund_id= ?";
+    $stmt = $conn->prepare($sql);
+
+    $stmt->bind_param("ssii", $status, $current_date, $user_id, $request_id);
+
+    if ($stmt->execute()) {
+        return true;
+    } else {
+        return false;
+    }
+
 }
 
 function updateAssisstanceRequestStatus($request_id, $status)
@@ -613,43 +656,56 @@ function getSubscription($conn)
     return $data;
 }
 
-function getTopFiveProduct($conn, $user_id)
-{
-    //Check whether is admin / vendor
-    $vendorView = ($user_id == -1) ? "" : "WHERE p.vendor_id ='$user_id'";
-
-    $sql = "SELECT p.product_name, SUM(p.sold_quantity) AS totalSold 
-            FROM product p 
-            $vendorView
-            GROUP BY p.product_name
-            ORDER BY totalSold DESC
-            LIMIT 5";
+function topPaymentmethod($conn){
+    $sql = "SELECT payment_method, COUNT(*) AS frequency
+            FROM payment 
+            GROUP BY payment_method 
+            ORDER BY frequency DESC";
 
     $result = mysqli_query($conn, $sql);
-    $totalSold = 0;
-    $data = [];
-
     $rows = [];
+    $totalFrequency = 0;
 
-    //Calculate total sold quantity
-    while ($row = mysqli_fetch_assoc($result)) {
+    // Fetch all data once
+    while($row = mysqli_fetch_assoc($result)){
         $rows[] = $row;
-        $totalSold += $row['totalSold'];
+        $totalFrequency += $row['frequency'];
     }
 
-    //Ensure chart will not be showed if less than 5 top product sold
-    if (count($rows) < 5) {
-        return [];
+    // Build pie chart data
+    $data = [];
+    foreach ($rows as $row) {
+        $percentage = ($totalFrequency > 0) ? ($row['frequency'] / $totalFrequency) * 100 : 0;
+        $data[] = [
+            "label" => $row['payment_method'],
+            "y" => round($percentage, 2)
+        ];
     }
 
-    mysqli_data_seek($result, 0);
+    return $data;
+}
 
-    while ($row = mysqli_fetch_assoc($result)) {
-        $percentage = ($totalSold > 0) ? ($row['totalSold'] / $totalSold) * 100 : 0;
-        $data[] = ["label" => $row['product_name'], "y" => round($percentage, 2)];
+function getTopVendor($conn){
+    $sql = "SELECT v.store_name AS label, SUM(po.quantity) AS quantity
+    FROM product_order po
+    JOIN product p ON po.product_id = p.product_id
+    JOIN vendor v ON p.vendor_id = v.vendor_id
+    GROUP BY v.vendor_id
+    ORDER BY quantity DESC
+    LIMIT 5";
+
+    $result = mysqli_query($conn, $sql);
+    $data = []; 
+
+    while($row = mysqli_fetch_assoc($result)){
+        $data[] = [ 
+            "label" => $row['label'],
+            "y" => (int) $row['quantity']
+        ];
     }
     return $data;
 }
+
 
 function getProductsByStatus($conn, $vendor_id, $status)
 {

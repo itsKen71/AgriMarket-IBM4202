@@ -1,7 +1,8 @@
 <?php
 session_start();
+$user_id = $_SESSION['user_id'] ?? null;
 
-if (!isset($_SESSION['user_id'])) {
+if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php");
     exit();
 }
@@ -10,12 +11,23 @@ include '../../includes/database.php';
 
 //Fetch Vendor List
 $vendorList = getVendorList();
-
 //Fetch Staff List
 $staffList = getStaffList();
-
 //Fetch admin list
 $adminList = getAdminList();
+
+//Handle Form Submission
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['vendor_id'], $_POST['staff_id'])) {
+    $vendorId = $_POST['vendor_id'];
+    $staffId = $_POST['staff_id'];
+
+    $result = updateVendorAssistance($vendorId, $staffId);
+
+    header('Content-Type: application/json');
+    echo json_encode(["status" => $result ? "success" : "error"]);
+    exit();
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -47,7 +59,7 @@ $adminList = getAdminList();
         <div class="addRole">
             <p>Add Admin/ Staff
                 <img src="../../Assets/img/addStaff.png" alt="Add Role Button" style="width:30px; height:auto;cursor:pointer;" class="addRoleBTN" data-bs-toggle="modal" data-bs-target=#addStaffModal>
-            <p>
+            </p>
         </div>
 
         <!--Listing-->
@@ -72,8 +84,7 @@ $adminList = getAdminList();
                             <?php foreach ($vendorList as $vendor): ?>
 
                                 <!--Vendor Card-->
-                                <!-- Vendor Card -->
-                                <div class="Vendor-Card">
+                                <div class="Vendor-Card" data-vendor-id="<?= htmlspecialchars($vendor['vendor_id']); ?>">
                                     <!-- Header Section(Display Store Name) -->
                                     <div class="Vendor-Listing-Container-Header">
                                         <h2><?= htmlspecialchars($vendor['store_name']); ?></h2>
@@ -83,7 +94,8 @@ $adminList = getAdminList();
                                         <div class="Vendor-Listing-Container-Content">
                                             <span class="label">Subscription Type</span> <span class="colon">:</span> <?= $vendor['plan_name']; ?>
                                             <span class="label">Expiration Date</span> <span class="colon">:</span> <?= $vendor['subscription_end_date']; ?>
-                                            <span class="label">Staff Assistance</span> <span class="colon">:</span> <?= $vendor['staff_assistance']; ?>
+                                            <span class="label">Staff Assistance</span> <span class="colon">:</span>
+                                            <span class="staff-assistance"><?= $vendor['staff_assistance']; ?></span>
                                         </div>
 
                                         <!-- Button for Assign Assistance (Tier 3) -->
@@ -95,7 +107,7 @@ $adminList = getAdminList();
                                                     data-subscription-type="<?= htmlspecialchars($vendor['plan_name']); ?>"
                                                     data-expiration-date="<?= htmlspecialchars($vendor['subscription_end_date']); ?>"
                                                     data-assistance-name="<?= htmlspecialchars($vendor['staff_assistance']); ?>"
-                                                    data-assistance-id="<?= htmlspecialchars($vendor['user_id']); ?>"
+                                                    data-assistance-id="<?= htmlspecialchars($vendor['assist_by']); ?>"
                                                     onclick="editVendorListing(this)">
                                             </div>
                                         <?php endif; ?>
@@ -131,8 +143,8 @@ $adminList = getAdminList();
                                 <p><strong>New Assistance</strong></p>
                                 <select id="staff-select" class="form-control">
                                     <?php foreach ($staffList as $staff): ?>
-                                        <option value="<?= $staff['user_id']; ?>">
-                                            <?= $staff['user_id'] . " - " . $staff['Name']; ?>
+                                        <option value="<?= $staff['user_id']; ?>" data-name="<?= htmlspecialchars($staff['Name']); ?>">
+                                            User ID <?= $staff['user_id'] . " - " . $staff['Name']; ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -245,7 +257,7 @@ $adminList = getAdminList();
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addStaffModalLabel">Add Staff/Admin</h5>
+                    <h5 class="modal-title" id="addStaffModalLabel">Add Admin/Staff</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
