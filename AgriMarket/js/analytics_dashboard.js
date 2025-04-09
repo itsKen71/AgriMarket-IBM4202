@@ -3,7 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let revenueData = JSON.parse(document.getElementById("revenueData").textContent);
     let ordersData = JSON.parse(document.getElementById("ordersData").textContent);
     let subscriptionData = JSON.parse(document.getElementById("subscriptionData").textContent);
-    let topProductData = JSON.parse(document.getElementById("categoryData").textContent);
+    let topPaymentMethodData = JSON.parse(document.getElementById("paymentData").textContent);
+    let topVendorsData = JSON.parse(document.getElementById("vendorData").textContent);
 
     // Subscription Chart
     let subscriptionChart = new CanvasJS.Chart("subscriptionChart", {
@@ -24,50 +25,51 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     subscriptionChart.render();
 
-    // Top 5 Product Chart
-    if (Array.isArray(topProductData)) {
-        let validProducts = topProductData.filter(p => p.y > 0);
+    // Payment Method
+    let paymentChart = new CanvasJS.Chart("paymentChart", {
+        animationEnabled: true,
+        theme: "light2",
+        data: [{
+            type: "pie",
+            indexLabel: "{y}%",
+            yValueFormatString: "#,##0.00\"\"",
+            indexLabelPlacement: "inside",
+            indexLabelFontColor: "#36454F",
+            indexLabelFontSize: 18,
+            indexLabelFontWeight: "bolder",
+            showInLegend: true,
+            legendText: "{label}",
+            dataPoints: topPaymentMethodData
+        }]
+    });
+    paymentChart.render();
 
-        if (validProducts.length >= 5) {
-            let productChart = new CanvasJS.Chart("categoryChart", {
-                animationEnabled: true,
-                theme: "light2",
-                data: [{
-                    type: "pie",
-                    indexLabel: "{y}%",
-                    yValueFormatString: "#,##0.00\"\"",
-                    indexLabelPlacement: "inside",
-                    indexLabelFontColor: "#36454F",
-                    indexLabelFontSize: 18,
-                    indexLabelFontWeight: "bolder",
-                    showInLegend: validProducts.length > 0,
-                    legendText: "{label}",
-                    dataPoints: validProducts
-                }]
-            });
-            productChart.render();
-        } else {
-            let chartDiv = document.getElementById("categoryChart");
+    //Top vendor chart
+    // Top vendor chart
+    let topVendorChartContainer = document.getElementById("topVendorChart");
 
-            //Hide the chart
-            if (chartDiv) {
-                chartDiv.style.display = "";
-
-                //Message display annd styling
-                let message = document.createElement("div");
-                message.innerHTML = `<p>*No top 5 products list available*</p>`;
-                message.style.color = "red";
-                message.style.fontSize = "13px";
-                message.style.fontWeight = "bold";
-                message.style.textAlign = "center";
-                message.style.display = "flex";
-                message.style.alignItems = "center";
-                message.style.justifyContent = "center";
-                message.style.height = "100%";
-
-                chartDiv.appendChild(message);
-            }
-        }
+    if (topVendorsData.length < 5) {
+        topVendorChartContainer.innerHTML = "<div style='text-align: center; font-size: 20px; font-weight: bold; color: #555;'>No vendors found</div>";
+    } else {
+        let topVendorChart = new CanvasJS.Chart("topVendorChart", {
+            animationEnabled: true,
+            theme: "light2",
+            title: {
+                text: "Top 5 Vendors by Products Sold"
+            },
+            axisY: {
+                title: "Quantity Sold"
+            },
+            axisX: {
+                title: "Vendor"
+            },
+            data: [{
+                type: "column",
+                yValueFormatString: "#,##0 items",
+                dataPoints: topVendorsData
+            }]
+        });
+        topVendorChart.render();
     }
 
 

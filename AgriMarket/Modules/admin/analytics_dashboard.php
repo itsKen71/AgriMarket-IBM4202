@@ -1,21 +1,27 @@
 <?php
 session_start();
+$user_id = $_SESSION['user_id'] ?? null;
+$role = $_SESSION['role'] ?? null;
+
+if (!$user_id && !$role) {
+    header("Location: ../../Modules/authentication/login.php");
+    exit();
+}
+
 include '../../includes/database.php';
 
-//Get user id and role from the session
-/////////////////////////////Dummy Function/////////////////////////////
-$role = "Admin";
-//Assign value -1 if role is admin,if not as usual id assignment
-$user_id = ($role == "Admin") ? -1 : $_SESSION['user_id'];
-
+//Check role is admin or vendor
+$checkRole = ($role == "Admin");
+$query_user_id = $checkRole ? -1 : $user_id;
 
 // Fetch data based on specific role
 $activeUsers = getActiveUser($conn);
-$refundPercentage = getRefundPercentage($conn, $user_id);
-$monthlyRevenue = getRevenue($conn,$user_id);
-$monthlyOrders = getOrders($conn,$user_id);
+$refundPercentage = getRefundPercentage($conn, $query_user_id);
+$monthlyRevenue = getRevenue($conn, $query_user_id);
+$monthlyOrders = getOrders($conn, $query_user_id);
 $subscriptionData = getSubscription($conn);
-$topFiveCategory = getTopFiveProduct($conn,$user_id);
+$topPaymentMethod=topPaymentmethod($conn);
+$topVendor=getTopVendor($conn);
 
 ?>
 
@@ -44,19 +50,26 @@ $topFiveCategory = getTopFiveProduct($conn,$user_id);
 
                 <!--Active Customer-->
                 <div class="info-card">
-                    <h3>Total Active Customers</h3>
+                    <h3>
+                    <img src="../../Assets/img/staff.png" alt="active customer icon" style="width:30px; height:auto;margin-right:10px;">
+                    Active Customers</h3>
                     <p><?php echo $activeUsers["activeCustomers"]; ?></p>
                 </div>
 
                 <!--Active Vendor-->
                 <div class="info-card">
-                    <h3>Total Active Vendors</h3>
+                    <h3>
+                        <img src="../../Assets/img/vendor.png" alt="active vendor icon" style="width:30px; height:auto;margin-right:10px;">
+                        Active Vendors
+                    </h3>
                     <p><?php echo $activeUsers["activeVendors"]; ?></p>
                 </div>
 
                 <!--Refund Percentage-->
                 <div class="info-card refund-card">
-                    <h3>Refund Percentage (%)</h3>
+                    <h3>
+                    <img src="../../Assets/img/refund.png" alt="refund percentage icon" style="width:35px; height:auto;margin-right:10px;">
+                    Refund Percentage </h3>
                     <p><?php echo $refundPercentage["totalRefundPercentage"]; ?></p>
                 </div>
             </div>
@@ -65,14 +78,21 @@ $topFiveCategory = getTopFiveProduct($conn,$user_id);
             <div class="chart-section">
                 <!-- Subscription Plan -->
                 <div class="chart-container">
-                    <h3>Subscription Plans</h3>
+                    <h3>
+                    Subscription Plans</h3>
                     <div id="subscriptionChart" style="height: 320px; margin-top:30px;"></div>
                 </div>
 
-                <!-- Top 5 Product List-->
+                <!-- Payment Method-->
                 <div class="chart-container">
-                    <h3>Top 5 Product List</h3>
-                    <div id="categoryChart" style="height: 320px; margin-top:30px;"></div>
+                    <h3>Payment Methods</h3>
+                    <div id="paymentChart" style="height: 320px; margin-top:30px;"></div>
+                </div>
+
+                <!-- Top vendor-->
+                <div class="chart-container full-width">
+                    <h3>Top Vendors</h3>
+                    <div id="vendorChart" style="height: 300px; margin-top:50px;"></div>
                 </div>
 
                 <!-- Orders-->
@@ -89,6 +109,9 @@ $topFiveCategory = getTopFiveProduct($conn,$user_id);
             </div>
         </div>
 
+        <script id="vendorData" type="application/json">
+            <?php echo json_encode($topVendor, JSON_NUMERIC_CHECK); ?>
+        </script>
         <script id="revenueData" type="application/json">
             <?php echo json_encode($monthlyRevenue, JSON_NUMERIC_CHECK); ?>
         </script>
@@ -98,8 +121,8 @@ $topFiveCategory = getTopFiveProduct($conn,$user_id);
         <script id="subscriptionData" type="application/json">
             <?php echo json_encode($subscriptionData, JSON_NUMERIC_CHECK); ?>
         </script>
-        <script id="categoryData" type="application/json">
-            <?php echo json_encode($topFiveCategory, JSON_NUMERIC_CHECK); ?>
+        <script id="paymentData" type="application/json">
+            <?php echo json_encode($topPaymentMethod, JSON_NUMERIC_CHECK); ?>
         </script>
 
     </div>
