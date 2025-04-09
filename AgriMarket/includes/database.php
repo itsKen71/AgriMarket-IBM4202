@@ -913,13 +913,17 @@ function getOrderHistoryByUser($userId, $conn)
 {
     $sql = "
         SELECT o.order_id, o.order_date, o.price AS total_order_price,
-            poh.product_id, poh.quantity, poh.sub_price,
+            poh.product_id, poh.quantity, poh.sub_price, poh.status,
             p.product_name, p.unit_price, p.product_image, p.stock_quantity,
-            coh.status AS order_status
+            coh.status AS order_status,
+            s.tracking_number,
+            pym.payment_id, pym.payment_status
         FROM orders o
         INNER JOIN product_order poh ON o.order_id = poh.order_id
         INNER JOIN product p ON poh.product_id = p.product_id
         INNER JOIN customer_order_history coh ON o.order_id = coh.order_id
+        INNER JOIN shipment s ON o.order_id = s.order_id
+        INNER JOIN payment pym ON o.order_id = pym.order_id
         WHERE o.user_id = ?
         ORDER BY o.order_date DESC, o.order_id DESC
     ";
@@ -935,10 +939,13 @@ function getOrderHistoryByUser($userId, $conn)
         $orderId = $row['order_id'];
         if (!isset($orders[$orderId])) {
             $orders[$orderId] = [
+                'payment_id' => $row['payment_id'],
                 'order_date' => $row['order_date'],
                 'total_order_price' => $row['total_order_price'],
                 'order_status' => $row['order_status'],
-                'products' => []
+                'products' => [],
+                'tracking_number' => $row['tracking_number'],
+                'payment_status' => $row['payment_status']
             ];
         }
         $orders[$orderId]['products'][] = [
@@ -948,7 +955,8 @@ function getOrderHistoryByUser($userId, $conn)
             'unit_price' => $row['unit_price'],
             'quantity' => $row['quantity'],
             'sub_price' => $row['sub_price'],
-            'stock_quantity' => $row['stock_quantity']
+            'stock_quantity' => $row['stock_quantity'],
+            'status' => $row['status']
         ];
     }
     return $orders;
