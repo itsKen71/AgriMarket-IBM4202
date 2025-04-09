@@ -82,13 +82,22 @@ if (empty($orderHistory)) {
                             <span class="<?= $product['status'] === 'Refunded' ? 'text-danger text-decoration-line-through fw-bold' : '' ?>">
                             <?= htmlspecialchars($product['product_name']) ?>
                             </span>
-                                <button class="btn btn-outline-success btn-sm btn-preview" data-product-id="<?= $product['product_id'] ?>">
+                                <button class="btn btn-outline-success btn-sm btn-preview"
+                                data-product-id="<?= $product['product_id'] ?>"
+                                data-product-name="<?= htmlspecialchars($product['product_name']) ?>"
+                                data-product-image="../../<?= $product['product_image'] ?>"
+                                data-product-quantity="<?= $product['stock_quantity'] ?>"
+                                data-product-price="<?= $product['unit_price'] ?>"
+                                data-product-description="<?= $product['description'] ?>"
+                                data-product-weight="<?= $product['weight'] ?>"
+                                data-product-category="<?= $product['category_name'] ?>"
+                                >
                                     Preview
                                 </button>
                             </td>
                             <td><?= number_format($product['unit_price'], 2) ?></td>
                             <td><?= $product['quantity'] ?></td>
-                            <td><?= number_format($product['unit_price'] * $product['quantity'], 2) ?></td>
+                            <td><?= number_format($product['sub_price'] , 2) ?></td>
                             <td class="text-center">
                                 <div class="btn-group">
                                 <button class="btn btn-outline-danger btn-sm btn-refund">
@@ -121,6 +130,35 @@ if (empty($orderHistory)) {
     <?php endif; ?>
 </div>
 
+<!-- Product Preview Modal -->
+<div class="modal fade" id="productPreviewModal" tabindex="-1" aria-labelledby="productPreviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="productPreviewModalLabel">Product Preview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="productPreviewBody">
+        <div class="row">
+          <div class="col-md-5 text-center">
+            <img id="productPreviewImage" src="" alt="Product Image" class="img-fluid rounded border">
+          </div>
+          <div class="col-md-7">
+            <h4 id="productPreviewName"></h4>
+            <p><strong>Category:</strong> <span id="productPreviewCategory"></span></p>
+            <p><strong>Weight:</strong> <span id="productPreviewWeight"></span> kg</p>
+            <p><strong>Price:</strong> <span id="productPreviewPrice"></span></p>
+            <p><strong>Stock:</strong> <span id="productPreviewStock"></span></p>
+            <p><strong>Description</strong><br> <span id="productPreviewDescription"></span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <?php include '../../includes/footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

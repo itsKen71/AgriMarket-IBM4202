@@ -631,7 +631,7 @@ function getProductsByStatus($conn, $vendor_id, $status)
 function getVendorDetails($user_id, $conn)
 {
     $query = "
-        SELECT v.vendor_id, v.store_name, v.subscription_id, v.subscription_start_date, v.subscription_end_date, v.staff_assisstance_id,
+        SELECT v.vendor_id, v.store_name, v.subscription_id, v.subscription_start_date, v.subscription_end_date, v.assist_by,
                u.user_id, u.email, u.phone_number, 
                s.plan_name, s.has_staff_support, s.upload_limit, s.has_low_stock_alert
         FROM vendor v
@@ -827,16 +827,18 @@ function getOrderHistoryByUser($userId, $conn)
     $sql = "
         SELECT o.order_id, o.order_date, o.price AS total_order_price,
             poh.product_id, poh.quantity, poh.sub_price, poh.status,
-            p.product_name, p.unit_price, p.product_image, p.stock_quantity,
+            p.product_name, p.unit_price, p.product_image, p.stock_quantity, p.description, p.weight,
             coh.status AS order_status,
             s.tracking_number,
-            pym.payment_id, pym.payment_status
+            pym.payment_id, pym.payment_status,
+            c.category_name
         FROM orders o
         INNER JOIN product_order poh ON o.order_id = poh.order_id
         INNER JOIN product p ON poh.product_id = p.product_id
         INNER JOIN customer_order_history coh ON o.order_id = coh.order_id
         INNER JOIN shipment s ON o.order_id = s.order_id
         INNER JOIN payment pym ON o.order_id = pym.order_id
+        INNER JOIN category c ON c.category_id = p.category_id
         WHERE o.user_id = ?
         ORDER BY o.order_date DESC, o.order_id DESC
     ";
@@ -869,7 +871,10 @@ function getOrderHistoryByUser($userId, $conn)
             'quantity' => $row['quantity'],
             'sub_price' => $row['sub_price'],
             'stock_quantity' => $row['stock_quantity'],
-            'status' => $row['status']
+            'status' => $row['status'],
+            'description' => $row['description'],
+            'weight' => $row['weight'],
+            'category_name' => $row['category_name'],
         ];
     }
     return $orders;
