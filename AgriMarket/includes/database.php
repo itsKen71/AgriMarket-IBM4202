@@ -670,7 +670,7 @@ function getProductsByStatus($conn, $vendor_id, $status)
 function getVendorDetails($user_id, $conn)
 {
     $query = "
-        SELECT v.vendor_id, v.store_name, v.subscription_id, v.subscription_start_date, v.subscription_end_date, v.staff_assisstance_id,
+        SELECT v.vendor_id, v.store_name, v.subscription_id, v.subscription_start_date, v.subscription_end_date, v.assist_by,
                u.user_id, u.email, u.phone_number, 
                s.plan_name, s.has_staff_support, s.upload_limit, s.has_low_stock_alert
         FROM vendor v
@@ -726,6 +726,19 @@ function insertRequest($conn, $vendor_id, $request_type, $request_description)
     } else {
         return false;
     }
+}
+
+function isVendor($user_id)
+{
+    global $conn;
+
+    $stmt = $conn->prepare("SELECT role FROM user WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+
+    return $user['role'] === 'Vendor';
 }
 
 function updateVendorProfile($conn, $store_name, $vendor_id)
@@ -859,6 +872,41 @@ function getPlanName($conn, $plan_id)
     $result = $stmt->get_result();
     $plan = $result->fetch_assoc();
     return $plan ? $plan['plan_name'] : null;
+}
+
+function getCustomerDetails($user_id, $conn)
+{
+    $stmt = $conn->prepare("SELECT username, first_name, last_name, email, phone_number, home_address FROM user WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_assoc();
+}
+
+function updateCustomerProfile($conn, $user_id, $username, $first_name, $last_name, $email, $phone_number, $home_address)
+{
+    $stmt = $conn->prepare("UPDATE user SET username = ?, first_name = ?, last_name = ?, email = ?, phone_number = ?, home_address = ? WHERE user_id = ?");
+    $stmt->bind_param("ssssssi", $username, $first_name, $last_name, $email, $phone_number, $home_address, $user_id);
+    return $stmt->execute();
+}
+
+function getShipmentDetails($conn, $tracking_number, $user_id)
+{
+    $stmt = $conn->prepare("
+        SELECT * 
+        FROM shipment 
+        WHERE tracking_number = ? 
+        AND order_id IN (SELECT order_id FROM orders WHERE user_id = ?)
+    ");
+    $stmt->bind_param("si", $tracking_number, $user_id);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_assoc();
+}
+
+function updateShipmentStatus($conn, $shipping_id, $new_status)
+{
+    $stmt = $conn->prepare("UPDATE shipment SET status = ? WHERE shipping_id = ?");
+    $stmt->bind_param("si", $new_status, $shipping_id);
+    return $stmt->execute();
 }
 
 function getOrderHistoryByUser($userId, $conn)
