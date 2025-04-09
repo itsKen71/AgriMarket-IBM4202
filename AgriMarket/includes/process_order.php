@@ -26,6 +26,13 @@ try {
     $payment_method = $data['payment_method']['type'];
     $products = $data['products'];
 
+    // Identify payment status based on payment method
+    if ($payment_method == 'Cash On Delivery') {
+        $payment_status = 'Pending';
+    } else {
+        $payment_status = 'Completed';
+    }
+    
     // 1. Insert into orders
     $stmt = $conn->prepare("INSERT INTO orders (user_id, price, order_date, delivery_date, shipping_address) 
                             VALUES (?, ?, CURRENT_DATE(), DATE_ADD(CURRENT_DATE(), INTERVAL 3 DAY), ?)");
@@ -36,8 +43,8 @@ try {
 
     // 2. Insert into payment
     $stmt = $conn->prepare("INSERT INTO payment (order_id, user_id, total_amount, payment_method, payment_status, transaction_date) 
-                            VALUES (?, ?, ?, ?, 'Pending', CURRENT_TIMESTAMP())");
-    $stmt->bind_param("iids", $order_id, $user_id, $final_amount, $payment_method);
+                        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP())");
+    $stmt->bind_param("iidss", $order_id, $user_id, $final_amount, $payment_method, $payment_status);
     $stmt->execute();
     $stmt->close();
 

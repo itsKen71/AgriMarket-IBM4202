@@ -49,11 +49,16 @@ if (empty($orderHistory)) {
                     Order ID: <span class="text-primary"><?= $orderId ?></span> |
                     <small class="text-muted"><?= $order['order_date'] ?></small>
                 </h5>
-                <button class="btn btn-outline-success btn-sm ms-auto btn-reorderWhole"
+                <div class="d-flex align-items-center">
+                  <button class="btn btn-outline-danger btn-sm btn-refundWhole me-2">
+                    Refund All
+                  </button>
+                  <button class="btn btn-outline-success btn-sm btn-reorderWhole"
                     data-order-id="<?= $orderId ?>"
                     data-order-products='<?= json_encode($order['products']) ?>'>
                     Reorder All
-                </button>
+                  </button>
+                </div>
             </div>
             <div class="card-body">
                 <!-- Loop through each product in the order -->
