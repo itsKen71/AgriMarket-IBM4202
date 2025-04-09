@@ -16,7 +16,7 @@ INSERT INTO subscription (plan_name, subscription_price, upload_limit, has_low_s
     ('Tier_III', 39.99, 100, TRUE, TRUE, TRUE);
 
 -- Vendor Data
-INSERT vendor (user_id, subscription_id, store_name, subscription_start_date, subscription_end_date, staff_assisstance_id) 
+INSERT vendor (user_id, subscription_id, store_name, subscription_start_date, subscription_end_date, assist_by) 
 VALUES 
     (2, 2, 'Hau Zhen Store', '2024-03-29', '2025-04-29', NULL),
 	(3, 3, 'Hau Chong Store', '2024-03-29', '2025-04-29', NULL),

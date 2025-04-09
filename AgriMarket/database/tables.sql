@@ -59,6 +59,7 @@ CREATE TABLE vendor (
     store_name VARCHAR(255) NOT NULL,
     subscription_start_date DATE,
     subscription_end_date DATE,
+    assist_by INT NULL,
     FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
     FOREIGN KEY (subscription_id) REFERENCES subscription(subscription_id) ON DELETE SET NULL
 );
@@ -110,7 +111,7 @@ CREATE TABLE shipment (
     shipping_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
     tracking_number VARCHAR(255) UNIQUE NOT NULL,
-    status ENUM('Pending', 'Shipped', 'Delivered', 'Cancelled') NOT NULL,
+    status ENUM('Pending', 'Packaging', 'Ready to Pickup by Carrier', 'Delivered', 'Cancelled') NOT NULL,
     update_timestamp DATETIME,
     estimated_delivery_date DATE,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
