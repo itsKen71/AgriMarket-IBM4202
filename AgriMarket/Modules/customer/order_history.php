@@ -43,14 +43,18 @@ if (empty($orderHistory)) {
     <?php else: ?>
     <!-- Loop through orders if there are any -->
     <?php foreach ($orderHistory as $orderId => $order): ?>
+      <?php $allRefunded = array_reduce($order['products'], function ($carry, $product) {
+            return $carry && $product['status'] === 'Refunded';
+            }, true);?>
         <div class="card mb-4 shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center bg-light">
                 <h5 class="mb-0">
-                    Order ID: <span class="text-primary"><?= $orderId ?></span> |
+                    Tracking Number: <span class="text-primary"><?= $order['tracking_number'] ?></span> |
                     <small class="text-muted"><?= $order['order_date'] ?></small>
                 </h5>
                 <div class="d-flex align-items-center">
-                  <button class="btn btn-outline-danger btn-sm btn-refundWhole me-2">
+                  <button class="btn btn-outline-danger btn-sm btn-refundWhole me-2"
+                  <?= $allRefunded ? 'disabled' : '' ?>>
                     Refund All
                   </button>
                   <button class="btn btn-outline-success btn-sm btn-reorderWhole"
@@ -76,7 +80,9 @@ if (empty($orderHistory)) {
                         <?php foreach ($order['products'] as $product): ?>
                         <tr>
                             <td class="d-flex justify-content-between align-items-center">
-                                <span><?= htmlspecialchars($product['product_name']) ?></span>
+                            <span class="<?= $product['status'] === 'Refunded' ? 'text-danger text-decoration-line-through fw-bold' : '' ?>">
+                            <?= htmlspecialchars($product['product_name']) ?>
+                            </span>
                                 <button class="btn btn-outline-success btn-sm btn-preview" data-product-id="<?= $product['product_id'] ?>">
                                     Preview
                                 </button>
@@ -86,7 +92,23 @@ if (empty($orderHistory)) {
                             <td><?= number_format($product['unit_price'] * $product['quantity'], 2) ?></td>
                             <td class="text-center">
                                 <div class="btn-group">
-                                    <button class="btn btn-outline-danger btn-sm">Refund</button>
+                                <span class="d-inline-block" tabindex="0"
+                                <?php if ($order['payment_status'] == 'Pending' || $product['status'] === 'Refunded'): ?>
+                                  data-bs-toggle="tooltip"
+                                  title="<?= $order['payment_status'] == 'Pending' ? 
+                                  'Payment is still pending.' : 'This product has already been refunded.' ?>"
+                                <?php endif; ?>>
+                                <button class="btn btn-outline-danger btn-sm btn-refund"
+                                  <?= $product['status'] == 'Refunded' || $order['payment_status'] == 'Pending' ? 'disabled' : '' ?>
+                                  data-product-id="<?= $product['product_id'] ?>"
+                                  data-order-id="<?= $orderId ?>"
+                                  data-payment-id="<?= $order['payment_id'] ?>"
+                                  data-user-id="<?= $_SESSION['user_id'] ?>"
+                                  data-refund-amount="<?= $product['unit_price'] * $product['quantity'] ?>">
+                                    Refund
+                                </button>
+                                </span>
+
                                     <button class="btn btn-outline-primary btn-sm btn-review" data-product-id="<?= $product['product_id'] ?>"
                                         data-product-name="<?= htmlspecialchars($product['product_name']) ?>" data-product-image="../../<?= $product['product_image'] ?>">
                                         Review
@@ -115,7 +137,6 @@ if (empty($orderHistory)) {
     <?php endforeach; ?>
     <?php endif; ?>
 </div>
-
 
 <!-- Product Preview Modal -->
 <div class="modal fade" id="productPreviewModal" tabindex="-1" aria-labelledby="productPreviewModalLabel" aria-hidden="true">
@@ -212,6 +233,33 @@ if (empty($orderHistory)) {
       </div>
       <div class="modal-footer">
         <button type="submit" class="btn btn-reorderwhole">Add to Cart</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Refund Request Modal -->
+<div class="modal fade" id="refundModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="refundForm" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="refundModalLabel">Request Refund</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="product_id" id="refundProductId">
+        <input type="hidden" name="order_id" id="refundOrderId">
+        <input type="hidden" name="payment_id" id="refundPaymentId">
+        <input type="hidden" name="user_id" id="refundUserId">
+        <input type="hidden" name="refund_amount" id="refundAmount">
+
+        <div class="mb-3">
+          <label for="refundReason" class="form-label">Reason</label>
+          <textarea name="reason" id="refundReason" class="form-control" required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-danger">Submit</button>
       </div>
     </form>
   </div>

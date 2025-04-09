@@ -64,8 +64,8 @@ try {
     $stmt->close();
 
     // 5. Insert into product_order
-    $stmt = $conn->prepare("INSERT INTO product_order (product_id, order_id, quantity, sub_price, packaging) 
-                            VALUES (?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO product_order (product_id, order_id, quantity, sub_price, packaging, status) 
+                            VALUES (?, ?, ?, ?, ?,'Completed')");
 
     foreach ($products as $product) {
         $product_id = $product['product_id'];

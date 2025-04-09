@@ -1,6 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
     const previewButtons = document.querySelectorAll(".btn-preview");
 
+    // Tooltips for payment_status pending 
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+        new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
     previewButtons.forEach(button => { //Handle Preview Function
         button.addEventListener("click", async () => {
             const productId = button.dataset.productId;

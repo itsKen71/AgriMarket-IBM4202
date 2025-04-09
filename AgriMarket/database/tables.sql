@@ -88,6 +88,7 @@ CREATE TABLE product_order (
     quantity INT NOT NULL,
     sub_price DECIMAL(10,2) NOT NULL,
     packaging ENUM('Normal', 'More Protection') NOT NULL,
+    status ENUM('Completed', 'Refunded') NOT NULL,
     PRIMARY KEY (product_id, order_id),
     FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
