@@ -96,7 +96,7 @@ for ($i = 1; $i <= 5; $i++) {
 }
 
 //get comment with filtering and sorting
-$query = "SELECT r.rating, r.review_description, r.review_date, u.first_name, u.last_name 
+$query = "SELECT r.rating, r.review_description, r.review_date, u.first_name, u.last_name, u.user_image, r.review_id 
           FROM review r 
           JOIN `user` u ON r.user_id = u.user_id 
           WHERE r.product_id = ?";
@@ -307,7 +307,8 @@ $is_staff = $_SESSION['role'];
                     <?php foreach ($reviews as $row): ?>
                         <div class="border-bottom pb-4 mb-4 d-flex">
                             <div class="me-3">
-                                <i class="bi bi-person-circle" style="font-size: 30px;"></i>
+                                <img src="../../<?= htmlspecialchars($row['user_image']); ?>" alt="User Image"
+                                    class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
                             </div>
                             <!-- content -->
                             <div class="flex-grow-1">
@@ -325,6 +326,15 @@ $is_staff = $_SESSION['role'];
                                     <p class="mb-1"><?= htmlspecialchars($row['review_description']); ?></p>
                                 </div>
                             </div>
+                            <!-- Delete button -->
+                            <?php if ($is_staff === 'Staff'): ?>
+                                <div class="ms-3">
+                                    <form method="post" action="../../includes/delete_comment.php">
+                                        <input type="hidden" name="review_id" value="<?= htmlspecialchars($row['review_id']); ?>">
+                                        <button type="submit" class="btn btn-sm btn-danger delete-btn">Delete</button>
+                                    </form>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
