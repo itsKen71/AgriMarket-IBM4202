@@ -28,3 +28,4 @@ if ($result->num_rows > 0) {
 $stmt->execute();
 header("Location: ../Modules/customer/order_history.php?reorder=success");
 exit;
+?>
