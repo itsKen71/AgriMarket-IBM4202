@@ -299,23 +299,23 @@ function update_Promotion_Discount($discountCode, $promotionTitle, $promotionMes
     }
 }
 
-function getCustomerEmails() {
+function getCustomerEmails()
+{
     global $conn;
 
-    $sql="SELECT first_name, last_name, email FROM user WHERE role = 'Customer' ";
-    $result=mysqli_query($conn,$sql);
+    $sql = "SELECT first_name, last_name, email FROM user WHERE role = 'Customer' ";
+    $result = mysqli_query($conn, $sql);
 
-    $customers=[];
+    $customers = [];
 
-    if($result){
-        while($row = mysqli_fetch_assoc($result)){
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
             $fullName = $row['first_name'] . ' ' . $row['last_name'];
 
             $customers[] = [
                 'email' => $row['email'],
                 'full_name' => $fullName
             ];
-
         }
     }
     return $customers;
@@ -389,7 +389,8 @@ function getRefundList()
     return ($result->num_rows > 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
 }
 
-function updateRefund($request_id,$status,$current_date,$user_id){
+function updateRefund($request_id, $status, $current_date, $user_id)
+{
     global $conn;
 
     //Update refund status
@@ -403,7 +404,6 @@ function updateRefund($request_id,$status,$current_date,$user_id){
     } else {
         return false;
     }
-
 }
 
 function updateAssisstanceRequestStatus($request_id, $status)
@@ -503,7 +503,7 @@ function updatePendingRequestStatus($product_id, $status)
     return $stmt->execute();
 }
 
-function getActiveUser($conn)
+function getActiveUser($conn, $user_id)
 {
     $oneMonthAgo = date("Y-m-d H:i:s", strtotime("-1 month"));
 
@@ -631,7 +631,7 @@ function getOrders($conn, $user_id)
     return array_values($data);
 }
 
-function getSubscription($conn)
+function getSubscription($conn, $user_id)
 {
     $sql = "SELECT s.plan_name, COUNT(v.vendor_id) AS totalUsers 
             FROM vendor v JOIN subscription s 
@@ -656,7 +656,34 @@ function getSubscription($conn)
     return $data;
 }
 
-function topPaymentmethod($conn){
+function getShipmentStatus($conn, $user_id)
+{
+    $sql = "SELECT status, COUNT(shipping_id) AS totalShipments 
+            FROM shipment 
+            GROUP BY status 
+            ORDER BY totalShipments DESC";
+
+    $result = mysqli_query($conn, $sql);
+    $totalShipments = 0;
+    $data = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $totalShipments += $row['totalShipments'];
+    }
+
+    mysqli_data_seek($result, 0);
+
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $percentage = ($totalShipments > 0) ? ($row['totalShipments'] / $totalShipments) * 100 : 0;
+        $data[] = ["label" => $row['status'], "y" => round($percentage, 2)];
+    }
+
+    return $data;
+}
+
+function topPaymentmethod($conn, $user_id)
+{
     $sql = "SELECT payment_method, COUNT(*) AS frequency
             FROM payment 
             GROUP BY payment_method 
@@ -667,7 +694,7 @@ function topPaymentmethod($conn){
     $totalFrequency = 0;
 
     // Fetch all data once
-    while($row = mysqli_fetch_assoc($result)){
+    while ($row = mysqli_fetch_assoc($result)) {
         $rows[] = $row;
         $totalFrequency += $row['frequency'];
     }
@@ -685,7 +712,9 @@ function topPaymentmethod($conn){
     return $data;
 }
 
-function getTopVendor($conn){
+
+function getTopVendor($conn, $user_id)
+{
     $sql = "SELECT v.store_name AS label, SUM(po.quantity) AS quantity
     FROM product_order po
     JOIN product p ON po.product_id = p.product_id
@@ -695,10 +724,10 @@ function getTopVendor($conn){
     LIMIT 5";
 
     $result = mysqli_query($conn, $sql);
-    $data = []; 
+    $data = [];
 
-    while($row = mysqli_fetch_assoc($result)){
-        $data[] = [ 
+    while ($row = mysqli_fetch_assoc($result)) {
+        $data[] = [
             "label" => $row['label'],
             "y" => (int) $row['quantity']
         ];
