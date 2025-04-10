@@ -2,6 +2,10 @@ body.order_history {
     background-color: #f5f1eb; 
 }
 
+.table .productNameColumn {
+    width: 30rem; 
+}
+
 .btn-success {
     width: 80px !important;
     background-color: #d9f2da !important;
@@ -32,50 +36,9 @@ body.order_history {
     letter-spacing: 0.3px;
 }
 
-.product-preview {
-    display: flex;
-    align-items: center;
-    gap: 20px; 
-}
-
-.product-preview img {
-    max-width: 250px; /* Control the image size */
-    height: auto;
-}
-
-.product-preview div {
-    flex: 1;
-}
 
 #reviewStars i {
     transition: color 0.3s ease; /* Transition for color change */
-}
-
-.btn-reorderproduct,.btn-reorderwhole{
-    width: 140px !important;
-    background-color: #d9f2da !important;
-    border-color: #c8e6c9 !important;
-    color: #5b725b !important;
-    transition: background-color 0.3s ease !important;
-}
-
-.container {
-    max-width: 1200px;
-}
-
-.card {
-    border-radius: 10px;
-}
-
-.card-header {
-    background-color: #e8f5e9 !important;
-    border-bottom: 1px solid #b2dfdb !important;
-    color: #2e4d2c;
-    font-weight: bold;
-}
-
-.card-body {
-    background-color: #fff;
 }
 
 table th,
@@ -83,64 +46,10 @@ table td {
     vertical-align: middle;
 }
 
-.table .productNameColumn {
-    width: 30rem; 
-}
-
-.table-hover tbody tr:hover {
-    background-color: #f1f1f1;
-}
-
-.table-light th, .table-light td {
-    background-color: #f9f9f9;
-}
-
-.table-success th, .table-success td {
-    background-color: #e7f5e7;
-}
-
-.table-light tfoot {
-    background-color: #f9f9f9;
-}
-
 table .btn-group button {
     margin-right: 5px;
-}
-
-.btn-reorderWhole {
-    background-color: #28a745;
-    color: white;
-}
-
-.btn-reorderWhole:hover {
-    background-color: #218838;
 }
 
 .btn-outline-success, .btn-outline-primary, .btn-outline-danger {
     margin-right: 10px !important;
 }
-
-.text-success {
-    color: #28a745 !important;
-}
-
-.text-primary {
-    color: #007bff !important;
-}
-
-.table-light th, .table-light td {
-    background-color: #f9f9f9;
-}
-
-.table-success th, .table-success td {
-    background-color: #e7f5e7;
-}
-
-.text-success {
-    color: #28a745 !important;
-}
-
-.text-end {
-    text-align: right;
-}
-
