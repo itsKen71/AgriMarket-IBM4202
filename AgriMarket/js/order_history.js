@@ -1,4 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Quantity button handler
+document.addEventListener('click', function (e) {
+    if (e.target.classList.contains('minus-btn') || e.target.classList.contains('plus-btn')) {
+        const input = e.target.closest('.input-group')?.querySelector('input[type="number"]');
+        if (!input) return;
+
+        let current = parseInt(input.value) || 1;
+        const min = parseInt(input.min) || 1;
+        const max = parseInt(input.max) || 9999;
+
+        if (e.target.classList.contains('minus-btn') && current > min) {
+            input.value = current - 1;
+        } else if (e.target.classList.contains('plus-btn') && current < max) {
+            input.value = current + 1;
+        }
+    }
+});
     // Preview
     document.querySelectorAll('.btn-preview').forEach(button => {
         button.addEventListener('click', () => showProductPreviewModal(button));
@@ -56,20 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 `;
                 reorderAllContent.appendChild(row);
-                const minusBtn = row.querySelector('.minus-btn');
-                const plusBtn = row.querySelector('.plus-btn');
-                const qtyInput = row.querySelector('.quantity-input');
-                
-                minusBtn?.addEventListener('click', () => {
-                    let current = parseInt(qtyInput.value);
-                    if (current > 1) qtyInput.value = current - 1;
-                });
-
-                plusBtn?.addEventListener('click', () => {
-                    let current = parseInt(qtyInput.value);
-                    let max = parseInt(qtyInput.max);
-                    if (current < max) qtyInput.value = current + 1;
-                });
             });
 
             new bootstrap.Modal(document.getElementById('reorderAllModal')).show();
