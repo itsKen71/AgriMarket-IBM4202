@@ -52,15 +52,13 @@ if (empty($orderHistory)) {
                     <small class="text-muted"><?= $order['order_date'] ?></small>
                 </h5>
                 <div class="d-flex align-items-center">
-                  <button class="btn btn-outline-danger btn-sm btn-refundWhole me-2"
-                  <?= $allRefunded ? 'disabled' : '' ?>>
+                  <button class="btn btn-outline-danger btn-sm btn-refundWhole me-2">
                     Refund All
                   </button>
-                  <button class="btn btn-outline-success btn-sm btn-reorderWhole"
-                    data-order-id="<?= $orderId ?>"
-                    data-order-products='<?= json_encode($order['products']) ?>'>
-                    Reorder All
-                  </button>
+                <button class="btn btn-outline-success btn-sm btn-reorder-all me-2"
+                data-products='<?= json_encode($order['products']) ?>'>
+                Reorder All
+                </button>
                 </div>
             </div>
             <div class="card-body">
@@ -111,7 +109,11 @@ if (empty($orderHistory)) {
                                 data-review-description="<?php echo $hasReview ? htmlspecialchars($reviewData['review_description']) : '' ?>">
                                     Review
                                 </button>
-                                <button class="btn btn-outline-success btn-sm btn-reorder">
+                                <button class="btn btn-outline-success btn-sm btn-reorder"
+                                data-product-id="<?php echo $product['product_id'] ?>"
+                                data-product-name="<?php echo htmlspecialchars($product['product_name']) ?>"
+                                data-product-image="../../<?php echo htmlspecialchars($product['product_image']) ?>"
+                                data-product-stock="<?php echo $product['stock_quantity'] ?>">
                                     Reorder
                                 </button>
                                 </div>
@@ -162,7 +164,7 @@ if (empty($orderHistory)) {
   </div>
 </div>
 
-<!-- Product Review Modal -->
+<!-- Review Modal -->
 <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -189,13 +191,85 @@ if (empty($orderHistory)) {
           </div>
           <div class="mb-3">
             <label for="reviewText" class="form-label"><strong>Review:</strong></label>
-            <textarea class="form-control" name="review_description" id="reviewText" rows="3" placeholder="Write your review here..."></textarea>
+            <textarea class="form-control" name="review_description" id="reviewText" rows="3" placeholder="Write your review here..." required></textarea>
           </div>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-primary">Submit Review</button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Reorder Modal -->
+<div class="modal fade" id="reorderModal" tabindex="-1" aria-labelledby="reorderModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content p-3">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reorderModalLabel">Reorder Product</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="../../includes/reorder.php" method="POST">
+        <div class="modal-body">
+          <div class="row align-items-center">
+            <div class="col-md-4 text-center mb-3 mb-md-0">
+              <img id="reorderProductImage" src="" alt="Product Image" class="img-fluid rounded shadow-sm" style="max-height: 150px;">
+            </div>
+            <div class="col-md-8">
+              <h5 id="reorderProductName" class="mb-3 fw-semibold"></h5>
+              <p>Available Stock: <span id="reorderStock" class="fw-bold text-success"></span></p>
+              <input type="hidden" name="product_id" id="reorderProductId">
+              <div class="mb-3">
+                <label for="reorderQuantity" class="form-label">Quantity</label>
+                <div class="input-group">
+                <button class="btn btn-outline-secondary minus-btn" type="button">-</button>
+                <input type="number" name="quantity" id="reorderQuantity" class="form-control text-center" min="1" required>
+                <button class="btn btn-outline-secondary plus-btn" type="button">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary px-4">Add to Cart</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Reorder All Modal -->
+<div class="modal fade" id="reorderAllModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <form id="reorderAllForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Reorder Items</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="reorderAllContent" style="max-height: 60vh; overflow-y: auto;">
+          <!-- JS will populate this -->
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Add to Cart</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Reorder Success Modal -->
+<div class="modal fade" id="reorderSuccessModal" tabindex="-1" aria-labelledby="reorderSuccessModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center p-4">
+      <h5 class="modal-title" id="reorderSuccessModalLabel">Reorder Successful!</h5>
+      <div class="modal-body">
+        Product has been added to your cart.
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
+      </div>
     </div>
   </div>
 </div>
@@ -217,7 +291,6 @@ if (empty($orderHistory)) {
     </div>
   </div>
 </div>
-
 
     <?php include '../../includes/footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
