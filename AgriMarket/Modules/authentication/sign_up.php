@@ -13,18 +13,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm_password = trim($_POST['confirm_password']);
     $phone_number = trim($_POST['phone_number']);
     $home_address = trim($_POST['home_address']);
+    $profile_image = $_FILES['profile_image'];
 
     if ($password !== $confirm_password) {
         $error = "Passwords do not match.";
     } else {
+        // Hash the password
         $hashed_password = hash('sha256', $password);
 
-        $result = insertUser($first_name, $last_name, $username, $email, $hashed_password, 'Customer', $phone_number, $home_address);
+        $upload_dir = __DIR__ . "/../../Assets/img/profile_img/";
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true); 
+        }
 
-        if ($result) {
-            $success = "Account created successfully. You can now <a href='login.php'>log in</a>.";
+        $image_name = basename($profile_image['name']);
+        $target_file = $upload_dir . $image_name;
+        $image_path = "Assets/img/profile_img/" . $image_name;
+
+        if (move_uploaded_file($profile_image['tmp_name'], $target_file)) {
+            // Insert user into the database
+            $result = insertUser($first_name, $last_name, $username, $email, $hashed_password, 'Customer', $phone_number, $home_address, $image_path);
+
+            if ($result) {
+                $success = "Account created successfully. You can now <a href='login.php'>log in</a>.";
+            } else {
+                $error = "The username, email, or phone number is already registered.";
+            }
         } else {
-            $error = "The username, email, or phone number is already registered.";
+            $error = "Failed to upload profile image.";
         }
     }
 }
@@ -56,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
 
             <!-- Sign Up Form -->
-            <form action="sign_up.php" method="POST">
+            <form action="sign_up.php" method="POST" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="first_name" class="form-label">First Name</label>
                     <input type="text" class="form-control" id="first_name" name="first_name" required>
@@ -80,6 +96,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="mb-3">
                     <label for="home_address" class="form-label">Home Address</label>
                     <textarea class="form-control" id="home_address" name="home_address" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="profile_image" class="form-label">Profile Image</label>
+                    <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*" required>
                 </div>
                 <hr>
                 <div class="mb-3">

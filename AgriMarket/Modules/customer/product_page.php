@@ -74,10 +74,12 @@ $vendor = VendorDetail($conn, $product_id);
 if ($vendor) {
     $store_name = $vendor['store_name'];
     $vendor_id = $vendor['vendor_id'];
-
+    $vendor_image = getUserImageFromUserID($vendor['user_id']); // Now user_id is available
     $vendor_rating = VendorRating($conn, $vendor_id);
 } else {
     $store_name = "Unknown Store";
+    $vendor_id = null;
+    $user_image = "../../Assets/svg/person-circle.svg"; // Default image
     $vendor_rating = 0;
 }
 
@@ -236,11 +238,10 @@ $is_staff = $_SESSION['role'];
             <div class="row align-items-center">
                 <!-- Vendor Image -->
                 <div class="col-md-2 text-center">
-
                     <a href="../vendor/vendor_product_page.php?vendor_id=<?php echo htmlspecialchars($vendor_id); ?>"
                         class="btn p-0 border-0 bg-transparent">
-                        <img src="../../Assets/svg/person-fill.svg" alt="Vendor Image"
-                            class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                        <img src="../../<?= htmlspecialchars($vendor_image); ?>" alt="Customer Icon"
+                            class="profile-icon rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
                     </a>
                 </div>
                 <!-- Vendor Info -->

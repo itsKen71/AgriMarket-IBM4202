@@ -1,13 +1,13 @@
 USE agrimarket;
 
 -- User Data
-INSERT INTO user (first_name, last_name, username, email, password, role, phone_number, home_address, last_online) VALUES 
-    ('Hau', 'Tien', 'tien tien', 'idk@gmail.com', SHA2('password', 256), 'Customer', '6012-3456789', '123 Jalan Kebun, Kuala Lumpur, Malaysia', NOW()),
-    ('Hau', 'Zhen', 'Mamba', 'kenjichong88@gmail.com', SHA2('password', 256), 'Vendor', '6017-9876543', '456 Lorong Tani, Penang, Malaysia', NOW()),
-    ('Hau', 'Chong', 'LeBron', 'kenjichong11@gmail.com', SHA2('password', 256), 'Vendor', '6016-1234567', '123 Mont Austin, Johor, Malaysia', NOW()),
-    ('Hau', 'Xing', 'xingxing', 'kenjichong22@gmail.com', SHA2('password', 256), 'Vendor', '6015-2345678', '34 Desa India, Johor, Malaysia', NOW()),
-    ('Hau', 'An', 'diam', 'idk2@gmail.com', SHA2('password', 256), 'Staff', '6019-5554321', '789 Kampung Sejahtera, Johor Bahru, Malaysia', NOW()),
-    ('Hau', 'Chun', 'chunLi', 'idk3@gmail.com', SHA2('password', 256), 'Admin', '6011-2223334', '101 Taman Bukit Indah, Selangor, Malaysia', NOW());
+INSERT INTO user (first_name, last_name, username, user_image, email, password, role, phone_number, home_address, last_online) VALUES 
+    ('Hau', 'Tien', 'tien tien', 'Assets/img/profile_img/profile_1.png',  'idk@gmail.com', SHA2('password', 256), 'Customer', '6012-3456789', '123 Jalan Kebun, Kuala Lumpur, Malaysia', NOW()),
+    ('Hau', 'Zhen', 'Mamba', 'Assets/img/profile_img/profile_2.png',  'kenjichong88@gmail.com', SHA2('password', 256), 'Vendor', '6017-9876543', '456 Lorong Tani, Penang, Malaysia', NOW()),
+    ('Hau', 'Chong', 'LeBron', 'Assets/img/profile_img/profile_3.png',  'kenjichong11@gmail.com', SHA2('password', 256), 'Vendor', '6016-1234567', '123 Mont Austin, Johor, Malaysia', NOW()),
+    ('Hau', 'Xing', 'xingxing', 'Assets/img/profile_img/profile_4.png',  'kenjichong22@gmail.com', SHA2('password', 256), 'Vendor', '6015-2345678', '34 Desa India, Johor, Malaysia', NOW()),
+    ('Hau', 'An', 'diam', 'Assets/img/profile_img/profile_5.png',  'idk2@gmail.com', SHA2('password', 256), 'Staff', '6019-5554321', '789 Kampung Sejahtera, Johor Bahru, Malaysia', NOW()),
+    ('Hau', 'Chun', 'chunLi', 'Assets/img/profile_img/profile_6.png',  'idk3@gmail.com', SHA2('password', 256), 'Admin', '6011-2223334', '101 Taman Bukit Indah, Selangor, Malaysia', NOW());
 
 -- Subscription Plan
 INSERT INTO subscription (plan_name, subscription_price, upload_limit, has_low_stock_alert, has_staff_support, has_analytics_access) VALUES 

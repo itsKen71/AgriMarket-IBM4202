@@ -41,12 +41,12 @@ function authenticateUser($username_email, $password)
     return null;
 }
 
-function insertUser($first_name, $last_name, $username, $email, $password, $role, $phone_number, $home_address)
+function insertUser($first_name, $last_name, $username, $email, $password, $role, $phone_number, $home_address, $user_image)
 {
     global $conn;
 
-    $stmt = $conn->prepare("INSERT INTO user (first_name, last_name, username, email, password, role, phone_number, home_address, last_online) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-    $stmt->bind_param("ssssssss", $first_name, $last_name, $username, $email, $password, $role, $phone_number, $home_address);
+    $stmt = $conn->prepare("INSERT INTO user (first_name, last_name, username, user_image, email, password, role, phone_number, home_address, last_online) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+    $stmt->bind_param("sssssssss", $first_name, $last_name, $username, $user_image, $email, $password, $role, $phone_number, $home_address);
 
     return $stmt->execute();
 }
@@ -93,6 +93,23 @@ function updatePasswordByUsername($username, $hashed_password)
     $stmt->bind_param("ss", $hashed_password, $username);
 
     return $stmt->execute();
+}
+
+function getUserImageFromUserID($user_id)
+{
+    global $conn;
+
+    $stmt = $conn->prepare("SELECT user_image FROM user WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+        return $row['user_image'];
+    }
+
+    return "../../Assets/svg/person-circle.svg"; // Default image if not found
 }
 
 function isVendorTierThree($user_id)

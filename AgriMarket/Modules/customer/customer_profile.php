@@ -5,11 +5,13 @@ include '../../includes/database.php';
 $user_id = $_SESSION['user_id'] ?? null;
 
 if (!$user_id) {
-    header("Location: ../../Modules/authentication/login.php"); 
+    header("Location: ../../Modules/authentication/login.php");
     exit();
 }
 
 $customer = getCustomerDetails($user_id, $conn);
+$user_image = getUserImageFromUserID(user_id: $user_id);
+
 
 ?>
 
@@ -39,7 +41,8 @@ $customer = getCustomerDetails($user_id, $conn);
 
         <div class="profile-card">
             <div class="profile-header">
-                <img src="../../assets/svg/person-circle.svg" alt="Customer Icon" class="profile-icon">
+                <img src="../../<?= htmlspecialchars($user_image); ?>" alt="Customer Icon"
+                    class="profile-icon rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
                 <p class="customer-name">
                     <?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?>
                 </p>
@@ -128,7 +131,7 @@ $customer = getCustomerDetails($user_id, $conn);
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form action="../../includes/edit_customer_profile.php" method="POST">
+                    <form action="../../includes/edit_customer_profile.php" method="POST" enctype="multipart/form-data">
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
                             <input type="text" class="form-control" id="username" name="username"
@@ -163,6 +166,11 @@ $customer = getCustomerDetails($user_id, $conn);
                             <label for="home_address" class="form-label">Home Address</label>
                             <textarea class="form-control" id="home_address" name="home_address" rows="3"
                                 required><?= htmlspecialchars($customer['home_address']); ?></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="profile_image" class="form-label">Profile Image</label>
+                            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
                         </div>
 
                         <div class="d-flex justify-content-end">

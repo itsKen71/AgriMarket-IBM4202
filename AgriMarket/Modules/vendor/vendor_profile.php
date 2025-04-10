@@ -10,7 +10,8 @@ if (!$user_id) {
 }
 
 $vendor = getVendorDetails($user_id, $conn);
-$customer = getCustomerDetails($user_id, $conn); 
+$customer = getCustomerDetails($user_id, $conn);
+
 ?>
 
 <!DOCTYPE html>
@@ -49,7 +50,8 @@ $customer = getCustomerDetails($user_id, $conn);
         <!-- Personal Details Card -->
         <div class="profile-card">
             <div class="profile-header">
-                <img src="../../assets/svg/person-circle.svg" alt="Vendor Icon" class="profile-icon">
+                <img src="../../<?= htmlspecialchars($user_image); ?>" alt="Customer Icon"
+                    class="profile-icon rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
                 <p class="customer-name">
                     <?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?>
                 </p>
@@ -72,15 +74,18 @@ $customer = getCustomerDetails($user_id, $conn);
             </div>
 
             <div class="profile-details mt-3">
-                <p><strong>Subscription Plan:</strong> <?= htmlspecialchars(str_replace('_', ' ', $vendor['plan_name'] ?? 'N/A')); ?></p>
+                <p><strong>Subscription Plan:</strong>
+                    <?= htmlspecialchars(str_replace('_', ' ', $vendor['plan_name'] ?? 'N/A')); ?></p>
                 <p><strong>Subscription Start:</strong> <?= htmlspecialchars($vendor['subscription_start_date']); ?></p>
                 <p><strong>Subscription End:</strong> <?= htmlspecialchars($vendor['subscription_end_date']); ?></p>
             </div>
 
-            <button class="btn edit-btn" data-bs-toggle="modal" data-bs-target="#editVendorModal">Edit Store Info</button>
+            <button class="btn edit-btn" data-bs-toggle="modal" data-bs-target="#editVendorModal">Edit Store
+                Info</button>
 
             <?php if (!empty($vendor['assist_by'])): ?>
-                <button class="btn edit-btn" data-bs-toggle="modal" data-bs-target="#requestAssistanceModal">Request Assistance</button>
+                <button class="btn edit-btn" data-bs-toggle="modal" data-bs-target="#requestAssistanceModal">Request
+                    Assistance</button>
             <?php endif; ?>
         </div>
 
@@ -158,7 +163,7 @@ $customer = getCustomerDetails($user_id, $conn);
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form action="../../includes/edit_customer_profile.php" method="POST">
+                    <form action="../../includes/edit_customer_profile.php" method="POST" enctype="multipart/form-data">
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
                             <input type="text" class="form-control" id="username" name="username"
@@ -195,6 +200,11 @@ $customer = getCustomerDetails($user_id, $conn);
                                 required><?= htmlspecialchars($customer['home_address']); ?></textarea>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="profile_image" class="form-label">Profile Image</label>
+                            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                        </div>
+
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary">Save Changes</button>
                         </div>
@@ -205,7 +215,8 @@ $customer = getCustomerDetails($user_id, $conn);
     </div>
 
     <!-- Edit Vendor Info Modal -->
-    <div class="modal fade" id="editVendorModal" tabindex="-1" aria-labelledby="editVendorModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editVendorModal" tabindex="-1" aria-labelledby="editVendorModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -230,7 +241,8 @@ $customer = getCustomerDetails($user_id, $conn);
     </div>
 
     <!-- Request Assistance Modal -->
-    <div class="modal fade" id="requestAssistanceModal" tabindex="-1" aria-labelledby="requestAssistanceModalLabel" aria-hidden="true">
+    <div class="modal fade" id="requestAssistanceModal" tabindex="-1" aria-labelledby="requestAssistanceModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -253,7 +265,8 @@ $customer = getCustomerDetails($user_id, $conn);
 
                         <div class="mb-3">
                             <label for="request_description" class="form-label">Request Description</label>
-                            <textarea class="form-control" id="request_description" name="request_description" rows="4" placeholder="Describe your issue or request..." required></textarea>
+                            <textarea class="form-control" id="request_description" name="request_description" rows="4"
+                                placeholder="Describe your issue or request..." required></textarea>
                         </div>
 
                         <div class="d-flex justify-content-end">
@@ -270,4 +283,3 @@ $customer = getCustomerDetails($user_id, $conn);
 </body>
 
 </html>
-``` 
