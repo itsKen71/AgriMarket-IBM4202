@@ -261,7 +261,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['vendor_id'], $_POST['
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addStaffForm" action="../../includes/add_staff_admin.php" method="POST">
+                    <form id="addStaffForm" action="../../includes/add_staff_admin.php" method="POST" enctype="multipart/form-data">
                         <div class="mb-3">
                             <label for="first_name" class="form-label">First Name</label>
                             <input type="text" class="form-control" id="first_name" name="first_name" required>
@@ -292,6 +292,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['vendor_id'], $_POST['
                                 <option value="Staff">Staff</option>
                                 <option value="Admin">Admin</option>
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="profile_image" class="form-label">Profile Image</label>
+                            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
                         </div>
                         <hr>
                         <div class="mb-3">

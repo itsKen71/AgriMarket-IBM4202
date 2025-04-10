@@ -8,6 +8,7 @@ require_once '../../includes/database.php';
 $user_id = $_SESSION['user_id'];
 $role = $_SESSION['role'];
 $username = getUsernameFromUserID($user_id);
+$user_image = getUserImageFromUserID($user_id);
 $homeLink = "#";
 
 if ($role === "Customer") {
@@ -106,7 +107,8 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     <li class="nav-item dropdown profile-item">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="../../Assets/svg/person-circle.svg" alt="Profile">
+                            <img src="<?php echo '../../' . htmlspecialchars($user_image); ?>" alt="Profile"
+                                class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end text-center" aria-labelledby="navbarDropdown">
                             <li class="dropdown-item-text fw-bold text-dark text-center">
@@ -126,8 +128,8 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                             <li>
                                 <a class="dropdown-item d-flex justify-content-center align-items-center"
                                     href="../../includes/logout.php">
-                                    <img src="../../Assets/svg/box-arrow-left.svg" alt="Logout" width="20" height="20"
-                                        class="me-2">
+                                    <img src="../../Assets/svg/box-arrow-left.svg" alt="Logout" width="20"
+                                        height="20" class="me-2">
                                     Logout
                                 </a>
                             </li>

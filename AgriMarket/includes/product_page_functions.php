@@ -157,9 +157,10 @@ function getCompleteReviewData($conn, $product_id, $selected_rating = 0) {
 
 
 function VendorDetail($conn, $product_id) {
-    $query = "SELECT v.vendor_id, v.store_name 
+    $query = "SELECT v.vendor_id, v.store_name, u.user_id 
               FROM product p
               JOIN vendor v ON p.vendor_id = v.vendor_id
+              JOIN user u ON v.user_id = u.user_id
               WHERE p.product_id = ?";
               
     $stmt = $conn->prepare($query);
@@ -168,12 +169,11 @@ function VendorDetail($conn, $product_id) {
     $result = $stmt->get_result();
     
     if ($row = $result->fetch_assoc()) {
-        return $row; // return vendor_id 和 store_name
+        return $row; // return vendor_id, store_name, and user_id
     } else {
         return null;
     }
 }
-
 function VendorRating($conn, $vendor_id) {
     // global average rating and number of reviews (need to be queried or configured in advance)
     $global_avg = 3.5; // assuming the global average is 3.5 stars
