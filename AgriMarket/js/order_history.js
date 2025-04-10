@@ -9,15 +9,29 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => showReviewModal(button));
     });
 
-    // Show success modal if review was submitted
+    // Reorder
+    document.querySelectorAll('.btn-reorder').forEach(button => {
+        button.addEventListener('click', () => showReorderModal(button));
+    });
+
+    // Handle success modals and remove params
     const urlParams = new URLSearchParams(window.location.search);
+
     if (urlParams.get('review') === 'success') {
-        const successModal = new bootstrap.Modal(document.getElementById('reviewSuccessModal'));
-        successModal.show();
+        const modal = new bootstrap.Modal(document.getElementById('reviewSuccessModal'));
+        modal.show();
         urlParams.delete('review');
-        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-        window.history.replaceState({}, '', newUrl);
     }
+
+    if (urlParams.get('reorder') === 'success') {
+        const modal = new bootstrap.Modal(document.getElementById('reorderSuccessModal'));
+        modal.show();
+        urlParams.delete('reorder');
+    }
+
+    // Update URL after removing params
+    const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+    window.history.replaceState({}, '', newUrl.endsWith('?') ? newUrl.slice(0, -1) : newUrl);
 });
 
 // Preview Modal
@@ -48,7 +62,7 @@ function showReviewModal(button) {
     document.getElementById('star1').checked = true;
     document.getElementById('reviewText').value = '';
 
-    // Fetch existing review if any
+    // Fetch existing review
     fetch(`../../includes/get_review.php?product_id=${productId}`)
         .then(response => response.json())
         .then(data => {
@@ -61,3 +75,23 @@ function showReviewModal(button) {
     const reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));
     reviewModal.show();
 }
+
+// Reorder Modal
+function showReorderModal(button) {
+    const productId = button.dataset.productId;
+    const productName = button.dataset.productName;
+    const productImage = button.dataset.productImage;
+    const productStock = button.dataset.productStock;
+
+    document.getElementById('reorderProductId').value = productId;
+    document.getElementById('reorderProductImage').src = productImage;
+    document.getElementById('reorderProductName').textContent = productName;
+    document.getElementById('reorderStock').textContent = productStock;
+    document.getElementById('reorderQuantity').value = 1;
+    document.getElementById('reorderQuantity').max = productStock;
+
+    const reorderModal = new bootstrap.Modal(document.getElementById('reorderModal'));
+    reorderModal.show();
+}
+
+
