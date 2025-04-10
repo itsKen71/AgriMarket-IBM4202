@@ -121,20 +121,32 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                                 <li><a class="dropdown-item" href="../customer/customer_profile.php">Profile</a></li>
                             <?php elseif ($role === "Vendor"): ?>
                                 <li><a class="dropdown-item" href="../vendor/vendor_profile.php">Profile</a></li>
-                            <?php endif; ?>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                                <a class="dropdown-item d-flex justify-content-center align-items-center"
-                                    href="../../includes/logout.php">
-                                    <img src="../../Assets/svg/box-arrow-left.svg" alt="Logout" width="20"
-                                        height="20" class="me-2">
-                                    Logout
-                                </a>
-                            </li>
-                        </ul>
+
+                                <li class="dropdown-item d-flex justify-content-between align-items-center py-2 px-3">
+                                    <span class="fw text-dark me-3">Notifications</span>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="notificationToggle">
+                                    </div>
+                                </li>
+                        </li>
+                    <?php elseif ($role === "Staff"): ?>
+                        <li><a class="dropdown-item" href="../staff/staff_profile.php">Profile</a></li>
+                    <?php elseif ($role === "Admin"): ?>
+                        <li><a class="dropdown-item" href="../admin/admin_profile.php">Profile</a></li>
+                    <?php endif; ?>
+                    <li>
+                        <hr class="dropdown-divider">
                     </li>
+                    <li>
+                        <a class="dropdown-item d-flex justify-content-center align-items-center"
+                            href="../../includes/logout.php">
+                            <img src="../../Assets/svg/box-arrow-left.svg" alt="Logout" width="20" height="20"
+                                class="me-2">
+                            Logout
+                        </a>
+                    </li>
+                </ul>
+                </li>
                 </ul>
             </div>
         </div>

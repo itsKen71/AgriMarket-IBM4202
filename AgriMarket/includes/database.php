@@ -618,8 +618,8 @@ function getRevenue($conn, $user_id, $option)
             $orderBy = "YEAR(order_date)";
             $startYear = $currentYear - 4;
             for ($y = $startYear; $y <= $currentYear; $y++) {
-                $labels[$y] = (string)$y;
-                $data[$y] = ["duration" => (string)$y, "revenue" => 0];
+                $labels[$y] = (string) $y;
+                $data[$y] = ["duration" => (string) $y, "revenue" => 0];
             }
             break;
 
@@ -1148,4 +1148,18 @@ function getOrderHistoryByUser($userId, $conn)
         ];
     }
     return $orders;
+}
+
+function deleteComment($review_id)
+{
+    global $conn;
+
+    $stmt = $conn->prepare("DELETE FROM review WHERE review_id = ?");
+    $stmt->bind_param("i", $review_id);
+
+    if ($stmt->execute()) {
+        return true; 
+    } else {
+        return false; 
+    }
 }

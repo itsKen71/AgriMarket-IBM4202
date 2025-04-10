@@ -35,9 +35,9 @@ INSERT INTO category (category_name) VALUES
 INSERT INTO product (vendor_id, category_id, product_name, product_image, description, stock_quantity, weight, unit_price, product_status, sold_quantity) 
 VALUES  
 	(1, 1, 'Dairy Cow', 'Assets/img/product_img/dairy_cow.png', 'High-yield dairy cow, ideal for milk production.', 10, 500.00, 1200.00, 'Pending', 0),
-	(1, 1, 'Free-Range Chicken', 'Assets/img/product_img/free_range_chicken.png', 'Healthy free-range chickens, excellent for meat or egg production.', 50, 2.50, 15.00, 'Approved', 0),
-	(1, 1, 'Boer Goat', 'Assets/img/product_img/boer_goat.png', 'Strong and healthy Boer goats, perfect for meat production.', 15, 70.00, 300.00, 'Approved', 0),
-	(1, 1, 'Piglet', 'Assets/img/product_img/piglet.png', 'Well-fed piglets, ideal for pig farming and meat production.', 20, 25.00, 150.00, 'Approved', 0),
+	(1, 1, 'Free-Range Chicken', 'Assets/img/product_img/free_range_chicken.png', 'Healthy free-range chickens, excellent for meat or egg production.', 3, 2.50, 15.00, 'Approved', 0),
+	(1, 1, 'Boer Goat', 'Assets/img/product_img/boer_goat.png', 'Strong and healthy Boer goats, perfect for meat production.', 1, 70.00, 300.00, 'Approved', 0),
+	(1, 1, 'Piglet', 'Assets/img/product_img/piglet.png', 'Well-fed piglets, ideal for pig farming and meat production.', 2, 25.00, 150.00, 'Approved', 0),
 	(2, 1, 'Angus Cattle', 'Assets/img/product_img/angus_cattle.png', 'Premium Angus cattle, known for high-quality beef.', 8, 600.00, 1500.00, 'Approved', 0),
 	(2, 1, 'Turkey', 'Assets/img/product_img/turkey.png', 'Large farm-raised turkeys, perfect for meat production.', 30, 6.00, 40.00, 'Approved', 0),
 	(2, 1, 'Sheep', 'Assets/img/product_img/sheep.png', 'Healthy sheep, great for wool and meat production.', 12, 80.00, 250.00, 'Approved', 0),
@@ -134,3 +134,8 @@ VALUES
 	(3, 6, 'Organic Compost', 'Assets/img/product_img/organic_compost_2.png', 'Premium organic compost to enrich soil fertility.', 70, 10.0, 13.00, 'Approved', 0),
 	(3, 6, 'Wood Chips', 'Assets/img/product_img/wood_chips_2.png', 'Natural wood chips for barbecue smoking and landscaping.', 90, 5.0, 7.25, 'Approved', 0),
 	(3, 6, 'Dried Herbs', 'Assets/img/product_img/dried_herbs_2.png', 'A selection of organic dried herbs for culinary use.', 115, 0.3, 4.75, 'Approved', 0);
+
+INSERT INTO review (product_id, user_id, rating, review_description, review_date)
+VALUES 
+(79, 1, 5, 'Excellent product! Highly recommend.', CURRENT_DATE),
+(79, 2, 4, 'Good quality, but delivery was slow.', CURRENT_DATE);

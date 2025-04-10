@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editStock").value = this.dataset.stock;
             document.getElementById("editWeight").value = this.dataset.weight;
             document.getElementById("editPrice").value = this.dataset.price;
-            document.getElementById("editProductStatus").value = this.dataset.status;  
+            document.getElementById("editProductStatus").value = this.dataset.status;
             document.getElementById("deleteProductId").value = this.dataset.id;
             // Reset file input and image name field
             editImageInput.value = "";
@@ -86,56 +86,99 @@ document.addEventListener("DOMContentLoaded", function () {
         showModal("deleteSuccessModal", "delete");
     }
 
+    // Notification Toggle Logic
+    const notificationToggle = document.getElementById("notificationToggle");
+
+    // Retrieve the notification preference from localStorage
+    const isNotificationsOn = localStorage.getItem("notifications") === "true";
+    notificationToggle.checked = isNotificationsOn;
+
+    notificationToggle.addEventListener("change", function () {
+        localStorage.setItem("notifications", this.checked);
+        if (!this.checked) {
+            // Clear any existing toasts if notifications are turned off
+            const toastContainer = document.getElementById("toastContainer");
+            if (toastContainer) {
+                toastContainer.innerHTML = ""; // Remove all toasts
+            }
+        }
+    });
+
+    // Exit if notifications are disabled
+    if (!isNotificationsOn) return;
+
     // Check if the lowStockProducts array is available and has data
     if (window.lowStockProducts && window.lowStockProducts.length > 0) {
+        let delay = 0;
+
         // Loop through each product and display a toast
         window.lowStockProducts.forEach((product, index) => {
-            showLowStockToast(product, index);
+            setTimeout(() => {
+                showLowStockToast(product); // Pass the correct product to the function
+            }, delay);
+            delay += 1500; // Add delay for each subsequent toast
         });
     }
+
+    // Fetch reminders and show toasts
+    const now = new Date();
+
+    let delay = 0;
+
+    tasks.forEach((task, index) => {
+        const dueDate = new Date(task.dueDate);
+        const reminderTime = task.reminderTime;
+        const reminderStart = new Date(dueDate.getTime() - reminderTime * 60 * 60000);
+        const reminderEnd = new Date(reminderStart.getTime() + 30 * 60000);
+
+        // Check if the current time is within the reminder window
+        if (now >= reminderStart && now <= reminderEnd) {
+            setTimeout(() => {
+                showToast(task.title, reminderTime);
+            }, delay);
+            delay += 1000;
+        }
+    });
 });
 
 // Function to show toast for low stock products
-function showLowStockToast(product, index) {
-    // Create a toast element dynamically
+function showLowStockToast(product) {
     const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) return;
 
-    const toast = document.createElement('div');
-    toast.classList.add('toast', 'align-items-center', 'text-dark', 'bg-light', 'border-0', 'fade');
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
-    toast.setAttribute('aria-atomic', 'true');
-    toast.setAttribute('data-bs-autohide', 'false');
-    toast.style.maxWidth = '300px';
-    toast.style.width = '300px';
+    // Play sound for the low stock alert
+    const sound = new Audio("../../Assets/audio/alert.mp3");
+    sound.play();
 
-    // Toast content
-    toast.innerHTML = `
+    // Create a unique ID for the toast
+    const toastID = `toast-${Date.now()}`;
+
+    // Create the toast HTML
+    const toastHTML = `
+    <div id="${toastID}" class="toast fade align-items-center text-dark bg-light border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
         <div class="toast-header">
+            <img src="../../Assets/svg/bell.svg" class="rounded me-2" alt="Notification Bell" width="20">
             <strong class="me-auto">Low Stock Alert</strong>
             <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body">
             <strong>${product.product_name}</strong>: Only ${product.stock_quantity} left.
         </div>
+    </div>
     `;
 
     // Append the toast to the container
-    toastContainer.appendChild(toast);
+    toastContainer.insertAdjacentHTML("beforeend", toastHTML);
+
+    // Get the newly created toast element
+    const toastElement = document.getElementById(toastID);
+    const bootstrapToast = new bootstrap.Toast(toastElement);
 
     // Show the toast
-    const toastInstance = new bootstrap.Toast(toast);
-    toastInstance.show();
+    bootstrapToast.show();
 
-    // Set a timeout to remove the toast after a delay
-    const delay = (toastContainer.children.length) * 1200; // Delay increases for each subsequent toast
-    setTimeout(() => {
-        const newestToast = toastContainer.lastElementChild;
-        if (newestToast) {
-            newestToast.classList.remove('show');
-            setTimeout(() => {
-                newestToast.remove();
-            }, 50); 
-        }
-    }, delay);
+    // Add an event listener to remove the toast after it fades out
+    toastElement.addEventListener("hidden.bs.toast", () => {
+        toastElement.remove();
+    });
 }
