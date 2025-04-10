@@ -840,7 +840,7 @@ function getOrderHistoryByUser($userId, $conn)
         INNER JOIN payment pym ON o.order_id = pym.order_id
         INNER JOIN category c ON c.category_id = p.category_id
         WHERE o.user_id = ?
-        ORDER BY o.order_date DESC, o.order_id DESC
+        ORDER BY o.order_date DESC, o.order_id DESC, p.product_name ASC
     ";
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
