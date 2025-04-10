@@ -15,14 +15,15 @@ $checkRole = ($role == "Admin");
 $query_user_id = $checkRole ? -1 : $user_id;
 
 // Fetch data based on specific role
-$activeUsers = getActiveUser($conn,$query_user_id);
+$activeUsers = getActiveUser($conn);
+$numberProduct = getNumberProducts($conn, $query_user_id);
 $refundPercentage = getRefundPercentage($conn, $query_user_id);
-$subscriptionData = getSubscription($conn,$query_user_id);
-$topPaymentMethod = topPaymentmethod($conn,$query_user_id);
-$topVendor = getTopVendor($conn,$query_user_id);
-$monthlyRevenue = getRevenue($conn, $query_user_id);
+$subscriptionData = getSubscription($conn);
+$topPaymentMethod = topPaymentmethod($conn, $query_user_id);
+$topVendor = getTopVendor($conn);
+$shipmentStatus = getShipmentStatus($conn, $query_user_id);
 $monthlyOrders = getOrders($conn, $query_user_id);
-
+$monthlyRevenue = getRevenue($conn, $query_user_id,$option);
 
 
 ?>
@@ -47,28 +48,6 @@ $monthlyOrders = getOrders($conn, $query_user_id);
         <!--Analytics Dashboard-->
         <div class="container">
 
-            <!--Operation-->
-            <div class="dropdown ms-auto">
-                <a class="btn btn-success dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Operation
-                </a>
-
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item save-pdf" href="#">
-                            <img src="../../Assets/img/pdf-file.png" alt="active customer icon" style="width:22px; height:auto;margin-right:10px;">
-                            Save as PDF
-                        </a>
-                    </li>
-                    <li><a class="dropdown-item print" href="#">
-                            <img src="../../Assets/img/printer.png" alt="active customer icon" style="width:20px; height:auto;margin-right:10px;">
-                            Print
-                        </a>
-                    </li>
-                </ul>
-
-            </div>
-
-
             <!-- Text Visualization -->
             <div class="info-section">
 
@@ -82,13 +61,27 @@ $monthlyOrders = getOrders($conn, $query_user_id);
                 </div>
 
                 <!--Active Vendor-->
-                <div class="info-card">
-                    <h3>
-                        <img src="../../Assets/img/vendor.png" alt="active vendor icon" style="width:30px; height:auto;margin-right:10px;">
-                        Active Vendors
-                    </h3>
-                    <p><?php echo $activeUsers["activeVendors"]; ?></p>
-                </div>
+                <?php if ($role != "Vendor"): ?>
+                    <!--Active Vendor-->
+                    <div class="info-card">
+                        <h3>
+                            <img src="../../Assets/img/vendor.png" alt="active vendor icon" style="width:30px; height:auto;margin-right:10px;">
+                            Active Vendors
+                        </h3>
+                        <p><?php echo $activeUsers["activeVendors"]; ?></p>
+                    </div>
+                <?php endif; ?>
+
+                <!--Number Product-->
+                <?php if ($role == "Vendor"): ?>
+                    <div class="info-card">
+                        <h3>
+                            <img src="../../Assets/img/box.png" alt="producticon" style="width:30px; height:auto;margin-right:10px;">
+                            Selling Products
+                        </h3>
+                        <p><?php echo $numberProduct["total_product"]; ?></p>
+                    </div>
+                <?php endif; ?>
 
                 <!--Refund Percentage-->
                 <div class="info-card refund-card">
@@ -102,12 +95,22 @@ $monthlyOrders = getOrders($conn, $query_user_id);
 
             <!-- Chart Visualization-->
             <div class="chart-section">
+
                 <!-- Subscription Plan -->
-                <div class="chart-container">
-                    <h3>
-                        Subscription Plans</h3>
-                    <div id="subscriptionChart" style="height: 320px; margin-top:30px;"></div>
-                </div>
+                <?php if ($role != "Vendor"): ?>
+                    <div class="chart-container">
+                        <h3>Subscription Plans</h3>
+                        <div id="subscriptionChart" style="height: 320px; margin-top:30px;"></div>
+                    </div>
+                <?php endif; ?>
+
+                <!--Shipment Status-->
+                <?php if ($role == "Vendor"): ?>
+                    <div class="chart-container">
+                        <h3>Shipment Status</h3>
+                        <div id="shipmentChart" style="height: 320px; margin-top:30px;"></div>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Payment Method-->
                 <div class="chart-container">
@@ -116,10 +119,12 @@ $monthlyOrders = getOrders($conn, $query_user_id);
                 </div>
 
                 <!-- Top vendor-->
-                <div class="chart-container full-width">
-                    <h3>Top 5 Vendors</h3>
-                    <div id="vendorChart" style="height: 300px; margin-top:50px;"></div>
-                </div>
+                <?php if ($role != "Vendor"): ?>
+                    <div class="chart-container full-width">
+                        <h3>Top 5 Vendors</h3>
+                        <div id="vendorChart" style="height: 300px; margin-top:50px;"></div>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Orders-->
                 <div class="chart-container full-width">
@@ -151,6 +156,10 @@ $monthlyOrders = getOrders($conn, $query_user_id);
         <script id="paymentData" type="application/json">
             <?php echo json_encode($topPaymentMethod, JSON_NUMERIC_CHECK); ?>
         </script>
+        <script id="shipmentData" type="application/json">
+            <?php echo json_encode($shipmentStatus, JSON_NUMERIC_CHECK); ?>
+        </script>
+
 
     </div>
 

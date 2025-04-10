@@ -503,7 +503,7 @@ function updatePendingRequestStatus($product_id, $status)
     return $stmt->execute();
 }
 
-function getActiveUser($conn, $user_id)
+function getActiveUser($conn)
 {
     $oneMonthAgo = date("Y-m-d H:i:s", strtotime("-1 month"));
 
@@ -521,6 +521,21 @@ function getActiveUser($conn, $user_id)
         "activeVendors" => mysqli_fetch_assoc($resultVendors)['totalVendors']
     ];
 }
+
+function getNumberProducts($conn, $user_id)
+{
+    $sql = "SELECT COUNT(product.product_id) AS totalProducts
+            FROM product
+            WHERE product.vendor_id = '$user_id'";
+
+    $result = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($result);
+
+    return [
+        "total_product" => $row['totalProducts']
+    ];
+}
+
 
 function getRefundPercentage($conn, $user_id)
 {
@@ -547,47 +562,101 @@ function getRefundPercentage($conn, $user_id)
     return ["totalRefundPercentage" => round($refundPercentage, 2)];
 }
 
-function getRevenue($conn, $user_id)
+function getRevenue($conn, $user_id, $option)
 {
     $currentYear = date("Y");
 
-    //Check whether is admin / vendor
-    $vendorView = ($user_id == -1) ? "" : "AND orders.user_id ='$user_id'";
-
-    $sql = "SELECT MONTH(order_date) AS month, SUM(price) AS revenue 
-            FROM orders 
-            WHERE YEAR(order_date) = '$currentYear' $vendorView 
-            GROUP BY MONTH(order_date)";
-
-    $result = mysqli_query($conn, $sql);
-    $months = [
-        1 => "Jan",
-        2 => "Feb",
-        3 => "Mar",
-        4 => "Apr",
-        5 => "May",
-        6 => "Jun",
-        7 => "Jul",
-        8 => "Aug",
-        9 => "Sep",
-        10 => "Oct",
-        11 => "Nov",
-        12 => "Dec"
-    ];
-
+    // Check whether it is admin or vendor
+    $vendorView = ($user_id == -1) ? "" : "AND orders.user_id = ?";
+    $select = "";
+    $groupBy = "";
+    $orderBy = "";
+    $labels = [];
     $data = [];
 
-    foreach ($months as $num => $name) {
-        $data[$num] = ["month" => $name, "revenue" => 0];
+    switch ($option) {
+        case 'weekly':
+            $select = "WEEK(order_date,1) AS duration";
+            $groupBy = "WEEK(order_date,1)";
+            $orderBy = "WEEK(order_date,1)";
+            for ($i = 1; $i <= 52; $i++) {
+                $labels[$i] = "Week $i";
+                $data[$i] = ["duration" => "Week $i", "revenue" => 0];
+            }
+            break;
+
+        case 'quarterly':
+            $select = "QUARTER(order_date) AS duration";
+            $groupBy = "QUARTER(order_date)";
+            $orderBy = "QUARTER(order_date)";
+            $labels = [1 => "Q1", 2 => "Q2", 3 => "Q3", 4 => "Q4"];
+            foreach ($labels as $q => $label) {
+                $data[$q] = ["duration" => $label, "revenue" => 0];
+            }
+            break;
+
+        case 'yearly':
+            $select = "YEAR(order_date) AS duration";
+            $groupBy = "YEAR(order_date)";
+            $orderBy = "YEAR(order_date)";
+            $startYear = $currentYear - 4;
+            for ($y = $startYear; $y <= $currentYear; $y++) {
+                $labels[$y] = (string)$y;
+                $data[$y] = ["duration" => (string)$y, "revenue" => 0];
+            }
+            break;
+
+        case 'monthly':
+        default:
+            $select = "MONTH(order_date) AS duration";
+            $groupBy = "MONTH(order_date)";
+            $orderBy = "MONTH(order_date)";
+            $labels = [
+                1 => "Jan",
+                2 => "Feb",
+                3 => "Mar",
+                4 => "Apr",
+                5 => "May",
+                6 => "Jun",
+                7 => "Jul",
+                8 => "Aug",
+                9 => "Sep",
+                10 => "Oct",
+                11 => "Nov",
+                12 => "Dec"
+            ];
+            foreach ($labels as $m => $label) {
+                $data[$m] = ["duration" => $label, "revenue" => 0];
+            }
+            break;
     }
 
+    $sql = "SELECT $select, SUM(price) AS revenue
+            FROM orders
+            WHERE YEAR(order_date) = ? $vendorView
+            GROUP BY $groupBy
+            ORDER BY $orderBy";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if ($user_id == -1) {
+        mysqli_stmt_bind_param($stmt, "i", $currentYear);
+    } else {
+        mysqli_stmt_bind_param($stmt, "ii", $currentYear, $user_id);
+    }
+
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
     while ($row = mysqli_fetch_assoc($result)) {
-        $monthName = $months[$row['month']];
-        $data[$row['month']] = ["month" => $monthName, "revenue" => $row['revenue']];
+        $key = $row['duration'];
+        $label = $labels[$key] ?? "Unknown";
+        $data[$key] = ["duration" => $label, "revenue" => (float) $row['revenue']];
     }
 
     return array_values($data);
 }
+
 
 function getOrders($conn, $user_id)
 {
@@ -631,7 +700,7 @@ function getOrders($conn, $user_id)
     return array_values($data);
 }
 
-function getSubscription($conn, $user_id)
+function getSubscription($conn)
 {
     $sql = "SELECT s.plan_name, COUNT(v.vendor_id) AS totalUsers 
             FROM vendor v JOIN subscription s 
@@ -658,12 +727,18 @@ function getSubscription($conn, $user_id)
 
 function getShipmentStatus($conn, $user_id)
 {
-    $sql = "SELECT status, COUNT(shipping_id) AS totalShipments 
-            FROM shipment 
-            GROUP BY status 
+    $sql = "SELECT s.status, COUNT(s.shipping_id) AS totalShipments
+            FROM shipment s
+            JOIN orders o ON s.order_id = o.order_id
+            WHERE o.user_id = ?
+            GROUP BY s.status
             ORDER BY totalShipments DESC";
 
-    $result = mysqli_query($conn, $sql);
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "i", $user_id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
     $totalShipments = 0;
     $data = [];
 
@@ -673,7 +748,6 @@ function getShipmentStatus($conn, $user_id)
 
     mysqli_data_seek($result, 0);
 
-
     while ($row = mysqli_fetch_assoc($result)) {
         $percentage = ($totalShipments > 0) ? ($row['totalShipments'] / $totalShipments) * 100 : 0;
         $data[] = ["label" => $row['status'], "y" => round($percentage, 2)];
@@ -682,24 +756,30 @@ function getShipmentStatus($conn, $user_id)
     return $data;
 }
 
+
 function topPaymentmethod($conn, $user_id)
 {
-    $sql = "SELECT payment_method, COUNT(*) AS frequency
+    $currentYear = date("Y");
+
+    $vendorView = ($user_id == -1) ? "" : "AND orders.user_id = '$user_id'";
+
+    $sql = "SELECT payment.payment_method, COUNT(*) AS frequency
             FROM payment 
-            GROUP BY payment_method 
+            JOIN orders ON payment.order_id = orders.order_id
+            WHERE YEAR(payment.transaction_date) = '$currentYear' $vendorView
+            GROUP BY payment.payment_method
             ORDER BY frequency DESC";
 
     $result = mysqli_query($conn, $sql);
+
     $rows = [];
     $totalFrequency = 0;
 
-    // Fetch all data once
     while ($row = mysqli_fetch_assoc($result)) {
         $rows[] = $row;
         $totalFrequency += $row['frequency'];
     }
 
-    // Build pie chart data
     $data = [];
     foreach ($rows as $row) {
         $percentage = ($totalFrequency > 0) ? ($row['frequency'] / $totalFrequency) * 100 : 0;
@@ -713,15 +793,15 @@ function topPaymentmethod($conn, $user_id)
 }
 
 
-function getTopVendor($conn, $user_id)
+function getTopVendor($conn)
 {
-    $sql = "SELECT v.store_name AS label, SUM(po.quantity) AS quantity
-    FROM product_order po
-    JOIN product p ON po.product_id = p.product_id
-    JOIN vendor v ON p.vendor_id = v.vendor_id
-    GROUP BY v.vendor_id
-    ORDER BY quantity DESC
-    LIMIT 5";
+    $sql = "SELECT v.store_name AS label, SUM(po.sub_price) AS amountPurchase
+            FROM product_order po
+            JOIN product p ON po.product_id = p.product_id
+            JOIN vendor v ON p.vendor_id = v.vendor_id
+            GROUP BY v.vendor_id
+            ORDER BY amountPurchase DESC
+            LIMIT 5";
 
     $result = mysqli_query($conn, $sql);
     $data = [];
@@ -729,11 +809,12 @@ function getTopVendor($conn, $user_id)
     while ($row = mysqli_fetch_assoc($result)) {
         $data[] = [
             "label" => $row['label'],
-            "y" => (int) $row['quantity']
+            "y" => (float) $row['amountPurchase']
         ];
     }
     return $data;
 }
+
 
 
 function getProductsByStatus($conn, $vendor_id, $status)
