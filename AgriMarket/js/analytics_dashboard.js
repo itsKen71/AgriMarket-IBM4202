@@ -1,3 +1,4 @@
+
 document.addEventListener("DOMContentLoaded", function () {
 
     let revenueData = JSON.parse(document.getElementById("revenueData").textContent);
@@ -7,56 +8,86 @@ document.addEventListener("DOMContentLoaded", function () {
     let topVendorsData = JSON.parse(document.getElementById("vendorData").textContent);
 
     // Subscription Chart
-    let subscriptionChart = new CanvasJS.Chart("subscriptionChart", {
-        animationEnabled: true,
-        theme: "light2",
-        data: [{
-            type: "pie",
-            indexLabel: "{y}%",
-            yValueFormatString: "#,##0.00\"\"",
-            indexLabelPlacement: "inside",
-            indexLabelFontColor: "#36454F",
-            indexLabelFontSize: 18,
-            indexLabelFontWeight: "bolder",
-            showInLegend: true,
-            legendText: "{label}",
-            dataPoints: subscriptionData
-        }]
-    });
-    subscriptionChart.render();
+    let subscriptionChartContainer = document.getElementById("subscriptionChart");
+    let formatSubscription = subscriptionData.length == 1 ? "#,##0\"%\"" : "#,##0.00\"%\"";
 
-    // Payment Method
-    let paymentChart = new CanvasJS.Chart("paymentChart", {
-        animationEnabled: true,
-        theme: "light2",
-        data: [{
-            type: "pie",
-            indexLabel: "{y}%",
-            yValueFormatString: "#,##0.00\"\"",
-            indexLabelPlacement: "inside",
-            indexLabelFontColor: "#36454F",
-            indexLabelFontSize: 18,
-            indexLabelFontWeight: "bolder",
-            showInLegend: true,
-            legendText: "{label}",
-            dataPoints: topPaymentMethodData
-        }]
-    });
-    paymentChart.render();
-
-    //Top vendor chart
-    // Top vendor chart
-    let topVendorChartContainer = document.getElementById("topVendorChart");
-
-    if (topVendorsData.length < 5) {
-        topVendorChartContainer.innerHTML = "<div style='text-align: center; font-size: 20px; font-weight: bold; color: #555;'>No vendors found</div>";
+    if (subscriptionData.length == 0) {
+        subscriptionChartContainer.innerHTML = `
+        <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
+            <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
+                No Subscription Plans Found
+            </div>
+        </div>
+    `;
     } else {
-        let topVendorChart = new CanvasJS.Chart("topVendorChart", {
+        let subscriptionChart = new CanvasJS.Chart("subscriptionChart", {
             animationEnabled: true,
             theme: "light2",
-            title: {
-                text: "Top 5 Vendors by Products Sold"
-            },
+            data: [{
+                type: "pie",
+                indexLabel: "{y}",
+                yValueFormatString: formatSubscription,
+                indexLabelPlacement: "inside",
+                indexLabelFontColor: "#36454F",
+                indexLabelFontSize: 18,
+                indexLabelFontWeight: "bolder",
+                showInLegend: true,
+                legendText: "{label}",
+                dataPoints: subscriptionData
+            }]
+        });
+        subscriptionChart.render();
+    }
+
+
+    // Payment Method
+    let paymentChartContainer = document.getElementById("paymentChart");
+    let formatPayment = topPaymentMethodData.length == 1 ? "#,##0\"%\"" : "#,##0.00\"%\"";
+
+    if (topPaymentMethodData.length === 0) {
+        paymentChartContainer.innerHTML = `
+        <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
+            <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
+                No Payment Methods Found
+            </div>
+        </div>
+    `;
+    } else {
+        let paymentChart = new CanvasJS.Chart("paymentChart", {
+            animationEnabled: true,
+            theme: "light2",
+            data: [{
+                type: "pie",
+                indexLabel: "{y}",
+                yValueFormatString: formatPayment,
+                indexLabelPlacement: "inside",
+                indexLabelFontColor: "#36454F",
+                indexLabelFontSize: 18,
+                indexLabelFontWeight: "bolder",
+                showInLegend: true,
+                legendText: "{label}",
+                dataPoints: topPaymentMethodData
+            }]
+        });
+        paymentChart.render();
+    }
+
+
+    //Top vendor chart
+    let topVendorChartContainer = document.getElementById("vendorChart");
+
+    if (topVendorsData.length <5) {
+        topVendorChartContainer.innerHTML = `
+                                                <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
+                                                    <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
+                                                        No vendors found
+                                                    </div>
+                                                </div>
+                                            `;
+    } else {
+        let topVendorChart = new CanvasJS.Chart("vendorChart", {
+            animationEnabled: true,
+            theme: "light2",
             axisY: {
                 title: "Quantity Sold"
             },
@@ -114,4 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         return months[monthNumber - 1];
     }
+
+    
 });
+

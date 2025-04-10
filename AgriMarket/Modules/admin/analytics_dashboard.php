@@ -15,13 +15,15 @@ $checkRole = ($role == "Admin");
 $query_user_id = $checkRole ? -1 : $user_id;
 
 // Fetch data based on specific role
-$activeUsers = getActiveUser($conn);
+$activeUsers = getActiveUser($conn,$query_user_id);
 $refundPercentage = getRefundPercentage($conn, $query_user_id);
+$subscriptionData = getSubscription($conn,$query_user_id);
+$topPaymentMethod = topPaymentmethod($conn,$query_user_id);
+$topVendor = getTopVendor($conn,$query_user_id);
 $monthlyRevenue = getRevenue($conn, $query_user_id);
 $monthlyOrders = getOrders($conn, $query_user_id);
-$subscriptionData = getSubscription($conn);
-$topPaymentMethod=topPaymentmethod($conn);
-$topVendor=getTopVendor($conn);
+
+
 
 ?>
 
@@ -45,14 +47,37 @@ $topVendor=getTopVendor($conn);
         <!--Analytics Dashboard-->
         <div class="container">
 
+            <!--Operation-->
+            <div class="dropdown ms-auto">
+                <a class="btn btn-success dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Operation
+                </a>
+
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item save-pdf" href="#">
+                            <img src="../../Assets/img/pdf-file.png" alt="active customer icon" style="width:22px; height:auto;margin-right:10px;">
+                            Save as PDF
+                        </a>
+                    </li>
+                    <li><a class="dropdown-item print" href="#">
+                            <img src="../../Assets/img/printer.png" alt="active customer icon" style="width:20px; height:auto;margin-right:10px;">
+                            Print
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+
+
             <!-- Text Visualization -->
             <div class="info-section">
 
                 <!--Active Customer-->
                 <div class="info-card">
                     <h3>
-                    <img src="../../Assets/img/staff.png" alt="active customer icon" style="width:30px; height:auto;margin-right:10px;">
-                    Active Customers</h3>
+                        <img src="../../Assets/img/staff.png" alt="active customer icon" style="width:30px; height:auto;margin-right:10px;">
+                        Active Customers
+                    </h3>
                     <p><?php echo $activeUsers["activeCustomers"]; ?></p>
                 </div>
 
@@ -68,8 +93,9 @@ $topVendor=getTopVendor($conn);
                 <!--Refund Percentage-->
                 <div class="info-card refund-card">
                     <h3>
-                    <img src="../../Assets/img/refund.png" alt="refund percentage icon" style="width:35px; height:auto;margin-right:10px;">
-                    Refund Percentage </h3>
+                        <img src="../../Assets/img/refund.png" alt="refund percentage icon" style="width:35px; height:auto;margin-right:10px;">
+                        Refund Percentage
+                    </h3>
                     <p><?php echo $refundPercentage["totalRefundPercentage"]; ?></p>
                 </div>
             </div>
@@ -79,7 +105,7 @@ $topVendor=getTopVendor($conn);
                 <!-- Subscription Plan -->
                 <div class="chart-container">
                     <h3>
-                    Subscription Plans</h3>
+                        Subscription Plans</h3>
                     <div id="subscriptionChart" style="height: 320px; margin-top:30px;"></div>
                 </div>
 
@@ -91,7 +117,7 @@ $topVendor=getTopVendor($conn);
 
                 <!-- Top vendor-->
                 <div class="chart-container full-width">
-                    <h3>Top Vendors</h3>
+                    <h3>Top 5 Vendors</h3>
                     <div id="vendorChart" style="height: 300px; margin-top:50px;"></div>
                 </div>
 
@@ -108,6 +134,7 @@ $topVendor=getTopVendor($conn);
                 </div>
             </div>
         </div>
+
 
         <script id="vendorData" type="application/json">
             <?php echo json_encode($topVendor, JSON_NUMERIC_CHECK); ?>
@@ -130,6 +157,8 @@ $topVendor=getTopVendor($conn);
     <?php include '../../includes/footer_2.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 </body>
 
 </html>
