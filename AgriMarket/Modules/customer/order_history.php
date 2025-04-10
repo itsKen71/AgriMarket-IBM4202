@@ -56,7 +56,7 @@ if (empty($orderHistory)) {
                     Refund All
                   </button>
                 <button class="btn btn-outline-success btn-sm btn-reorder-all me-2"
-                data-order-id="<?= $orderId ?>">
+                data-products='<?= json_encode($order['products']) ?>'>
                 Reorder All
                 </button>
                 </div>
@@ -222,7 +222,11 @@ if (empty($orderHistory)) {
               <input type="hidden" name="product_id" id="reorderProductId">
               <div class="mb-3">
                 <label for="reorderQuantity" class="form-label">Quantity</label>
-                <input type="number" name="quantity" id="reorderQuantity" class="form-control" min="1" required>
+                <div class="input-group">
+                <button class="btn btn-outline-secondary minus-btn" type="button">-</button>
+                <input type="number" name="quantity" id="reorderQuantity" class="form-control text-center" min="1" required>
+                <button class="btn btn-outline-secondary plus-btn" type="button">+</button>
+                </div>
               </div>
             </div>
           </div>
@@ -237,18 +241,18 @@ if (empty($orderHistory)) {
 
 <!-- Reorder All Modal -->
 <div class="modal fade" id="reorderAllModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <form id="reorderAllForm">
         <div class="modal-header">
           <h5 class="modal-title">Reorder Items</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body" id="reorderAllContent">
+        <div class="modal-body" id="reorderAllContent" style="max-height: 60vh; overflow-y: auto;">
           <!-- JS will populate this -->
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Add to Cart</button>
+          <button type="submit" class="btn btn-primary">Add to Cart</button>
         </div>
       </form>
     </div>

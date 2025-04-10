@@ -1,43 +1,36 @@
 <?php
-require 'database.php';
 session_start();
+include 'database.php';
 
-$userId = $_SESSION['user_id'];
-$quantities = $_POST['quantities'];
+$user_id = $_SESSION['user_id'] ?? null;
+if (!$user_id) {
+    http_response_code(401);
+    exit;
+}
 
-foreach ($quantities as $productId => $quantity) {
-    $productId = intval($productId);
-    $quantity = intval($quantity);
+$data = json_decode(file_get_contents('php://input'), true);
 
-    // Get stock
-    $stmt = $conn->prepare("SELECT stock_quantity FROM products WHERE product_id = ?");
-    $stmt->bind_param("i", $productId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    $stock = $row['stock_quantity'];
+foreach ($data as $product) {
+    $product_id = (int) $product['product_id'];
+    $quantity = max(1, min((int) $product['quantity'], 999)); // hard limit, frontend also restricts
 
-    if ($quantity <= 0 || $quantity > $stock) {
-        echo json_encode(['success' => false, 'message' => "Invalid quantity for product ID $productId"]);
-        exit;
-    }
-
-    // Check if in cart
+    // Check if cart entry exists
     $stmt = $conn->prepare("SELECT quantity FROM cart WHERE user_id = ? AND product_id = ?");
-    $stmt->bind_param("ii", $userId, $productId);
+    $stmt->bind_param("ii", $user_id, $product_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
         $stmt = $conn->prepare("UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?");
-        $stmt->bind_param("iii", $quantity, $userId, $productId);
-        $stmt->execute();
+        $stmt->bind_param("iii", $quantity, $user_id, $product_id);
     } else {
         $stmt = $conn->prepare("INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)");
-        $stmt->bind_param("iii", $userId, $productId, $quantity);
-        $stmt->execute();
+        $stmt->bind_param("iii", $user_id, $product_id, $quantity);
     }
+
+    $stmt->execute();
 }
 
-echo json_encode(['success' => true]);
+http_response_code(200);
+exit;
 ?>
