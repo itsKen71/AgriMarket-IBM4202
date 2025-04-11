@@ -77,6 +77,7 @@ $vendor = VendorDetail($conn, $product_id);
 if ($vendor) {
     $store_name = $vendor['store_name'];
     $vendor_id = $vendor['vendor_id'];
+    $_SESSION['vendorID'] = $vendor['vendor_id'];
     $vendor_image = $userClass->getUserImageFromUserID($vendor['user_id']); // Now user_id is available
     $vendor_rating = VendorRating($conn, $vendor_id);
 } else {

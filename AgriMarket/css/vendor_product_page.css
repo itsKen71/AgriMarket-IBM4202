@@ -72,6 +72,12 @@ body.vendor_product_page {
     white-space: normal; 
 }
 
+.vendor-profile-card .rating-label {
+    font-size: 1rem;
+    color: #555; /* Match the color of other labels */
+    line-height: 1.5;
+}
+
 /* Filter Section */
 #filterCollapse {
     margin-top: 10px;
@@ -96,7 +102,6 @@ body.vendor_product_page {
 
 #filterCollapse .btn-link {
     color: #000;
-    font-weight: bold;
 }
 
 #filterCollapse .btn-link:hover {

@@ -408,13 +408,18 @@ class Vendor
     function getVendorDetailsById($vendor_id)
     {
         $query = "SELECT v.store_name, u.first_name, u.last_name, u.email, u.phone_number 
-                FROM vendor v 
-                JOIN user u ON v.user_id = u.user_id 
-                WHERE v.vendor_id = ?";
+                  FROM vendor v 
+                  JOIN user u ON v.user_id = u.user_id 
+                  WHERE v.vendor_id = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $vendor_id);
         $stmt->execute();
         $result = $stmt->get_result();
+
+        if ($result->num_rows === 0) {
+            error_log("No vendor found for vendor_id: " . $vendor_id); // Log the issue
+        }
+
         return $result->fetch_assoc();
     }
 
@@ -576,6 +581,43 @@ class Vendor
         return $data;
     }
 
+    function getUserIdByVendorId($vendor_id)
+    {
+        $query = "SELECT user_id FROM vendor WHERE vendor_id = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $vendor_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            return $row['user_id'];
+        }
+
+        return null; // Return null if no user_id is found
+    }
+
+    function displayStarsHere($rating)
+    {
+        $fullStars = floor($rating);
+        $hasHalfStar = ($rating - $fullStars) >= 0.5;
+        $emptyStars = 5 - $fullStars - ($hasHalfStar ? 1 : 0);
+        $output = '';
+        // Full stars
+        for ($i = 0; $i < $fullStars; $i++) {
+            $output .= '<i class="fas fa-star text-warning"></i>';
+        }
+        // Half star
+        if ($hasHalfStar) {
+            $output .= '<i class="fas fa-star-half-alt text-warning"></i>';
+        }
+        // Empty stars
+        for ($i = 0; $i < $emptyStars; $i++) {
+            $output .= '<i class="far fa-star text-warning"></i>';
+        }
+        return $output;
+    }
+
 }
 
 class Staff
@@ -676,7 +718,7 @@ class Staff
 
     function getPendingRequestList()
     {
-            $sql = "SELECT 
+        $sql = "SELECT 
             v.store_name, 
             c.category_name, 
             p.product_name, 
