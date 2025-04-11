@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
             subscriptionChartContainer.innerHTML = `
                 <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
                     <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
-                        No Subscription Plans Found
+                        No subscription plan found
                     </div>
                 </div>
             `;
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
             shipmentChartContainer.innerHTML = `
                 <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
                     <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
-                        No Shipment Status Found
+                        No shipment status found
                     </div>
                 </div>
             `;
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
             paymentChartContainer.innerHTML = `
                 <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
                     <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
-                        No Payment Methods Found
+                        No payment method found
                     </div>
                 </div>
             `;
@@ -112,11 +112,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // Top Vendor Chart 
     let topVendorChartContainer = document.getElementById("vendorChart");
     if (topVendorChartContainer) {
-        if (topVendorsData.length <5) {
+        if (topVendorsData.length < 5) {
             topVendorChartContainer.innerHTML = `
                 <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
                     <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
-                        No vendors found
+                        No vendor found
                     </div>
                 </div>
             `;
@@ -136,48 +136,125 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Orders Chart 
+    // Orders Chart
     let ordersChartContainer = document.getElementById("ordersChart");
     if (ordersChartContainer) {
         if (ordersData.length == 0 || ordersData.every(d => d.total_orders === 0)) {
             ordersChartContainer.innerHTML = `
             <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
                 <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
-                    No orders found
+                    No order found
                 </div>
             </div>
         `;
         } else {
+            // Get selected filter from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const filterType = urlParams.get('option') || 'monthly';
+
+            const xAxisTitles = {
+                monthly: "Month",
+                quarterly: "Quarter",
+                yearly: "Year"
+            };
+
             let ordersChart = new CanvasJS.Chart("ordersChart", {
                 animationEnabled: true,
                 theme: "light2",
-                axisY: { title: "Total Orders" },
-                axisX: { title: "Month" },
+                axisY: {
+                    title: "Total Orders"
+                },
+                axisX: {
+                    title: xAxisTitles[filterType] || "Period"
+                },
+                toolTip: {
+                    shared: true,
+                    content: "{label}: {y}"
+                },
                 data: [{
                     type: "column",
                     yValueFormatString: "#,##0 orders",
-                    dataPoints: ordersData.map(d => ({ label: d.month, y: d.total_orders }))
+                    dataPoints: ordersData.map(d => ({
+                        label: d.duration,
+                        y: d.total_orders
+                    }))
                 }]
             });
             ordersChart.render();
         }
     }
 
-    // Revenue Chart 
+    // Orders filter dropdown handler
+    document.querySelectorAll('[data-filter]').forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.preventDefault();
+            let selectedFilter = this.getAttribute('data-filter');
+            document.getElementById('ordersFilterLabel').textContent = this.textContent;
+
+            // Reload page with new filter
+            window.location.href = window.location.pathname + "?option=" + selectedFilter;
+        });
+    });
+
+
+    //Revenue Chart
     let revenueChartContainer = document.getElementById("revenueChart");
     if (revenueChartContainer) {
-        let revenueChart = new CanvasJS.Chart("revenueChart", {
-            animationEnabled: true,
-            theme: "light2",
-            axisY: { title: "Total Revenue (in RM)" },
-            axisX: { title: "Month" },
-            data: [{
-                type: "spline",
-                yValueFormatString: "RM#,##0.00",
-                dataPoints: revenueData.map(d => ({ label: d.month, y: d.revenue }))
-            }]
-        });
-        revenueChart.render();
+        if (revenueData.length == 0 || revenueData.every(d => d.revenue === 0)) {
+            revenueChartContainer.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
+                    <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
+                        No sales found
+                    </div>
+                </div>
+            `;
+        }else {
+            // Get selected filter from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const filterType = urlParams.get('option') || 'monthly';
+
+            const xAxisTitles = {
+                monthly: "Month",
+                quarterly: "Quarter",
+                yearly: "Year"
+            };
+
+            let chart = new CanvasJS.Chart("revenueChart", {
+                animationEnabled: true,
+                theme: "light2",
+                axisY: {
+                    title: "Total Sales (in RM)",
+                    prefix: "RM"
+                },
+                axisX: {
+                    title: xAxisTitles[filterType] || "Period"
+                },
+                toolTip: {
+                    shared: true,
+                    content: "{label}: {y}"
+                },
+                data: [{
+                    type: "spline",
+                    yValueFormatString: "RM#,##0.00",
+                    dataPoints: revenueData.map(item => ({
+                        label: item.duration,
+                        y: item.revenue
+                    }))
+                }]
+            });
+            chart.render();
+        }
     }
+    // Revenue filter dropdown handler
+    document.querySelectorAll('[data-filter]').forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.preventDefault();
+            let selectedFilter = this.getAttribute('data-filter');
+            document.getElementById('revenueFilterLabel').textContent = this.textContent;
+
+            // Reload page with new filter
+            window.location.href = window.location.pathname + "?option=" + selectedFilter;
+        });
+    });
 
 });

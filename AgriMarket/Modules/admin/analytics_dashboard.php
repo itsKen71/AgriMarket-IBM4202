@@ -12,18 +12,26 @@ include '../../includes/database.php';
 
 //Check role is admin or vendor
 $checkRole = ($role == "Admin");
-$query_user_id = $checkRole ? -1 : $user_id;
+$query_vendor_id = -1;
+
+if (!$checkRole) {
+    $query_vendor_id = getVendorIdByUserId($conn, $user_id);
+
+}
+
+$option = $_GET['option'] ?? 'monthly';
 
 // Fetch data based on specific role
 $activeUsers = getActiveUser($conn);
-$numberProduct = getNumberProducts($conn, $query_user_id);
-$refundPercentage = getRefundPercentage($conn, $query_user_id);
+$numberProduct = getNumberProducts($conn, $query_vendor_id);
+$refundPercentage = getRefundPercentage($conn, $query_vendor_id);
 $subscriptionData = getSubscription($conn);
-$topPaymentMethod = topPaymentmethod($conn, $query_user_id);
+$topPaymentMethod = topPaymentmethod($conn, $query_vendor_id);
 $topVendor = getTopVendor($conn);
-$shipmentStatus = getShipmentStatus($conn, $query_user_id);
-$monthlyOrders = getOrders($conn, $query_user_id);
-$monthlyRevenue = getRevenue($conn, $query_user_id,$option);
+$topProduct = getTopProduct($conn, $query_vendor_id);
+$shipmentStatus = getShipmentStatus($conn, $query_vendor_id);
+$monthlyOrders = getOrders($conn, $query_vendor_id, $option);
+$monthlyRevenue = getRevenue($conn, $query_vendor_id, $option);
 
 
 ?>
@@ -93,6 +101,44 @@ $monthlyRevenue = getRevenue($conn, $query_user_id,$option);
                 </div>
             </div>
 
+            <!-- Top Product -->
+            <div class="info-card">
+                <h3 class="text-start mb-4">Top Products</h3>
+
+                <?php if (empty($topProduct) ): ?>
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
+                        <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
+                            No product found
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Product Image</th>
+                                <th>Product Name</th>
+                                <th>Total Quantity Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $index = 1;
+                            foreach ($topProduct as $product): ?>
+                                <tr>
+                                    <td><?php echo $index++; ?></td>
+                                    <td><img src="../../<?php echo $product['product_image']; ?>" alt="<?php echo htmlspecialchars($product['product_name']); ?>" width="100" height="100"></td>
+                                    <td><?php echo htmlspecialchars($product['product_name']); ?></td>
+                                    <td><?php echo (int) $product['total_quantity']; ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
+
+
+
             <!-- Chart Visualization-->
             <div class="chart-section">
 
@@ -121,20 +167,49 @@ $monthlyRevenue = getRevenue($conn, $query_user_id,$option);
                 <!-- Top vendor-->
                 <?php if ($role != "Vendor"): ?>
                     <div class="chart-container full-width">
-                        <h3>Top 5 Vendors</h3>
+                        <h3>Top Vendors</h3>
                         <div id="vendorChart" style="height: 300px; margin-top:50px;"></div>
                     </div>
                 <?php endif; ?>
 
+
                 <!-- Orders-->
                 <div class="chart-container full-width">
-                    <h3>Total Orders (in year 2025)</h3>
+                    <h3>Total Orders</h3>
+
+                    <!-- Select duration-->
+                    <div class="d-flex justify-content-end align-items-center mb-2">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="ordersFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Filter by <span id="ordersFilterLabel"></span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="ordersFilterDropdown">
+                                <li><a class="dropdown-item" href="#" data-filter="yearly">Year</a></li>
+                                <li><a class="dropdown-item" href="#" data-filter="quarterly">Quarter</a></li>
+                                <li><a class="dropdown-item" href="#" data-filter="monthly">Month</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
                     <div id="ordersChart" style="height: 300px; margin-top:50px;"></div>
                 </div>
 
                 <!-- Revenue-->
                 <div class="chart-container full-width">
-                    <h3>Total Revenue (in year 2025)</h3>
+                    <h3>Total Sales</h3>
+                    <!--Select duration-->
+                    <div class="d-flex justify-content-end align-items-center mb-2">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="revenueFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Filter by <span id="revenueFilterLabel"></span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="revenueFilterDropdown">
+                                <li><a class="dropdown-item" href="#" data-filter="yearly">Year<a></li>
+                                <li><a class="dropdown-item" href="#" data-filter="quarterly">Quarter</a></li>
+                                <li><a class="dropdown-item" href="#" data-filter="monthly">Month</a></li>
+                            </ul>
+                        </div>
+                    </div>
                     <div id="revenueChart" style="height: 300px; margin-top:50px;"></div>
                 </div>
             </div>
