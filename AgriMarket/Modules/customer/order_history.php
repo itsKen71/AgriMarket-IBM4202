@@ -52,9 +52,32 @@ if (empty($orderHistory)) {
                     <small class="text-muted"><?= $order['order_date'] ?></small>
                 </h5>
                 <div class="d-flex align-items-center">
-                  <button class="btn btn-outline-danger btn-sm btn-refund-all me-2">
+                <?php
+                $allRefunded = count(array_filter($order['products'], fn($p) => $p['status'] !== 'Refunded')) === 0;
+                $hasRefundRecord = count(array_filter($order['products'], fn($p) => $p['status'] !== 'Refunded' && !empty($p['refund_id']))) > 0;
+                $disableRefundAll = $order['payment_status'] == 'Pending' || $allRefunded || $hasRefundRecord;
+                $refundTooltip = '';
+                if ($order['payment_status'] == 'Pending') {
+                  $refundTooltip = 'Payment is pending';
+                } elseif ($allRefunded) {
+                  $refundTooltip = 'All products already refunded';
+                } elseif ($hasRefundRecord) {
+                  $refundTooltip = 'Some products already have refund requests';
+                }
+                ?>
+                <div <?= $disableRefundAll ? 'data-bs-toggle="tooltip" title="' . htmlspecialchars($refundTooltip) . '"' : '' ?>>
+                <div <?= ($order['payment_status'] == 'Pending' || count(array_filter($order['products'], function($p) { return $p['status'] !== 'Refunded'; })) === 0) ? 'data-bs-toggle="tooltip" title="'.($order['payment_status'] == 'Pending' ? 'Payment is pending' : 'All products already refunded').'"' : '' ?>>
+                    <button class="btn btn-outline-danger btn-sm btn-refund-all me-2" 
+                    <?= ($order['payment_status'] == 'Pending' || count(array_filter($order['products'], function($p) { return $p['status'] !== 'Refunded'; })) === 0) ? 'disabled' : '' ?>
+                    <?= $disableRefundAll ? 'disabled' : '' ?>
+                    data-order-id="<?= $orderId ?>"
+                    data-payment-id="<?= $order['payment_id'] ?>"
+                    data-user-id="<?= $user_id ?>"
+                    data-products='<?= json_encode(array_filter($order['products'], function($p) { return $p['status'] !== 'Refunded'; })) ?>'>
                     Refund All
                   </button>
+                </div>
+                </div>
                 <button class="btn btn-outline-success btn-sm btn-reorder-all me-2"
                 data-products='<?= json_encode($order['products']) ?>'>
                 Reorder All
@@ -329,6 +352,32 @@ if (empty($orderHistory)) {
       </form>
     </div>
   </div>
+</div>
+
+<!-- Refund All Modal -->
+<div class="modal fade" id="refundAllModal" tabindex="-1" aria-labelledby="refundAllModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="refundAllModalLabel">Request Refund for All Products</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="refundAllForm">
+                <input type="hidden" name="order_id" id="refundAllOrderId">
+                <input type="hidden" name="payment_id" id="refundAllPaymentId">
+                <input type="hidden" name="user_id" id="refundAllUserId">
+                
+                <div class="modal-body">
+                    <div id="refundAllProducts">
+                        <!-- Products will be inserted here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Submit Refund</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <!-- Reorder Success Modal -->
