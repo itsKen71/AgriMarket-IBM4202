@@ -9,19 +9,27 @@ if (!$user_id) {
 
 include '../../includes/database.php';
 
+
+$db = new Database();
+$vendorClass = new Vendor($db);
+$staffClass = new Staff($db);
+$vendorClass = new Vendor($db);
+$adminClass = new Admin($db);
+
+
 //Fetch Vendor List
-$vendorList = getVendorList();
+$vendorList = $vendorClass->getVendorList();
 //Fetch Staff List
-$staffList = getStaffList();
+$staffList = $staffClass->getStaffList();
 //Fetch admin list
-$adminList = getAdminList();
+$adminList = $adminClass->getAdminList();
 
 //Handle Form Submission
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['vendor_id'], $_POST['staff_id'])) {
     $vendorId = $_POST['vendor_id'];
     $staffId = $_POST['staff_id'];
 
-    $result = updateVendorAssistance($vendorId, $staffId);
+    $result = $vendorClass->updateVendorAssistance($vendorId, $staffId);
 
     header('Content-Type: application/json');
     echo json_encode(["status" => $result ? "success" : "error"]);

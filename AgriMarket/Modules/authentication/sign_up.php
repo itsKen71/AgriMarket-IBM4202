@@ -1,6 +1,9 @@
 <?php
 require_once '../../includes/database.php';
 
+$db = new Database();
+$userClass = new User($db);
+
 $error = "";
 $success = "";
 
@@ -32,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (move_uploaded_file($profile_image['tmp_name'], $target_file)) {
             // Insert user into the database
-            $result = insertUser($first_name, $last_name, $username, $email, $hashed_password, 'Customer', $phone_number, $home_address, $image_path);
+            $result = $userClass->insertUser($first_name, $last_name, $username, $email, $hashed_password, 'Customer', $phone_number, $home_address, $image_path);
 
             if ($result) {
                 $success = "Account created successfully. You can now <a href='login.php'>log in</a>.";

@@ -2,6 +2,14 @@
 session_start();
 include '../../includes/database.php';
 
+$db = new Database();
+$userClass = new User($db);
+$customerClass = new Customer($db);
+$vendorClass = new Vendor($db);
+$adminClass = new Admin($db);
+$productClass = new Product($db);
+$paymentClass = new Payment($db);
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../authentication/login.php");
     exit();
@@ -10,12 +18,12 @@ if (!isset($_SESSION['user_id'])) {
 $vendor_id = intval($_GET['vendor_id']); 
 
 // Fetch vendor details
-$vendor = getVendorDetailsById($conn, $vendor_id);
+$vendor = $vendorClass->getVendorDetailsById($vendor_id);
 
 // Fetch vendor products
 $search_query = $_GET['search'] ?? '';
 $filter = $_GET['filter'] ?? '';
-$products = getVendorProducts($conn, $vendor_id, $search_query, $filter);
+$products = $productClass->getVendorProducts($vendor_id, $search_query, $filter);
 ?>
 
 <!DOCTYPE html>

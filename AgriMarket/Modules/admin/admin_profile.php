@@ -9,8 +9,12 @@ if (!$user_id) {
     exit();
 }
 
-$customer = getCustomerDetails($user_id, $conn);
-$user_image = getUserImageFromUserID(user_id: $user_id);
+$db = new Database();
+$userClass = new User($db);
+$customerClass = new Customer($db);
+
+$customer = $customerClass->getCustomerDetails($user_id);
+$user_image = $userClass->getUserImageFromUserID(user_id: $user_id);
 
 
 ?>

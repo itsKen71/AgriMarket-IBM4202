@@ -2,6 +2,11 @@
 session_start();
 include 'database.php';
 
+$db = new Database();
+$customerClass = new Customer($db);
+$vendorClass = new Vendor($db);
+
+
 $user_id = $_SESSION['user_id'] ?? null;
 
 if (!$user_id) {
@@ -19,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $profile_image = $_FILES['profile_image'];
 
     if (empty($username) || empty($first_name) || empty($last_name) || !$email || empty($phone_number) || empty($home_address)) {
-        $redirect_url = isVendor($user_id) ? "../Modules/vendor/vendor_profile.php?update=error" : "../Modules/customer/customer_profile.php?update=error";
+        $redirect_url = $vendorClass->isVendor($user_id) ? "../Modules/vendor/vendor_profile.php?update=error" : "../Modules/customer/customer_profile.php?update=error";
         header("Location: $redirect_url");
         exit();
     }
@@ -42,17 +47,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Use the function from database.php to update the profile
-    if (updateCustomerInfo($conn, $user_id, $username, $first_name, $last_name, $email, $phone_number, $home_address, $image_path)) {
-        $redirect_url = isVendor($user_id) ? "../Modules/vendor/vendor_profile.php?update=success" : "../Modules/customer/customer_profile.php?update=success";
+    if ($customerClass->updateCustomerInfo($user_id, $username, $first_name, $last_name, $email, $phone_number, $home_address, $image_path)) {
+        $redirect_url = $vendorClass->isVendor($user_id) ? "../Modules/vendor/vendor_profile.php?update=success" : "../Modules/customer/customer_profile.php?update=success";
         header("Location: $redirect_url");
     } else {
-        $redirect_url = isVendor($user_id) ? "../Modules/vendor/vendor_profile.php?update=error" : "../Modules/customer/customer_profile.php?update=error";
+        $redirect_url = $vendorClass->isVendor($user_id) ? "../Modules/vendor/vendor_profile.php?update=error" : "../Modules/customer/customer_profile.php?update=error";
         header("Location: $redirect_url");
     }
 
     $conn->close();
 } else {
-    $redirect_url = isVendor($user_id) ? "../Modules/vendor/vendor_profile.php" : "../Modules/customer/customer_profile.php";
+    $redirect_url = $vendorClass->isVendor($user_id) ? "../Modules/vendor/vendor_profile.php" : "../Modules/customer/customer_profile.php";
     header("Location: $redirect_url");
     exit();
 }

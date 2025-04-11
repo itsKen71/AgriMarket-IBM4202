@@ -2,6 +2,10 @@
 session_start();
 include 'database.php';
 
+
+$db = new Database();
+$conn = $db->conn;
+
 $user_id = $_SESSION['user_id'];
 $product_id = $_POST['product_id'];
 $rating = $_POST['rating'];

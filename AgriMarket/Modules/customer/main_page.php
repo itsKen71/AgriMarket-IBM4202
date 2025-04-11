@@ -6,13 +6,16 @@ if (!isset($_SESSION['user_id'])) {
 }
 include '../../includes/database.php';
 
-$categories = getCategories();
+$db = new Database();
+$productClass = new Product($db);
+
+$categories = $productClass->getCategories();
 
 $selected_category_id = $_GET['category_id'] ?? 'all';
 $search_query = $_GET['search'] ?? ''; 
 $filter = $_GET['filter'] ?? ''; 
 
-$products = getApprovedProducts($selected_category_id, $search_query, $filter); 
+$products = $productClass->getApprovedProducts($selected_category_id, $search_query, $filter); 
 ?>
 
 <!DOCTYPE html>

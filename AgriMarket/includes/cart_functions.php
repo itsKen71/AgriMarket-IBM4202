@@ -1,6 +1,9 @@
 <?php
 include_once 'database.php';
 
+$db = new Database();
+$conn = $db->conn;
+
 // get all item in user cart
 function getUserCart($conn, $user_id) {
     $query = "SELECT product_id, quantity FROM cart WHERE user_id = ?";

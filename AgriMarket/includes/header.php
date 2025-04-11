@@ -4,11 +4,15 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once '../../includes/database.php';
+$db = new Database();
+$userClass = new User($db);
+$vendorClass = new Vendor($db);
+
 
 $user_id = $_SESSION['user_id'];
 $role = $_SESSION['role'];
-$username = getUsernameFromUserID($user_id);
-$user_image = getUserImageFromUserID($user_id);
+$username = $userClass->getUsernameFromUserID($user_id);
+$user_image = $userClass->getUserImageFromUserID($user_id);
 $homeLink = "#";
 
 if ($role === "Customer") {
@@ -71,7 +75,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                             <a class="nav-link <?php echo ($currentPage == 'product_listings.php') ? 'active' : ''; ?>"
                                 href="../vendor/product_listings.php">Product Listings</a>
                         </li>
-                        <?php if (isVendorTierThree($user_id)): ?>
+                        <?php if ($vendorClass->isVendorTierThree($user_id)): ?>
                             <li class="nav-item">
                                 <a class="nav-link <?php echo ($currentPage == 'analytics_dashboard.php') ? 'active' : ''; ?>"
                                     href="../admin/analytics_dashboard.php">Analytics Dashboard</a>

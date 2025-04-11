@@ -15,21 +15,28 @@ require '../../includes/PHPMailer/src/Exception.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+
+$db = new Database();
+$customerClass = new Customer($db);
+$vendorClass = new Vendor($db);
+$staffClass = new Staff($db);
+$paymentClass = new Payment($db);
+
 // Fetch Lists
-$pendingList = getPendingRequestList();
-$assisstanceList = getVendorAssisstanceList($user_id);
-$refundList = getRefundList();
+$pendingList = $staffClass->getPendingRequestList();
+$assisstanceList = $vendorClass->getVendorAssisstanceList($user_id);
+$refundList = $paymentClass->getRefundList();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['ajax'])) {
     // Approve or reject pending product
     if ($_POST['action'] === 'approve_pending') {
-        updatePendingRequestStatus($_POST['product_id'], "Approved");
+        $staffClass->updatePendingRequestStatus($_POST['product_id'], "Approved");
         echo json_encode(['status' => 'success']);
         exit();
     }
 
     if ($_POST['action'] === 'reject_pending') {
-        updatePendingRequestStatus($_POST['product_id'], "Rejected");
+        $staffClass->updatePendingRequestStatus($_POST['product_id'], "Rejected");
         echo json_encode(['status' => 'success']);
         exit();
     }
@@ -39,14 +46,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['ajax'])) {
         $current_date = date("Y-m-d");
         $status = $_POST['status'];
         $request_id = $_POST['refund_id'];
-        updateRefund($request_id, $status, $current_date, $user_id);
+        $paymentClass->updateRefund($request_id, $status, $current_date, $user_id);
         echo json_encode(['status' => 'success']);
         exit();
     }
 
     // Mark assistance request as completed
     if ($_POST['action'] === 'assistance' && isset($_POST['request_id'])) {
-        updateAssisstanceRequestStatus($_POST['request_id'], TRUE);
+        $staffClass->updateAssisstanceRequestStatus($_POST['request_id'], TRUE);
         echo json_encode(['status' => 'success']);
         exit();
     }
@@ -81,10 +88,11 @@ if (
     $created_by = $user_id;
 
     // Update DB
-    update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by);
+    $staffClass->update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by);
 
     // Get customers
-    $customers = getCustomerEmails();
+    ////////////////////////////////////////////////////////////////////////////////////
+    $customerClass = $customerClass->getCustomerEmails();
 
     if ($customers) {
         foreach ($customers as $customer) {

@@ -1,5 +1,7 @@
 <?php
 include_once 'database.php';
+$db = new Database();
+$conn = $db->conn;
 
 function addToCart($conn, $product_id, $quantity, $user_id) {
     // quantity at least 1

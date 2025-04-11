@@ -2,6 +2,11 @@
 session_start();
 include '../../includes/database.php';
 
+$db = new Database();
+$userClass = new User($db);
+$customerClass = new Customer($db);
+$productClass = new Product($db);
+
 $user_id = $_SESSION['user_id'] ?? null;
 
 if (!$user_id) {
@@ -9,8 +14,8 @@ if (!$user_id) {
     exit();
 }
 
-$customer = getCustomerDetails($user_id, $conn);
-$user_image = getUserImageFromUserID(user_id: $user_id);
+$customer = $customerClass->getCustomerDetails($user_id);
+$user_image = $userClass->getUserImageFromUserID(user_id: $user_id);
 
 
 ?>
@@ -71,7 +76,7 @@ $user_image = getUserImageFromUserID(user_id: $user_id);
             <?php if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tracking_number'])): ?>
                 <?php
                 $tracking_number = htmlspecialchars(trim($_POST['tracking_number']));
-                $shipment = getShipmentDetails($conn, $tracking_number, $user_id);
+                $shipment = $productClass->getShipmentDetails($tracking_number, $user_id);
 
                 if ($shipment) {
                     $start_date = strtotime($shipment['update_timestamp']);
@@ -92,7 +97,7 @@ $user_image = getUserImageFromUserID(user_id: $user_id);
                     }
 
                     if ($shipment['status'] !== $new_status) {
-                        updateShipmentStatus($conn, $shipment['shipping_id'], $new_status);
+                        $productClass->updateShipmentStatus($shipment['shipping_id'], $new_status);
                     }
 
                     $status = $new_status;
@@ -170,7 +175,8 @@ $user_image = getUserImageFromUserID(user_id: $user_id);
 
                         <div class="mb-3">
                             <label for="profile_image" class="form-label">Profile Image</label>
-                            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                            <input type="file" class="form-control" id="profile_image" name="profile_image"
+                                accept="image/*">
                         </div>
 
                         <div class="d-flex justify-content-end">

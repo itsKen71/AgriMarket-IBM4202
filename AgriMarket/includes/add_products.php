@@ -1,5 +1,9 @@
 <?php
 include 'database.php'; 
+
+$db = new Database();
+$productClass = new Product($db);
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $vendor_id = $_POST['vendor_id'];
     $product_name = $_POST['product_name'];
@@ -12,10 +16,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     try {
         // Upload the product image
-        $image_path = uploadProductImage($_FILES["product_image"]);
+        $image_path = $productClass->uploadProductImage($_FILES["product_image"]);
 
         // Insert the product into the database
-        $insertSuccess = insertProduct($conn, $vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status);
+        $insertSuccess = $productClass->insertProduct($vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status);
 
         if ($insertSuccess) {
             // Redirect on success

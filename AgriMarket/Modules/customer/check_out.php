@@ -1,6 +1,9 @@
 <?php
 include '..\..\includes\database.php';
 
+$db = new Database();
+$conn = $db->conn;
+
 session_start();
 $user_id = $_SESSION['user_id'] ?? null;
     if (!isset($_SESSION['user_id'])) {
