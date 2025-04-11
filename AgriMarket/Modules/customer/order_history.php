@@ -53,31 +53,31 @@ if (empty($orderHistory)) {
                 </h5>
                 <div class="d-flex align-items-center">
                 <?php
+                $hasRefundedProduct = count(array_filter($order['products'], fn($p) => $p['status'] === 'Refunded')) > 0;
+                $hasRefundRecord = count(array_filter($order['products'], fn($p) => !empty($p['refund_id']))) > 0;
                 $allRefunded = count(array_filter($order['products'], fn($p) => $p['status'] !== 'Refunded')) === 0;
-                $hasRefundRecord = count(array_filter($order['products'], fn($p) => $p['status'] !== 'Refunded' && !empty($p['refund_id']))) > 0;
-                $disableRefundAll = $order['payment_status'] == 'Pending' || $allRefunded || $hasRefundRecord;
+                $disableRefundAll = $order['payment_status'] === 'Pending' || $hasRefundedProduct || $hasRefundRecord;
                 $refundTooltip = '';
-                if ($order['payment_status'] == 'Pending') {
+                if ($order['payment_status'] === 'Pending') {
                   $refundTooltip = 'Payment is pending';
-                } elseif ($allRefunded) {
-                  $refundTooltip = 'All products already refunded';
+                } elseif ($hasRefundedProduct) {
+                  $refundTooltip = 'One or more products are already refunded';
                 } elseif ($hasRefundRecord) {
                   $refundTooltip = 'Some products already have refund requests';
                 }
+                $productsForModal = array_filter($order['products'], fn($p) => $p['status'] !== 'Refunded' && empty($p['refund_id']));
                 ?>
-                <div <?= $disableRefundAll ? 'data-bs-toggle="tooltip" title="' . htmlspecialchars($refundTooltip) . '"' : '' ?>>
-                <div <?= ($order['payment_status'] == 'Pending' || count(array_filter($order['products'], function($p) { return $p['status'] !== 'Refunded'; })) === 0) ? 'data-bs-toggle="tooltip" title="'.($order['payment_status'] == 'Pending' ? 'Payment is pending' : 'All products already refunded').'"' : '' ?>>
-                    <button class="btn btn-outline-danger btn-sm btn-refund-all me-2" 
-                    <?= ($order['payment_status'] == 'Pending' || count(array_filter($order['products'], function($p) { return $p['status'] !== 'Refunded'; })) === 0) ? 'disabled' : '' ?>
-                    <?= $disableRefundAll ? 'disabled' : '' ?>
-                    data-order-id="<?= $orderId ?>"
-                    data-payment-id="<?= $order['payment_id'] ?>"
-                    data-user-id="<?= $user_id ?>"
-                    data-products='<?= json_encode(array_filter($order['products'], function($p) { return $p['status'] !== 'Refunded'; })) ?>'>
-                    Refund All
-                  </button>
-                </div>
-                </div>
+                
+            <div <?= $disableRefundAll ? 'data-bs-toggle="tooltip" title="' . htmlspecialchars($refundTooltip) . '"' : '' ?>>
+              <button class="btn btn-outline-danger btn-sm btn-refund-all me-2"
+              <?= $disableRefundAll ? 'disabled' : '' ?>
+              data-order-id="<?= $orderId ?>"
+              data-payment-id="<?= $order['payment_id'] ?>"
+              data-user-id="<?= $user_id ?>"
+              data-products='<?= json_encode(array_values($productsForModal)) ?>'>
+              Refund All
+            </button>
+            </div>
                 <button class="btn btn-outline-success btn-sm btn-reorder-all me-2"
                 data-products='<?= json_encode($order['products']) ?>'>
                 Reorder All
