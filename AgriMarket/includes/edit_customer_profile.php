@@ -41,13 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    
-
-    // Update user details in the database
-    $stmt = $conn->prepare("UPDATE user SET username = ?, first_name = ?, last_name = ?, email = ?, phone_number = ?, home_address = ?, user_image = IFNULL(?, user_image) WHERE user_id = ?");
-    $stmt->bind_param("sssssssi", $username, $first_name, $last_name, $email, $phone_number, $home_address, $image_path, $user_id);
-
-    if ($stmt->execute()) {
+    // Use the function from database.php to update the profile
+    if (updateCustomerInfo($conn, $user_id, $username, $first_name, $last_name, $email, $phone_number, $home_address, $image_path)) {
         $redirect_url = isVendor($user_id) ? "../Modules/vendor/vendor_profile.php?update=success" : "../Modules/customer/customer_profile.php?update=success";
         header("Location: $redirect_url");
     } else {
@@ -55,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: $redirect_url");
     }
 
-    $stmt->close();
     $conn->close();
 } else {
     $redirect_url = isVendor($user_id) ? "../Modules/vendor/vendor_profile.php" : "../Modules/customer/customer_profile.php";

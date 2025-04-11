@@ -1163,3 +1163,19 @@ function deleteComment($review_id)
         return false; 
     }
 }
+
+function updateCustomerInfo($conn, $user_id, $username, $first_name, $last_name, $email, $phone_number, $home_address, $image_path = null)
+{
+    $query = "UPDATE user 
+              SET username = ?, 
+                  first_name = ?, 
+                  last_name = ?, 
+                  email = ?, 
+                  phone_number = ?, 
+                  home_address = ?, 
+                  user_image = IFNULL(?, user_image) 
+              WHERE user_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("sssssssi", $username, $first_name, $last_name, $email, $phone_number, $home_address, $image_path, $user_id);
+    return $stmt->execute();
+}
