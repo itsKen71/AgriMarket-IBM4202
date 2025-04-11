@@ -3,6 +3,7 @@ session_start();
 include 'database.php';
 
 $db = new Database();
+$userClass = new User($db);
 $customerClass = new Customer($db);
 $vendorClass = new Vendor($db);
 
@@ -48,10 +49,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Use the function from database.php to update the profile
     if ($customerClass->updateCustomerInfo($user_id, $username, $first_name, $last_name, $email, $phone_number, $home_address, $image_path)) {
-        $redirect_url = $vendorClass->isVendor($user_id) ? "../Modules/vendor/vendor_profile.php?update=success" : "../Modules/customer/customer_profile.php?update=success";
+        if ($vendorClass->isVendor($user_id)) {
+            $redirect_url = "../Modules/vendor/vendor_profile.php?update=success";
+        } elseif ($userClass->getRole($user_id) === 'Staff') {
+            $redirect_url = "../Modules/staff/staff_profile.php?update=success";
+        } elseif ($userClass->getRole($user_id) === 'Admin') {
+            $redirect_url = "../Modules/admin/admin_profile.php?update=success";
+        } else {
+            $redirect_url = "../Modules/customer/customer_profile.php?update=success";
+        }
         header("Location: $redirect_url");
     } else {
-        $redirect_url = $vendorClass->isVendor($user_id) ? "../Modules/vendor/vendor_profile.php?update=error" : "../Modules/customer/customer_profile.php?update=error";
+        if ($vendorClass->isVendor($user_id)) {
+            $redirect_url = "../Modules/vendor/vendor_profile.php?update=error";
+        } elseif ($userClass->getRole($user_id) === 'Staff') {
+            $redirect_url = "../Modules/staff/staff_profile.php?update=error";
+        } elseif ($userClass->getRole($user_id) === 'Admin') {
+            $redirect_url = "../Modules/admin/admin_profile.php?update=error";
+        } else {
+            $redirect_url = "../Modules/customer/customer_profile.php?update=error";
+        }
         header("Location: $redirect_url");
     }
 

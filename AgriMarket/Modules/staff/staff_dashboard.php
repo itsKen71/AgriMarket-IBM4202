@@ -65,14 +65,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['ajax'])) {
 // Promotion update and email sending
 if (
     isset(
-        $_POST['discountCode'],
-        $_POST['promotionTitle'],
-        $_POST['promotionMessage'],
-        $_POST['startDate'],
-        $_POST['endDate'],
-        $_POST['discountPercentage'],
-        $_POST['minPurchaseAmount']
-    )
+    $_POST['discountCode'],
+    $_POST['promotionTitle'],
+    $_POST['promotionMessage'],
+    $_POST['startDate'],
+    $_POST['endDate'],
+    $_POST['discountPercentage'],
+    $_POST['minPurchaseAmount']
+)
 ) {
     $currentDate = date("Y-m-d");
 
@@ -170,12 +170,15 @@ if (
         <!--Promotion Update-->
         <div class="Promotion">
             <p>Promotion Update
-                <img src="../../Assets/img/add-circle.png" alt="Add Promotion Button" style="width:30px; height:auto;cursor:pointer;" class="addPromotionBTN" data-bs-toggle="modal" data-bs-target="#addPromotionModal">
+                <img src="../../Assets/img/add-circle.png" alt="Add Promotion Button"
+                    style="width:30px; height:auto;cursor:pointer;" class="addPromotionBTN" data-bs-toggle="modal"
+                    data-bs-target="#addPromotionModal">
             </p>
         </div>
 
         <!--Promotion Update Modal-->
-        <div class="modal fade" id="addPromotionModal" tabindex="-1" aria-labelledby="addPromotionModalTitle" aria-hidden="true">
+        <div class="modal fade" id="addPromotionModal" tabindex="-1" aria-labelledby="addPromotionModalTitle"
+            aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
 
@@ -196,12 +199,14 @@ if (
 
                             <div class="mb-3">
                                 <label for="promotionTitle" class="form-label">Promotion Title:</label>
-                                <input type="text" class="form-control" id="promotionTitle" name="promotionTitle" required>
+                                <input type="text" class="form-control" id="promotionTitle" name="promotionTitle"
+                                    required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="promotionMessage" class="form-label">Promotion Message:</label>
-                                <input type="text" class="form-control" id="promotionMessage" name="promotionMessage" required>
+                                <input type="text" class="form-control" id="promotionMessage" name="promotionMessage"
+                                    required>
                             </div>
 
                             <div class="mb-3">
@@ -216,18 +221,21 @@ if (
 
                             <div class="mb-3">
                                 <label for="discountPercentage" class="form-label">Discount Percentage(%):</label>
-                                <input type="number" step="0.01" class="form-control" id="discountPercentage" name="discountPercentage" min="1" max="100" required>
+                                <input type="number" step="0.01" class="form-control" id="discountPercentage"
+                                    name="discountPercentage" min="1" max="100" required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="minPurchaseAmount" class="form-label">Minimum Purchase Amount(RM):</label>
-                                <input type="number" step="0.01" class="form-control" id="minPurchaseAmount" name="minPurchaseAmount" min="1" required>
+                                <input type="number" step="0.01" class="form-control" id="minPurchaseAmount"
+                                    name="minPurchaseAmount" min="1" required>
                             </div>
 
                             <!--Submit Button-->
                             <div class="text-center">
                                 <button type="submit" id="submit-button" class="btn btn-primary">
-                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="submit-spinner"></span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status"
+                                        aria-hidden="true" id="submit-spinner"></span>
                                     <span id="submit-text">Update</span>
                                 </button>
 
@@ -248,8 +256,11 @@ if (
             <div class="accordion-item">
                 <!--Header-->
                 <h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
-                        <img src="../../Assets/img/pending.png" alt="pending icon" style="width:30px; height:auto;margin-right:10px;">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true"
+                        aria-controls="panelsStayOpen-collapseOne">
+                        <img src="../../Assets/img/pending.png" alt="pending icon"
+                            style="width:30px; height:auto;margin-right:10px;">
                         <strong>Pending Request</strong>
                     </button>
                 </h2>
@@ -266,27 +277,36 @@ if (
                                 <div class="Pending-Card" data-product-id="<?= $pending['product_id']; ?>">
 
                                     <!--Header Section(Display Store Name)--->
-                                    <div class="Pending-Listing-Container-Header">
-                                        <h3><?= htmlspecialchars($pending['store_name']); ?></h3>
-                                    </div>
+                            <div class="Pending-Listing-Container-Header">
+                                <h3>
+                                    <?= htmlspecialchars($pending['store_name']); ?>
+                                </h3>
+                            </div>
 
-                                    <!--Pending Request Body-->
+                            <!--Pending Request Body-->
                                     <div class="Pending-Card-Body">
-                                        <!--Content Section(Display Quantity, Unit Price)-->
                                         <div class="Pending-Listing-Container-Content">
-                                            <span class="label">Product Name</span> <span class="colon">:</span> <?= $pending['product_name']; ?>
-                                            <span class="label">Stock Quantity</span> <span class="colon">:</span> <span class="value"><?= $pending['stock_quantity']; ?></span>
-                                            <span class="label">Unit Price</span> <span class="colon">:</span> <span class="value">RM <?= $pending['unit_price']; ?></span>
+                                            <span class="label">Product Name</span> <span class="colon">:</span>
+                                            <?= $pending['product_name']; ?>
+                                            <span class="label">Stock Quantity</span> <span class="colon">:</span> <span
+                                                class="value"><?= $pending['stock_quantity']; ?></span>
+                                            <span class="label">Unit Price</span> <span class="colon">:</span> <span
+                                                class="value">RM <?= $pending['unit_price']; ?></span>
                                         </div>
 
-                                        <!--Button for Approve/ Decline Pending-->
+                                        <!-- Button for Approve/ Decline Pending -->
                                         <div class="Pending-Listing-Container-Button">
-
                                             <button type="button" class="btn btn-primary btn-sm btn-preview"
-                                                data-product-id="<?= $pending['product_id']; ?>">
+                                                data-product-id="<?= $pending['product_id']; ?>"
+                                                data-product-name="<?= htmlspecialchars($pending['product_name']); ?>"
+                                                data-product-image="<?= htmlspecialchars($pending['product_image']); ?>"
+                                                data-product-category="<?= htmlspecialchars($pending['category_name'] ?? 'Unknown Category'); ?>"
+                                                data-product-description="<?= htmlspecialchars($pending['description']); ?>"
+                                                data-product-stock="<?= $pending['stock_quantity']; ?>"
+                                                data-product-weight="<?= $pending['weight']; ?>"
+                                                data-product-price="<?= $pending['unit_price']; ?>">
                                                 Preview
                                             </button>
-
                                             <button type="button" class="btn btn-success btn-sm"
                                                 onclick="updatePendingStatus(<?= $pending['product_id']; ?>, 'approve_pending')">
                                                 Approve
@@ -311,7 +331,8 @@ if (
             </div>
 
             <!--Pending Request Detail Modal-->
-            <div class="modal fade" id="pendingRequestModal" tabindex="-1" aria-labelledby="pendingRequestModalTitle" aria-hidden="true">
+            <div class="modal fade" id="pendingRequestModal" tabindex="-1" aria-labelledby="pendingRequestModalTitle"
+                aria-hidden="true">
 
                 <div class="modal-dialog modal-dialog-centered " role="document">
 
@@ -353,7 +374,8 @@ if (
             </div>
 
             <!--Product Preview Modal-->
-            <div class="modal fade" id="productPreviewModal" tabindex="-1" aria-labelledby="productPreviewModalLabel" aria-hidden="true">
+            <div class="modal fade" id="productPreviewModal" tabindex="-1" aria-labelledby="productPreviewModalLabel"
+                aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -363,7 +385,8 @@ if (
                         <div class="modal-body" id="productPreviewBody">
                             <div class="row">
                                 <div class="col-md-5 text-center">
-                                    <img id="productPreviewImage" src="" alt="Product Image" class="img-fluid rounded border">
+                                    <img id="productPreviewImage" src="" alt="Product Image"
+                                        class="img-fluid rounded border">
                                 </div>
                                 <div class="col-md-7">
                                     <h4 id="productPreviewName"></h4>
@@ -382,8 +405,11 @@ if (
             <!--Refund List-->
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="false" aria-controls="panelsStayOpen-collapseThree">
-                        <img src="../../Assets/img/refund.png" alt="refund icon" style="width:35px; height:auto;margin-right:10px;">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="false"
+                        aria-controls="panelsStayOpen-collapseThree">
+                        <img src="../../Assets/img/refund.png" alt="refund icon"
+                            style="width:35px; height:auto;margin-right:10px;">
                         <strong>Refund Listing</strong>
                     </button>
                 </h2>
@@ -396,22 +422,29 @@ if (
                                 <div class="Refund-Card" data-refund-id="<?= $refund['refund_id']; ?>">
 
                                     <!--Header Section--->
-                                    <div class="Refund-Listing-Container-Header">
-                                        <h3>Order ID : <?= htmlspecialchars($refund['order_id']); ?></h3>
-                                    </div>
+                            <div class="Refund-Listing-Container-Header">
+                                <h3>Order ID :
+                                    <?= htmlspecialchars($refund['order_id']); ?>
+                                </h3>
+                            </div>
 
-                                    <!--Refund Body-->
+                            <!--Refund Body-->
                                     <div class="Refund-Card-Body">
                                         <div class="Refund-Listing-Container-Content">
-                                            <span class="label">Product Name</span> <span class="colon">:</span> <span class="value"><?= $refund['product_name']; ?></span>
-                                            <span class="label">Refund Amount</span> <span class="colon">:</span> <span class="value">RM<?= $refund['refund_amount']; ?></span>
-                                            <span class="label">Refund Date</span> <span class="colon">:</span> <span class="value"><?= $refund['refund_date']; ?></span>
+                                            <span class="label">Product Name</span> <span class="colon">:</span> <span
+                                                class="value"><?= $refund['product_name']; ?></span>
+                                            <span class="label">Refund Amount</span> <span class="colon">:</span> <span
+                                                class="value">RM<?= $refund['refund_amount']; ?></span>
+                                            <span class="label">Refund Date</span> <span class="colon">:</span> <span
+                                                class="value"><?= $refund['refund_date']; ?></span>
                                         </div>
 
                                         <!--Approve / Reject Buttons-->
                                         <div class="Refund-Listing-Container-Button">
-                                            <button type="button" class="btn btn-success btn-sm" onclick="updateRefundStatus(<?= $refund['refund_id']; ?>, 'Approved')">Approve</button>
-                                            <button type="button" class="btn btn-danger btn-sm" onclick="updateRefundStatus(<?= $refund['refund_id']; ?>, 'Rejected')">Reject</button>
+                                            <button type="button" class="btn btn-success btn-sm"
+                                                onclick="updateRefundStatus(<?= $refund['refund_id']; ?>, 'Approved')">Approve</button>
+                                            <button type="button" class="btn btn-danger btn-sm"
+                                                onclick="updateRefundStatus(<?= $refund['refund_id']; ?>, 'Rejected')">Reject</button>
                                         </div>
                                     </div>
                                 </div>
@@ -428,8 +461,11 @@ if (
             <!--Request Assistance List-->
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
-                        <img src="../../Assets/img/request.png" alt="request icon" style="width:30px; height:auto;margin-right:10px;">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false"
+                        aria-controls="panelsStayOpen-collapseTwo">
+                        <img src="../../Assets/img/request.png" alt="request icon"
+                            style="width:30px; height:auto;margin-right:10px;">
                         <strong>Request Assistance</strong>
                     </button>
                 </h2>
@@ -449,14 +485,18 @@ if (
                                     <!--Assistance Body-->
                                     <div class="Assisstance-Card-Body">
                                         <div class="Assisstance-Listing-Container-Content">
-                                            <span class="label">Description</span> <span class="colon">:</span> <span class="value"><?= $assisstance['request_description']; ?></span>
-                                            <span class="label">Type</span> <span class="colon">:</span> <span class="value"><?= $assisstance['request_type']; ?></span>
-                                            <span class="label">Date& Time</span> <span class="colon">:</span> <span class="value"><?= $assisstance['request_date']; ?></span>
+                                            <span class="label">Description</span> <span class="colon">:</span> <span
+                                                class="value"><?= $assisstance['request_description']; ?></span>
+                                            <span class="label">Type</span> <span class="colon">:</span> <span
+                                                class="value"><?= $assisstance['request_type']; ?></span>
+                                            <span class="label">Date& Time</span> <span class="colon">:</span> <span
+                                                class="value"><?= $assisstance['request_date']; ?></span>
                                         </div>
 
                                         <!--Mark as Complete Button-->
                                         <div class="Assisstance-Listing-Container-Button">
-                                            <button type="button" class="btn btn-success btn-sm" onclick="markAssistanceComplete(<?= $assisstance['request_id']; ?>)">Complete</button>
+                                            <button type="button" class="btn btn-success btn-sm"
+                                                onclick="markAssistanceComplete(<?= $assisstance['request_id']; ?>)">Complete</button>
                                         </div>
                                     </div>
                                 </div>

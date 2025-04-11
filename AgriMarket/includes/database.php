@@ -174,7 +174,15 @@ class User
         ];
     }
 
-
+    function getRole($user_id)
+    {
+        $stmt = $this->conn->prepare("SELECT role FROM user WHERE user_id = ?");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return $row['role'] ?? null;
+    }
 }
 
 class Customer
@@ -661,13 +669,20 @@ class Staff
 
     function getPendingRequestList()
     {
-
-        $sql = "SELECT v.store_name, c.category_name,p.product_name, p.description, p.stock_quantity,p.weight, p.unit_price, p.product_id
-            FROM vendor v JOIN product p
-            ON v.vendor_id = p.vendor_id
-            JOIN category c 
-            ON p.category_id=c.category_id
-            WHERE p.product_status='Pending'";
+            $sql = "SELECT 
+            v.store_name, 
+            c.category_name, 
+            p.product_name, 
+            p.description, 
+            p.stock_quantity, 
+            p.weight, 
+            p.unit_price, 
+            p.product_id, 
+            p.product_image
+        FROM vendor v 
+        JOIN product p ON v.vendor_id = p.vendor_id
+        LEFT JOIN category c ON p.category_id = c.category_id
+        WHERE p.product_status = 'Pending'";
 
         $result = $this->conn->query($sql);
 
