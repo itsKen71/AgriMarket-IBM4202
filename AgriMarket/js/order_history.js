@@ -192,8 +192,6 @@ function handleReorderAll(button) {
     reorderAllContent.innerHTML = '';
 
     products.forEach(product => {
-        if (product.status == 'Refunded') return;
-
         const row = document.createElement('div');
         row.className = 'd-flex align-items-center mb-3 border-bottom pb-2';
 

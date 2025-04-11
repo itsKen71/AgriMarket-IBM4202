@@ -3,7 +3,8 @@ include 'database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $product_id = $_POST['product_id'];
-
+    $db = new Database();
+    $conn = $db->conn;
     // Query to delete the product
     $query = "DELETE FROM product WHERE product_id = ?";
 

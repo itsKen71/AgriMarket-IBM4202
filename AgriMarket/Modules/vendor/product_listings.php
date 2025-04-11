@@ -237,7 +237,7 @@ $pendingCount =  $productClass->getPendingProductCount($vendor_id);
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="../../includes/edit_products.php" method="POST" enctype="multipart/form-data">
+                <form action="../../includes/edit_products.php" method="POST" enctype="multipart/form-data" id="editProductForm">
                     <input type="hidden" name="product_id" id="editProductId">
                     <input type="hidden" name="product_status" id="editProductStatus">
                     <div class="mb-3">
@@ -289,21 +289,19 @@ $pendingCount =  $productClass->getPendingProductCount($vendor_id);
                             ?>
                         </select>
                     </div>
-                    <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                </form>
-                <div> 
-                        <form action="../../includes/delete_product.php" method="POST">
+                    </form>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <form action="../../includes/delete_product.php" method="POST" id="deleteProductForm" class="m-0">
                             <input type="hidden" name="product_id" id="deleteProductId">
-                            <button type="submit" class="btn btn-danger">Delete</button>
+                            <button type="submit" class="btn btn-danger" form="deleteProductForm">Delete</button>
                         </form>
-                </div>
+                        
+                        <button type="submit" class="btn btn-primary" form="editProductForm">Save Changes</button>
+                    </div>
             </div>
         </div>
     </div>
 </div>
-
 
 <!-- Add Product Modal -->
 <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
@@ -339,12 +337,12 @@ $pendingCount =  $productClass->getPendingProductCount($vendor_id);
 
                     <div class="mb-3">
                         <label for="weight" class="form-label">Weight (kg)</label>
-                        <input type="number" step="0.01" class="form-control" id="weight" name="weight" required>
+                        <input type="number" step="0.01" class="form-control" id="weight" name="weight" min="0.01" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="unitPrice" class="form-label">Price ($)</label>
-                        <input type="number" step="0.01" class="form-control" id="unitPrice" name="unit_price" required>
+                        <input type="number" step="0.01" class="form-control" id="unitPrice" name="unit_price" min="0.01" required>
                     </div>
 
                     <div class="mb-3">

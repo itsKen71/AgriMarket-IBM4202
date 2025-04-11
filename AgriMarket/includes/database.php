@@ -1066,6 +1066,7 @@ class Product
         FROM product p
         JOIN category c ON p.category_id = c.category_id
         WHERE p.vendor_id = ? AND p.product_status = ?
+        ORDER BY p.product_name ASC
     ";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("is", $vendor_id, $status);
