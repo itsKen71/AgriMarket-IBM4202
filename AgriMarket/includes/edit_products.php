@@ -1,6 +1,11 @@
 <?php
 include 'database.php';
 
+$db = new Database();
+$productClass = new Product($db);
+
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $product_id = $_POST['product_id']; 
     $description = $_POST['description'];
@@ -17,10 +22,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     try {
         // Upload the product image (or use the existing image if no new one)
-        $image_path = updateProductImage($_FILES["product_image"], $current_image);
+        $image_path = $productClass->updateProductImage($_FILES["product_image"], $current_image);
 
         // Update the product in the database (now including status)
-        $updateSuccess = updateProduct($conn, $product_id, $category_id, $image_path,
+        $updateSuccess = $productClass->updateProduct($product_id, $category_id, $image_path,
          $description, $stock_quantity, $weight, $unit_price, $product_status);
 
         if ($updateSuccess) {

@@ -2,6 +2,14 @@
 session_start();
 include '../../includes/database.php';
 
+$db = new Database();
+$userClass = new User($db);
+$customerClass = new Customer($db);
+$vendorClass = new Vendor($db);
+$adminClass = new Admin($db);
+$productClass = new Product($db);
+$paymentClass = new Payment($db);
+
 $user_id = $_SESSION['user_id'] ?? null;
 
 if (!$user_id) {
@@ -9,8 +17,8 @@ if (!$user_id) {
     exit();
 }
 
-$vendor = getVendorDetails($user_id, $conn);
-$customer = getCustomerDetails($user_id, $conn);
+$vendor = $vendorClass->getVendorDetails($user_id);
+$customer = $customerClass->getCustomerDetails($user_id);
 
 ?>
 
@@ -105,7 +113,7 @@ $customer = getCustomerDetails($user_id, $conn);
             <?php if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tracking_number'])): ?>
                 <?php
                 $tracking_number = htmlspecialchars(trim($_POST['tracking_number']));
-                $shipment = getShipmentDetails($conn, $tracking_number, $user_id);
+                $shipment = $productClass->getShipmentDetails($tracking_number, $user_id);
 
                 if ($shipment) {
                     $start_date = strtotime($shipment['update_timestamp']);
@@ -126,7 +134,7 @@ $customer = getCustomerDetails($user_id, $conn);
                     }
 
                     if ($shipment['status'] !== $new_status) {
-                        updateShipmentStatus($conn, $shipment['shipping_id'], $new_status);
+                        $productClass->updateShipmentStatus($shipment['shipping_id'], $new_status);
                     }
 
                     $status = $new_status;

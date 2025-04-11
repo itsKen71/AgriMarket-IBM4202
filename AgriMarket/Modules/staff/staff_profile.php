@@ -2,6 +2,9 @@
 session_start();
 include '../../includes/database.php';
 
+$userClass = new User($db);
+$customerClass = new Customer($db);
+
 $user_id = $_SESSION['user_id'] ?? null;
 
 if (!$user_id) {
@@ -9,8 +12,8 @@ if (!$user_id) {
     exit();
 }
 
-$customer = getCustomerDetails($user_id, $conn);
-$user_image = getUserImageFromUserID(user_id: $user_id);
+$customer = $customerClass->getCustomerDetails($user_id);
+$user_image = $userClass->getUserImageFromUserID(user_id: $user_id);
 
 
 ?>

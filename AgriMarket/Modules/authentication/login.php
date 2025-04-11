@@ -4,13 +4,16 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once '../../includes/database.php';
 
+$db = new Database();
+$userClass = new User($db);
+
 $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username_email = trim($_POST['username']);
     $password = trim($_POST['password']);
 
-    $user = authenticateUser($username_email, $password);
+    $user = $userClass->authenticateUser($username_email, $password);
 
     if ($user) {
         $_SESSION['user_id'] = $user['user_id'];

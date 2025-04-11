@@ -3,6 +3,9 @@ session_start();
 include '..\..\includes\database.php';
 include '..\..\includes\product_page_functions.php';
 
+$db = new Database();
+$userClass = new User($db);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
     $_SESSION['selected_product_id'] = $_POST['product_id'];
     header("Location: product_page.php");
@@ -74,7 +77,7 @@ $vendor = VendorDetail($conn, $product_id);
 if ($vendor) {
     $store_name = $vendor['store_name'];
     $vendor_id = $vendor['vendor_id'];
-    $vendor_image = getUserImageFromUserID($vendor['user_id']); // Now user_id is available
+    $vendor_image = $userClass->getUserImageFromUserID($vendor['user_id']); // Now user_id is available
     $vendor_rating = VendorRating($conn, $vendor_id);
 } else {
     $store_name = "Unknown Store";

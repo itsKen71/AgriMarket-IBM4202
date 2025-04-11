@@ -3,13 +3,17 @@ session_start();
 
 include '../../includes/database.php';
 
+$db = new Database();
+$customerClass = new Customer($db);
+
+
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php"); // Redirect to login page
     exit(); // 
 }
 
-$orderHistory = getOrderHistoryByUser($user_id, $conn);
+$orderHistory = $customerClass->getOrderHistoryByUser($user_id);
 if (empty($orderHistory)) {
     $noOrderMessage = "You have no order history yet...";
 }

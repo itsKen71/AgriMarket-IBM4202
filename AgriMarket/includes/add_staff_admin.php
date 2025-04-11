@@ -1,6 +1,9 @@
 <?php
 require_once 'database.php';
 
+$db = new Database();
+$userClass = new User($db);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first_name = trim($_POST['first_name']);
     $last_name = trim($_POST['last_name']);
@@ -38,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $result = insertUser($first_name, $last_name, $username, $email, $hashed_password, $role, $phone_number, $home_address, $image_path);
+    $result = $userClass->insertUser($first_name, $last_name, $username, $email, $hashed_password, $role, $phone_number, $home_address, $image_path);
 
     if ($result) {
         header("Location: ../Modules/admin/admin_dashboard.php?success=staff_added");

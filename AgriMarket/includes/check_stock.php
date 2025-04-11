@@ -1,6 +1,8 @@
 <?php
 session_start();
 include 'database.php';
+$db = new Database();
+$conn = $db->conn;
 
 header('Content-Type: application/json');
 

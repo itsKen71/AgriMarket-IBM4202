@@ -2,6 +2,10 @@
 session_start();
 include 'database.php';
 
+$db = new Database();
+$vendorClass = new Vendor($db);
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $store_name = htmlspecialchars(trim($_POST['store_name']));
 
@@ -12,12 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    $vendor = getVendorDetails($user_id, $conn);
+    $vendor = $vendorClass->getVendorDetails($user_id);
     if ($vendor) {
         $vendor_id = $vendor['vendor_id'];
 
         // Update the vendor store name
-        $storeUpdateSuccess = updateVendorProfile($conn, $store_name, $vendor_id);
+        $storeUpdateSuccess = $vendorClass->updateVendorProfile($store_name, $vendor_id);
 
         if ($storeUpdateSuccess) {
             // Redirect on success

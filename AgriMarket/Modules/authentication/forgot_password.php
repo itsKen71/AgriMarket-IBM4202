@@ -9,6 +9,9 @@ use PHPMailer\PHPMailer\Exception;
 
 session_start();
 
+$db = new Database();
+$userClass = new User($db);
+
 $error = "";
 $success = "";
 $step = isset($_SESSION['step']) ? $_SESSION['step'] : 1;
@@ -16,7 +19,7 @@ $step = isset($_SESSION['step']) ? $_SESSION['step'] : 1;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['username']) && $step === 1) {
         $username = trim($_POST['username']);
-        $email = getEmailByUsername($username);
+        $email = $userClass->getEmailByUsername($username);
 
         if ($email) {
             $otp = rand(100000, 999999);
@@ -89,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hashed_password = hash('sha256', $password);
             $username = $_SESSION['username'];
 
-            if (updatePasswordByUsername($username, $hashed_password)) {
+            if ($userClass->updatePasswordByUsername($username, $hashed_password)) {
                 $success = "Password reset successfully. You can now <a href='login.php'>log in</a>.";
                 unset($_SESSION['otp'], $_SESSION['username'], $_SESSION['email'], $_SESSION['step']);
                 $step = 1;

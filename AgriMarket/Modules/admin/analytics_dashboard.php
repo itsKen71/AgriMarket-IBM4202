@@ -10,29 +10,36 @@ if (!$user_id && !$role) {
 
 include '../../includes/database.php';
 
+$db = new Database();
+$userClass = new User($db);
+$customerClass = new Customer($db);
+$vendorClass = new Vendor($db);
+$adminClass = new Admin($db);
+$productClass = new Product($db);
+$paymentClass = new Payment($db);
+
 //Check role is admin or vendor
 $checkRole = ($role == "Admin");
 $query_vendor_id = -1;
 
 if (!$checkRole) {
-    $query_vendor_id = getVendorIdByUserId($conn, $user_id);
+    $query_vendor_id = $userClass->getVendorIdByUserId($user_id);
 
 }
 
 $option = $_GET['option'] ?? 'monthly';
 
 // Fetch data based on specific role
-$activeUsers = getActiveUser($conn);
-$numberProduct = getNumberProducts($conn, $query_vendor_id);
-$refundPercentage = getRefundPercentage($conn, $query_vendor_id);
-$subscriptionData = getSubscription($conn);
-$topPaymentMethod = topPaymentmethod($conn, $query_vendor_id);
-$topVendor = getTopVendor($conn);
-$topProduct = getTopProduct($conn, $query_vendor_id);
-$shipmentStatus = getShipmentStatus($conn, $query_vendor_id);
-$monthlyOrders = getOrders($conn, $query_vendor_id, $option);
-$monthlyRevenue = getRevenue($conn, $query_vendor_id, $option);
-
+$activeUsers = $userClass->getActiveUser();
+$numberProduct = $productClass->getNumberProducts($query_vendor_id);
+$refundPercentage = $paymentClass->getRefundPercentage($query_vendor_id);
+$subscriptionData = $vendorClass->getSubscription();
+$topPaymentMethod = $paymentClass->topPaymentmethod($query_vendor_id);
+$topVendor = $adminClass->getTopVendor();
+$topProduct = $productClass->getTopProduct($query_vendor_id);
+$shipmentStatus = $customerClass->getShipmentStatus($query_vendor_id);
+$monthlyOrders = $paymentClass->getOrders($query_vendor_id, $option);
+$monthlyRevenue = $paymentClass->getRevenue($query_vendor_id, $option);
 
 ?>
 
@@ -62,7 +69,8 @@ $monthlyRevenue = getRevenue($conn, $query_vendor_id, $option);
                 <!--Active Customer-->
                 <div class="info-card">
                     <h3>
-                        <img src="../../Assets/img/staff.png" alt="active customer icon" style="width:30px; height:auto;margin-right:10px;">
+                        <img src="../../Assets/img/staff.png" alt="active customer icon"
+                            style="width:30px; height:auto;margin-right:10px;">
                         Active Customers
                     </h3>
                     <p><?php echo $activeUsers["activeCustomers"]; ?></p>
@@ -73,7 +81,8 @@ $monthlyRevenue = getRevenue($conn, $query_vendor_id, $option);
                     <!--Active Vendor-->
                     <div class="info-card">
                         <h3>
-                            <img src="../../Assets/img/vendor.png" alt="active vendor icon" style="width:30px; height:auto;margin-right:10px;">
+                            <img src="../../Assets/img/vendor.png" alt="active vendor icon"
+                                style="width:30px; height:auto;margin-right:10px;">
                             Active Vendors
                         </h3>
                         <p><?php echo $activeUsers["activeVendors"]; ?></p>
@@ -84,7 +93,8 @@ $monthlyRevenue = getRevenue($conn, $query_vendor_id, $option);
                 <?php if ($role == "Vendor"): ?>
                     <div class="info-card">
                         <h3>
-                            <img src="../../Assets/img/box.png" alt="producticon" style="width:30px; height:auto;margin-right:10px;">
+                            <img src="../../Assets/img/box.png" alt="producticon"
+                                style="width:30px; height:auto;margin-right:10px;">
                             Selling Products
                         </h3>
                         <p><?php echo $numberProduct["total_product"]; ?></p>
@@ -94,7 +104,8 @@ $monthlyRevenue = getRevenue($conn, $query_vendor_id, $option);
                 <!--Refund Percentage-->
                 <div class="info-card refund-card">
                     <h3>
-                        <img src="../../Assets/img/refund.png" alt="refund percentage icon" style="width:35px; height:auto;margin-right:10px;">
+                        <img src="../../Assets/img/refund.png" alt="refund percentage icon"
+                            style="width:35px; height:auto;margin-right:10px;">
                         Refund Percentage
                     </h3>
                     <p><?php echo $refundPercentage["totalRefundPercentage"]; ?></p>
@@ -105,8 +116,9 @@ $monthlyRevenue = getRevenue($conn, $query_vendor_id, $option);
             <div class="info-card">
                 <h3 class="text-start mb-4">Top Products</h3>
 
-                <?php if (empty($topProduct) ): ?>
-                    <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
+                <?php if (empty($topProduct)): ?>
+                    <div
+                        style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
                         <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
                             No product found
                         </div>
@@ -127,7 +139,9 @@ $monthlyRevenue = getRevenue($conn, $query_vendor_id, $option);
                             foreach ($topProduct as $product): ?>
                                 <tr>
                                     <td><?php echo $index++; ?></td>
-                                    <td><img src="../../<?php echo $product['product_image']; ?>" alt="<?php echo htmlspecialchars($product['product_name']); ?>" width="100" height="100"></td>
+                                    <td><img src="../../<?php echo $product['product_image']; ?>"
+                                            alt="<?php echo htmlspecialchars($product['product_name']); ?>" width="100"
+                                            height="100"></td>
                                     <td><?php echo htmlspecialchars($product['product_name']); ?></td>
                                     <td><?php echo (int) $product['total_quantity']; ?></td>
                                 </tr>
@@ -180,7 +194,8 @@ $monthlyRevenue = getRevenue($conn, $query_vendor_id, $option);
                     <!-- Select duration-->
                     <div class="d-flex justify-content-end align-items-center mb-2">
                         <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="ordersFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button"
+                                id="ordersFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 Filter by <span id="ordersFilterLabel"></span>
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="ordersFilterDropdown">
@@ -200,7 +215,8 @@ $monthlyRevenue = getRevenue($conn, $query_vendor_id, $option);
                     <!--Select duration-->
                     <div class="d-flex justify-content-end align-items-center mb-2">
                         <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="revenueFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button"
+                                id="revenueFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 Filter by <span id="revenueFilterLabel"></span>
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="revenueFilterDropdown">

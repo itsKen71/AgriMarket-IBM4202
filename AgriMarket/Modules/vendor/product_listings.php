@@ -2,9 +2,16 @@
 session_start();
 
 include '../../includes/database.php';
+$db = new Database();
+$userClass = new User($db);
+$customerClass = new Customer($db);
+$vendorClass = new Vendor($db);
+$adminClass = new Admin($db);
+$productClass = new Product($db);
+$paymentClass = new Payment($db);
 
 $user_id = $_SESSION['user_id'] ?? null;
-$vendor = getVendorDetails($user_id, $conn);
+$vendor = $vendorClass->getVendorDetails($user_id);
 if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php"); // Redirect to login page
     exit(); // 
@@ -16,15 +23,15 @@ if (!$vendor) {
 $vendor_id = $vendor['vendor_id'];
 
 if ($vendor['has_low_stock_alert']) {
-    $lowStockProducts = getLowStockProducts($vendor['vendor_id'], $conn);
+    $lowStockProducts = $productClass->getLowStockProducts($vendor['vendor_id']);
     $lowStockProductsJson = json_encode($lowStockProducts);
 }
-$approvedProducts = getProductsByStatus($conn, $vendor_id, 'Approved');
-$pendingProducts = getProductsByStatus($conn, $vendor_id, 'Pending');
-$rejectedProducts = getProductsByStatus($conn, $vendor_id, 'Rejected');
+$approvedProducts = $productClass->getProductsByStatus($vendor_id, 'Approved');
+$pendingProducts = $productClass->getProductsByStatus($vendor_id, 'Pending');
+$rejectedProducts = $productClass->getProductsByStatus($vendor_id, 'Rejected');
 
 $uploadLimit = $vendor['upload_limit'];
-$pendingCount = getPendingProductCount($vendor_id, $conn);
+$pendingCount =  $productClass->getPendingProductCount($vendor_id);
 ?>
 
 <!DOCTYPE html>
@@ -275,7 +282,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                         <label for="editCategory" class="form-label">Category</label>
                         <select class="form-control" name="category_id" id="editCategory" required>
                             <?php
-                            $categories = getCategories(); 
+                            $categories =  $productClass->getCategories(); 
                             foreach ($categories as $category) {  
                                 echo "<option value='{$category['category_id']}'>{$category['category_name']}</option>";
                             }
@@ -345,7 +352,7 @@ $pendingCount = getPendingProductCount($vendor_id, $conn);
                         <select class="form-select" name="category_id" id="category" required>
                             <option value="" disabled selected>Select Category</option>
                             <?php
-                            $categories = getCategories(); 
+                            $categories =  $productClass->getCategories(); 
                             foreach ($categories as $category) { 
                                 echo "<option value='{$category['category_id']}'>{$category['category_name']}</option>";
                             }

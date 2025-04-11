@@ -2,6 +2,13 @@
 session_start();
 include 'database.php';
 
+$db = new Database();
+$customerClass = new Customer($db);
+$vendorClass = new Vendor($db);
+$adminClass = new Admin($db);
+
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_id = $_SESSION['user_id'] ?? null;
     $plan_id = $_POST['plan_id'] ?? null;
@@ -13,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Fetch plan details
-    $plan_name = getPlanName($conn, $plan_id);
+    $plan_name = $vendorClass->getPlanName($plan_id);
     if (!$plan_name) {
         echo "Subscription plan not found.";
         exit();
@@ -23,17 +30,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $end_date = date("Y-m-d", strtotime("+$months months"));
 
     // Check if user is already a vendor
-    $is_vendor = checkIfVendor($conn, $user_id);
+    $is_vendor = $vendorClass->checkIfVendor($user_id);
 
     if (!$is_vendor) {
         // Upgrade user to vendor
-        $success = upgradeToVendor($conn, $user_id, $plan_id, $end_date);
+        $success = $customerClass->upgradeToVendor($user_id, $plan_id, $end_date);
         if ($success) {
             $_SESSION['role'] = 'Vendor'; 
         }
     } else {
         // Update vendor subscription
-        $success = updateVendorSubscription($conn, $user_id, $plan_id, $end_date);
+        $success = $vendorClass->updateVendorSubscription($user_id, $plan_id, $end_date);
     }
 
     if ($success) {
