@@ -6,7 +6,6 @@ include '../../includes/database.php';
 $db = new Database();
 $customerClass = new Customer($db);
 
-
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php"); // Redirect to login page
@@ -17,6 +16,7 @@ $orderHistory = $customerClass->getOrderHistoryByUser($user_id);
 if (empty($orderHistory)) {
     $noOrderMessage = "You have no order history yet...";
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -28,7 +28,6 @@ if (empty($orderHistory)) {
     <title>AgriMarket - Order History</title>
     <link rel="icon" type="image/png" href="..\..\assets\img\logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="../../css/order_history.css">
     <script src="../../js/order_history.js"></script>
 </head>
@@ -46,9 +45,6 @@ if (empty($orderHistory)) {
     <?php else: ?>
     <!-- Loop through orders if there are any -->
     <?php foreach ($orderHistory as $orderId => $order): ?>
-      <?php $allRefunded = array_reduce($order['products'], function ($carry, $product) {
-            return $carry && $product['status'] === 'Refunded';
-            }, true);?>
         <div class="card mb-4 shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center bg-light">
                 <h5 class="mb-0">
@@ -56,7 +52,7 @@ if (empty($orderHistory)) {
                     <small class="text-muted"><?= $order['order_date'] ?></small>
                 </h5>
                 <div class="d-flex align-items-center">
-                  <button class="btn btn-outline-danger btn-sm btn-refundWhole me-2">
+                  <button class="btn btn-outline-danger btn-sm btn-refund-all me-2">
                     Refund All
                   </button>
                 <button class="btn btn-outline-success btn-sm btn-reorder-all me-2"
@@ -79,6 +75,28 @@ if (empty($orderHistory)) {
                     </thead>
                     <tbody>
                         <?php foreach ($order['products'] as $product): ?>
+                          <?php
+                          $paymentStatus = $order['payment_status'];
+                          $productOrderStatus = $product['status'];
+                          $refundRequested = !empty($product['refund_id']);
+
+                          $disableRefund = $paymentStatus == 'Pending' || $productOrderStatus == 'Refunded' || $refundRequested;
+                          
+                          switch (true) {
+                            case $paymentStatus == 'Pending':
+                              $tooltip = 'Payment is pending.';
+                              break;
+                            case $productOrderStatus == 'Refunded':
+                              $tooltip = 'Product refunded.';
+                              break;
+                            case $refundRequested:
+                              $tooltip = 'Refund requested.';
+                              break;
+                            default:
+                            $tooltip = '';
+                          }
+                        ?>
+
                         <tr>
                             <td class="d-flex justify-content-between align-items-center">
                             <span class="<?= $product['status'] === 'Refunded' ? 'text-danger text-decoration-line-through fw-bold' : '' ?>">
@@ -101,10 +119,25 @@ if (empty($orderHistory)) {
                             <td><?php echo $product['quantity'] ?></td>
                             <td><?php echo number_format($product['sub_price'] , 2) ?></td>
                             <td class="text-center">
-                                <div class="btn-group">
-                                <button class="btn btn-outline-danger btn-sm btn-refund">
-                                    Refund
-                                </button>
+                              <div class="btn-group">
+                              <?php
+                              $tooltipAttr = !empty($tooltip) ? 'data-bs-toggle="tooltip" title="' . htmlspecialchars($tooltip) . '"' : '';
+                              ?>
+                              <div class="d-inline-block" <?= $tooltipAttr ?>>
+                              <button 
+                                class="btn btn-outline-danger btn-sm btn-refund"
+                                <?= $disableRefund ? 'disabled' : '' ?>
+                                data-product-id="<?= $product['product_id'] ?>"
+                                data-order-id="<?= $orderId ?>"
+                                data-payment-id="<?= $order['payment_id'] ?>"
+                                data-product-name="<?= htmlspecialchars($product['product_name']) ?>"
+                                data-product-image="../../<?= htmlspecialchars($product['product_image']) ?>"
+                                data-product-quantity="<?= $product['quantity'] ?>"
+                                data-sub-price="<?= $product['sub_price'] ?>">
+                                  Refund
+                              </button>
+                              </div>
+
                                 <button class="btn btn-outline-primary btn-sm btn-review"
                                 data-product-id="<?php echo $product['product_id'] ?>"
                                 data-product-name="<?php echo htmlspecialchars($product['product_name']) ?>"
@@ -120,7 +153,7 @@ if (empty($orderHistory)) {
                                 data-product-stock="<?php echo $product['stock_quantity'] ?>">
                                     Reorder
                                 </button>
-                                </div>
+                              </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -263,6 +296,41 @@ if (empty($orderHistory)) {
   </div>
 </div>
 
+<!-- Refund Modal -->
+<div class="modal fade" id="refundModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="refundForm" method="POST" action="process_refund.php">
+        <div class="modal-header">
+          <h5 class="modal-title" id="refundModalLabel">Refund Request</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="product_id" id="refundProductId">
+          <input type="hidden" name="order_id" id="refundOrderId">
+          <input type="hidden" name="payment_id" id="refundPaymentId">
+          <input type="hidden" name="refund_amount" id="refundAmount">
+          
+          <div class="mb-3 text-center">
+            <img id="refundProductImage" src="" class="img-fluid" style="max-height: 120px;" />
+          </div>
+          <p><strong>Product:</strong> <span id="refundProductName"></span></p>
+          <p><strong>Quantity:</strong> <span id="refundProductQuantity"></span></p>
+          <p><strong>Subtotal:</strong> RM <span id="refundProductSubPrice"></span></p>
+
+          <div class="mb-3">
+            <label for="refundReason" class="form-label">Reason</label>
+            <textarea class="form-control" name="reason" id="refundReason" rows="3" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-danger">Submit Refund</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Reorder Success Modal -->
 <div class="modal fade" id="reorderSuccessModal" tabindex="-1" aria-labelledby="reorderSuccessModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -288,6 +356,27 @@ if (empty($orderHistory)) {
       </div>
       <div class="modal-body text-center">
         <p>Thank you for your review. <br>Your feedback is valuable to us!</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Refund Success Modal -->
+<div class="modal fade" id="refundSuccessModal" tabindex="-1" aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reviewSuccessModalLabel">Refund Submitted!</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p>
+        Your request is now submitted for review.<br>
+        It takes up to 3 business days to process.
+        </p>
       </div>
       <div class="modal-footer justify-content-center">
         <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>

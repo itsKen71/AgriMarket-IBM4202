@@ -221,7 +221,8 @@ class Customer
             coh.status AS order_status,
             s.tracking_number,
             pym.payment_id, pym.payment_status,
-            c.category_name
+            c.category_name,
+            r.refund_id, r.refund_status
         FROM orders o
         INNER JOIN product_order poh ON o.order_id = poh.order_id
         INNER JOIN product p ON poh.product_id = p.product_id
@@ -229,6 +230,10 @@ class Customer
         INNER JOIN shipment s ON o.order_id = s.order_id
         INNER JOIN payment pym ON o.order_id = pym.order_id
         INNER JOIN category c ON c.category_id = p.category_id
+        LEFT JOIN refund r 
+        ON r.product_id = poh.product_id 
+        AND r.order_id = o.order_id 
+        AND r.user_id = o.user_id
         WHERE o.user_id = ?
         ORDER BY o.order_date DESC, o.order_id DESC, p.product_name ASC
     ";
@@ -265,6 +270,8 @@ class Customer
                 'description' => $row['description'],
                 'weight' => $row['weight'],
                 'category_name' => $row['category_name'],
+                'refund_id' => $row['refund_id'],
+                'refund_status' => $row['refund_status']
             ];
         }
         return $orders;

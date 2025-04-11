@@ -1,7 +1,8 @@
 <?php
 session_start();
 include 'database.php';
-
+$db = new Database();
+$conn = $db->conn;
 $productId = $_GET['product_id'];
 $userId = $_SESSION['user_id'];
 
