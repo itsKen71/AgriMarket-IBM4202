@@ -575,7 +575,6 @@ function getRefundPercentage($conn, $vendor_id)
     $currentYear = date("Y");
 
     if ($vendor_id == -1) {
-        // Admin view: count all refunds and orders
         $sqlRefunds = "
             SELECT COUNT(*) AS totalRefunds
             FROM refund
@@ -588,7 +587,6 @@ function getRefundPercentage($conn, $vendor_id)
             WHERE YEAR(order_date) = '$currentYear'
         ";
     } else {
-        // Vendor view: only count refunds and orders for vendor's products
         $sqlRefunds = "
             SELECT COUNT(*) AS totalRefunds
             FROM refund
@@ -622,8 +620,6 @@ function getRevenue($conn, $user_id, $option)
 {
     $currentYear = date("Y");
 
-    // Check whether it is admin or vendor
-    $vendorView = ($user_id == -1) ? "" : "AND orders.user_id = ?";
     $select = "";
     $groupBy = "";
     $orderBy = "";
@@ -632,7 +628,6 @@ function getRevenue($conn, $user_id, $option)
 
     switch ($option) {
         case 'quarterly':
-            // Selecting quarterly data
             $select = "QUARTER(order_date) AS duration";
             $groupBy = "QUARTER(order_date)";
             $orderBy = "QUARTER(order_date)";
@@ -643,36 +638,25 @@ function getRevenue($conn, $user_id, $option)
             break;
 
         case 'yearly':
-            // Get revenue for the past 5 years, including 2025
             $select = "YEAR(order_date) AS duration";
             $groupBy = "YEAR(order_date)";
             $orderBy = "YEAR(order_date)";
             $startYear = $currentYear - 4;
             for ($y = $startYear; $y <= $currentYear; $y++) {
-                $labels[$y] = (string) $y;
-                $data[$y] = ["duration" => (string) $y, "revenue" => 0];
+                $labels[$y] = (string)$y;
+                $data[$y] = ["duration" => (string)$y, "revenue" => 0];
             }
             break;
 
         case 'monthly':
         default:
-            // Selecting monthly data for 2025
             $select = "MONTH(order_date) AS duration";
             $groupBy = "MONTH(order_date)";
             $orderBy = "MONTH(order_date)";
             $labels = [
-                1 => "Jan",
-                2 => "Feb",
-                3 => "Mar",
-                4 => "Apr",
-                5 => "May",
-                6 => "Jun",
-                7 => "Jul",
-                8 => "Aug",
-                9 => "Sep",
-                10 => "Oct",
-                11 => "Nov",
-                12 => "Dec"
+                1 => "Jan", 2 => "Feb", 3 => "Mar", 4 => "Apr",
+                5 => "May", 6 => "Jun", 7 => "Jul", 8 => "Aug",
+                9 => "Sep", 10 => "Oct", 11 => "Nov", 12 => "Dec"
             ];
             foreach ($labels as $m => $label) {
                 $data[$m] = ["duration" => $label, "revenue" => 0];
@@ -680,32 +664,38 @@ function getRevenue($conn, $user_id, $option)
             break;
     }
 
-    // Query to get revenue data from orders
-    $sql = "SELECT $select, SUM(price) AS revenue
-            FROM orders
-            WHERE YEAR(order_date) = ? $vendorView
-            GROUP BY $groupBy
-            ORDER BY $orderBy";
-
-    $stmt = mysqli_prepare($conn, $sql);
-
+    // Check whether it is admin or vendor
     if ($user_id == -1) {
+        // Admin
+        $sql = "SELECT $select, SUM(price) AS revenue
+                FROM orders
+                WHERE YEAR(order_date) = ?
+                GROUP BY $groupBy
+                ORDER BY $orderBy";
+        $stmt = mysqli_prepare($conn, $sql);
         mysqli_stmt_bind_param($stmt, "i", $currentYear);
     } else {
+        // Vendor
+        $sql = "SELECT $select, SUM(price) AS revenue
+                FROM orders
+                JOIN product_order po ON orders.order_id = po.order_id
+                JOIN product p ON po.product_id = p.product_id
+                WHERE YEAR(order_date) = ? AND p.vendor_id = ?
+                GROUP BY $groupBy
+                ORDER BY $orderBy";
+        $stmt = mysqli_prepare($conn, $sql);
         mysqli_stmt_bind_param($stmt, "ii", $currentYear, $user_id);
     }
 
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 
-    // Fetch the results and store in the data array
     while ($row = mysqli_fetch_assoc($result)) {
         $key = $row['duration'];
         $label = $labels[$key] ?? "Unknown";
-        $data[$key] = ["duration" => $label, "revenue" => (float) $row['revenue']];
+        $data[$key] = ["duration" => $label, "revenue" => (float)$row['revenue']];
     }
 
-    // Return the results
     return array_values($data);
 }
 
@@ -758,7 +748,6 @@ function getOrders($conn, $user_id, $option)
             break;
     }
 
-    // SQL query
     if ($user_id == -1) {
         // Admin
         $sql = "SELECT $select, COUNT(DISTINCT o.order_id) AS total_orders
@@ -826,7 +815,6 @@ function getShipmentStatus($conn, $user_id)
 {
     $data = [];
 
-    // If admin (-1): no vendor filter.
     if ($user_id == -1) {
         $sql = "SELECT s.status, COUNT(s.shipping_id) AS totalShipments
                 FROM shipment s
@@ -834,7 +822,7 @@ function getShipmentStatus($conn, $user_id)
                 GROUP BY s.status
                 ORDER BY totalShipments DESC";
         $stmt = mysqli_prepare($conn, $sql);
-        // No binding needed for admin view.
+
     } else {
 
          $sql = "SELECT s.status, COUNT(DISTINCT s.shipping_id) AS totalShipments
@@ -853,7 +841,6 @@ function getShipmentStatus($conn, $user_id)
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 
-    // Collect all rows and compute the total shipments.
     $rows = [];
     $totalShipments = 0;
     while ($row = mysqli_fetch_assoc($result)) {
@@ -861,7 +848,6 @@ function getShipmentStatus($conn, $user_id)
          $totalShipments += $row['totalShipments'];
     }
 
-    // Calculate the percentage for each shipment status.
     foreach ($rows as $row) {
          $percentage = ($totalShipments > 0) ? ($row['totalShipments'] / $totalShipments) * 100 : 0;
          $data[] = ["label" => $row['status'], "y" => round($percentage, 2)];
@@ -888,7 +874,7 @@ function topPaymentMethod($conn, $user_id)
         $stmt = mysqli_prepare($conn, $sql);
         mysqli_stmt_bind_param($stmt, "s", $currentYear);
     } else {
-        // Vendor view — filter by vendor_id from product table
+        // Vendor view 
         $sql = "SELECT payment.payment_method, COUNT(DISTINCT payment.payment_id) AS frequency
                 FROM payment 
                 JOIN orders ON payment.order_id = orders.order_id
@@ -925,7 +911,6 @@ function topPaymentMethod($conn, $user_id)
 }
 
 
-
 function getTopVendor($conn)
 {
     $sql = "SELECT v.store_name AS label, SUM(po.sub_price) AS amountPurchase
@@ -948,46 +933,48 @@ function getTopVendor($conn)
     return $data;
 }
 
+
 function getTopProduct($conn, $user_id)
 {
+    $topProducts = [];
     $currentYear = date("Y");
 
-    // If not admin, get vendor_id first
-    $vendorFilter = "";
-    if ($user_id != -1) {
-        $vendorQuery = "SELECT vendor_id FROM vendor WHERE user_id = '$user_id'";
-        $vendorResult = mysqli_query($conn, $vendorQuery);
-
-        if (!$vendorResult || mysqli_num_rows($vendorResult) == 0) {
-            return []; // Not a vendor
-        }
-
-        $vendorRow = mysqli_fetch_assoc($vendorResult);
-        $vendor_id = $vendorRow['vendor_id'];
-
-        $vendorFilter = "AND product.vendor_id = '$vendor_id'";
+    if ($user_id == -1) {
+        // Admin view 
+        $sql = "SELECT p.product_image, p.product_name, SUM(po.quantity) AS total_quantity
+                FROM product_order po
+                JOIN orders o ON po.order_id = o.order_id
+                JOIN product p ON po.product_id = p.product_id
+                WHERE YEAR(o.order_date) = ?
+                GROUP BY p.product_id
+                ORDER BY total_quantity DESC
+                LIMIT 5";
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $currentYear);
+    } else {
+        // Vendor view 
+        $sql = "SELECT p.product_image, p.product_name, SUM(po.quantity) AS total_quantity
+                FROM product_order po
+                JOIN orders o ON po.order_id = o.order_id
+                JOIN product p ON po.product_id = p.product_id
+                JOIN vendor v ON p.vendor_id = v.vendor_id
+                WHERE YEAR(o.order_date) = ? AND v.vendor_id = ?
+                GROUP BY p.product_id
+                ORDER BY total_quantity DESC
+                LIMIT 5";
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "si", $currentYear, $user_id);
     }
 
-    $sql = "SELECT product.product_image, product.product_name, SUM(product_order.quantity) AS total_quantity
-            FROM product_order
-            JOIN orders ON product_order.order_id = orders.order_id
-            JOIN product ON product_order.product_id = product.product_id
-            WHERE YEAR(orders.order_date) = '$currentYear' $vendorFilter
-            GROUP BY product.product_id
-            ORDER BY total_quantity DESC
-            LIMIT 5";
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
 
-    $result = mysqli_query($conn, $sql);
-
-    $topProducts = [];
     while ($row = mysqli_fetch_assoc($result)) {
         $topProducts[] = $row;
     }
 
-    return $topProducts; 
+    return $topProducts;
 }
-
-
 
 function getProductsByStatus($conn, $vendor_id, $status)
 {
