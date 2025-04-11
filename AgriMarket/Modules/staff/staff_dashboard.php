@@ -91,8 +91,7 @@ if (
     $staffClass->update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by);
 
     // Get customers
-    ////////////////////////////////////////////////////////////////////////////////////
-    $customerClass = $customerClass->getCustomerEmails();
+    $customers = $customerClass->getCustomerEmails();
 
     if ($customers) {
         foreach ($customers as $customer) {
