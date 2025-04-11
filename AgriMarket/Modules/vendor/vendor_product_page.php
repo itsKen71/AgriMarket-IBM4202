@@ -1,6 +1,8 @@
 <?php
 session_start();
 include '../../includes/database.php';
+include '..\..\includes\product_page_functions.php';
+
 
 $db = new Database();
 $userClass = new User($db);
@@ -15,10 +17,12 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$vendor_id = intval($_GET['vendor_id']); 
-
-// Fetch vendor details
+$vendor_id = $_SESSION['vendorID'];
+$userID = $vendorClass->getUserIdByVendorId($vendor_id);
 $vendor = $vendorClass->getVendorDetailsById($vendor_id);
+
+$vendor_image = $userClass->getUserImageFromUserID($userID);
+$vendor_rating = VendorRating($db->conn, $vendor_id);
 
 // Fetch vendor products
 $search_query = $_GET['search'] ?? '';
@@ -34,6 +38,8 @@ $products = $productClass->getVendorProducts($vendor_id, $search_query, $filter)
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriMarket - Vendor Product Page</title>
     <link rel="icon" type="image/png" href="../../assets/img/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../css/vendor_product_page.css">
 </head>
@@ -43,15 +49,29 @@ $products = $productClass->getVendorProducts($vendor_id, $search_query, $filter)
 
     <div class="container mt-5">
         <!-- Vendor Profile Card -->
-        <div class="vendor-profile-card mb-4 shadow-sm">
-            <div class="card-body">
-                <h3 class="card-title"><?php echo htmlspecialchars($vendor['store_name']); ?></h3>
-                <p class="card-text">
-                    <strong>Owner:</strong>
-                    <?php echo htmlspecialchars($vendor['first_name'] . ' ' . $vendor['last_name']); ?><br>
-                    <strong>Email:</strong> <?php echo htmlspecialchars($vendor['email']); ?><br>
-                    <strong>Phone:</strong> <?php echo htmlspecialchars($vendor['phone_number']); ?>
-                </p>
+        <div class="vendor-profile-card mb-4 shadow-lg p-4 rounded bg-light">
+            <div class="d-flex align-items-center">
+                <!-- Vendor Profile Image -->
+                <div class="me-4">
+                    <img src="../../<?php echo htmlspecialchars($vendor_image); ?>" alt="Vendor Image"
+                        class="rounded-circle border-3" style="width: 100px; height: 100px; object-fit: cover;">
+                </div>
+                <!-- Vendor Details -->
+                <div>
+                    <h3 class="card-title mb-1"><?php echo htmlspecialchars($vendor['store_name']); ?></h3>
+                    <p class="card-text mb-2">
+                        <strong>Owner:</strong>
+                        <?php echo htmlspecialchars($vendor['first_name'] . ' ' . $vendor['last_name']); ?><br>
+                        <strong>Email:</strong> <?php echo htmlspecialchars($vendor['email']); ?><br>
+                        <strong>Phone:</strong> <?php echo htmlspecialchars($vendor['phone_number']); ?>
+                    </p>
+                    <div class="d-flex align-items-center">
+                        <strong class="rating-label me-2">Rating:</strong>
+                        <span><?php echo $vendorClass->displayStarsHere($vendor_rating); ?></span>
+                        <span
+                            class="ms-2 text-muted">(<?php echo $vendor_rating > 0 ? htmlspecialchars($vendor_rating) . ' / 5' : 'No Rating Yet'; ?>)</span>
+                    </div>
+                </div>
             </div>
         </div>
 

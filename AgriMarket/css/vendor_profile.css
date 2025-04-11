@@ -60,7 +60,7 @@ body.vendor_profile {
     gap: 10px;
     text-align: left;
     margin: 20px auto;
-    max-width: 600px;
+    max-width: 850px; 
 }
 
 .profile-details p {

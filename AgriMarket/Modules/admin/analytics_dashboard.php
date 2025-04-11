@@ -139,9 +139,13 @@ $monthlyRevenue = $paymentClass->getRevenue($query_vendor_id, $option);
                             foreach ($topProduct as $product): ?>
                                 <tr>
                                     <td><?php echo $index++; ?></td>
-                                    <td><img src="../../<?php echo $product['product_image']; ?>"
-                                            alt="<?php echo htmlspecialchars($product['product_name']); ?>" width="100"
-                                            height="100"></td>
+                                    <td>
+                                        <img src="../../<?php echo $product['product_image']; ?>"
+                                             alt="<?php echo htmlspecialchars($product['product_name']); ?>" 
+                                             width="100" 
+                                             height="100" 
+                                             style="border-radius: 50%; object-fit: cover;">
+                                    </td>
                                     <td><?php echo htmlspecialchars($product['product_name']); ?></td>
                                     <td><?php echo (int) $product['total_quantity']; ?></td>
                                 </tr>
