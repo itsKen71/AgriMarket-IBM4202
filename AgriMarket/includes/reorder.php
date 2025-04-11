@@ -1,7 +1,8 @@
 <?php
 session_start();
-require 'database.php'; // adjust if needed
-
+require 'database.php';
+$db = new Database();
+$conn = $db->conn;
 $user_id = $_SESSION['user_id'];
 $product_id = $_POST['product_id'];
 $quantity = intval($_POST['quantity']);
