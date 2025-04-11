@@ -77,7 +77,9 @@ $customer = getCustomerDetails($user_id, $conn);
                 <p><strong>Subscription Plan:</strong>
                     <?= htmlspecialchars(str_replace('_', ' ', $vendor['plan_name'] ?? 'N/A')); ?></p>
                 <p><strong>Subscription Start:</strong> <?= htmlspecialchars($vendor['subscription_start_date']); ?></p>
-                <p><strong>Subscription End:</strong> <?= htmlspecialchars($vendor['subscription_end_date']); ?></p>
+                <p><strong>Subscription End:</strong>
+                    <?= htmlspecialchars($vendor['plan_name'] === 'Tier_I' ? 'Unlimited' : $vendor['subscription_end_date']); ?>
+                </p>
             </div>
 
             <button class="btn edit-btn" data-bs-toggle="modal" data-bs-target="#editVendorModal">Edit Store
@@ -202,7 +204,8 @@ $customer = getCustomerDetails($user_id, $conn);
 
                         <div class="mb-3">
                             <label for="profile_image" class="form-label">Profile Image</label>
-                            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                            <input type="file" class="form-control" id="profile_image" name="profile_image"
+                                accept="image/*">
                         </div>
 
                         <div class="d-flex justify-content-end">
