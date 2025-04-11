@@ -2,6 +2,7 @@
 session_start();
 include '../../includes/database.php';
 
+$db = new Database();
 $userClass = new User($db);
 $customerClass = new Customer($db);
 
@@ -11,6 +12,7 @@ if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php");
     exit();
 }
+
 
 $customer = $customerClass->getCustomerDetails($user_id);
 $user_image = $userClass->getUserImageFromUserID(user_id: $user_id);
