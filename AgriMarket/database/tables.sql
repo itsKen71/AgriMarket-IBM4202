@@ -101,7 +101,7 @@ CREATE TABLE payment (
     order_id INT NOT NULL,
     user_id INT NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
-    payment_method ENUM('Credit Card', 'Bank Transfer', 'Cash On Delivery') NOT NULL, /*Add Yourself*/
+    payment_method ENUM('Credit Card', 'Bank Transfer', 'Cash On Delivery') NOT NULL,
     payment_status ENUM('Pending', 'Completed', 'Refunded') NOT NULL,
     transaction_date DATETIME,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,

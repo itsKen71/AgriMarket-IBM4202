@@ -5,6 +5,7 @@ include '../../includes/database.php';
 
 $db = new Database();
 $customerClass = new Customer($db);
+$paymentClass = new Payment($db);
 
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
@@ -12,7 +13,19 @@ if (!$user_id) {
     exit(); // 
 }
 
+// Fetch the user's order history
 $orderHistory = $customerClass->getOrderHistoryByUser($user_id);
+
+foreach ($orderHistory as $orderId => $order) {
+  if (($order['order_status'] === 'Completed' || $order['tracking_number'] === 'Delivered') &&
+      strtotime($order['estimated_delivery_date']) <= time()) { // Use estimated_delivery_date from shipment
+      $payment = $paymentClass->getPaymentDetails($orderId);
+      if ($payment && $payment['payment_method'] === 'Cash On Delivery' && $payment['payment_status'] !== 'Completed') {
+          $paymentClass->updatePaymentStatus($payment['payment_id'], 'Completed');
+      }
+  }
+}
+// If no orders exist, set a message
 if (empty($orderHistory)) {
     $noOrderMessage = "You have no order history yet...";
 }

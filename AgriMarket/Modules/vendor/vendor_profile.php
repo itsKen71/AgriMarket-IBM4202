@@ -110,12 +110,19 @@ $customer = $customerClass->getCustomerDetails($user_id);
                 </div>
             </form>
 
+
             <?php if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tracking_number'])): ?>
                 <?php
                 $tracking_number = htmlspecialchars(trim($_POST['tracking_number']));
                 $shipment = $productClass->getShipmentDetails($tracking_number, $user_id);
 
                 if ($shipment) {
+                    if ($shipment['status'] === 'Cancelled') {
+                        // Display alert if the shipment is cancelled
+                        echo '<div class="alert alert-danger text-center mt-3">This shipment has been refunded or cancelled.</div>';
+                        return; // Stop further processing if the shipment is cancelled
+                    }
+
                     $start_date = strtotime($shipment['update_timestamp']);
                     $end_date = strtotime($shipment['estimated_delivery_date']);
                     $current_date = time();
@@ -125,9 +132,9 @@ $customer = $customerClass->getCustomerDetails($user_id);
 
                     if ($progress >= 100) {
                         $new_status = 'Delivered';
-                    } elseif ($progress >= 80) {
+                    } elseif ($progress >= 50) {
                         $new_status = 'Ready to Pickup by Carrier';
-                    } elseif ($progress >= 40) {
+                    } elseif ($progress >= 30) {
                         $new_status = 'Packaging';
                     } else {
                         $new_status = 'Pending';
@@ -156,7 +163,7 @@ $customer = $customerClass->getCustomerDetails($user_id);
                     <p class="text-center mt-2">Estimated Delivery Date:
                         <?= htmlspecialchars($shipment['estimated_delivery_date']); ?>
                     </p>
-                <?php else: ?>
+                <?php elseif (!$shipment): ?>
                     <div class="alert alert-danger text-center mt-3">Invalid tracking number or no order found for this user.
                     </div>
                 <?php endif; ?>
