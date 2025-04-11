@@ -219,7 +219,7 @@ class Customer
             poh.product_id, poh.quantity, poh.sub_price, poh.status,
             p.product_name, p.unit_price, p.product_image, p.stock_quantity, p.description, p.weight,
             coh.status AS order_status,
-            s.tracking_number,
+            s.tracking_number, s.estimated_delivery_date,
             pym.payment_id, pym.payment_status,
             c.category_name,
             r.refund_id, r.refund_status
@@ -251,6 +251,7 @@ class Customer
                 $orders[$orderId] = [
                     'payment_id' => $row['payment_id'],
                     'order_date' => $row['order_date'],
+                    'estimated_delivery_date' => $row['estimated_delivery_date'], // Include estimated_delivery_date
                     'total_order_price' => $row['total_order_price'],
                     'order_status' => $row['order_status'],
                     'products' => [],
@@ -1157,15 +1158,74 @@ class Payment
 
     function updateRefund($request_id, $status, $current_date, $user_id)
     {
-        //Update refund status
-        $sql = "UPDATE refund SET refund_status=?, refund_approve_date=?, approve_by=? WHERE refund_id= ?";
-        $stmt = $this->conn->prepare($sql);
+        // Start a transaction
+        $this->conn->begin_transaction();
 
-        $stmt->bind_param("ssii", $status, $current_date, $user_id, $request_id);
+        try {
+            if ($status === 'Rejected') {
+                // Delete the refund record if the status is Rejected
+                $sqlDeleteRefund = "DELETE FROM refund WHERE refund_id = ?";
+                $stmtDeleteRefund = $this->conn->prepare($sqlDeleteRefund);
+                $stmtDeleteRefund->bind_param("i", $request_id);
 
-        if ($stmt->execute()) {
+                if (!$stmtDeleteRefund->execute()) {
+                    throw new Exception("Failed to delete refund record.");
+                }
+            } else if ($status === 'Approved') {
+                // Update refund status in the refund table
+                $sqlRefund = "UPDATE refund 
+                              SET refund_status = ?, refund_approve_date = ?, approve_by = ? 
+                              WHERE refund_id = ?";
+                $stmtRefund = $this->conn->prepare($sqlRefund);
+                $stmtRefund->bind_param("ssii", $status, $current_date, $user_id, $request_id);
+
+                if (!$stmtRefund->execute()) {
+                    throw new Exception("Failed to update refund table.");
+                }
+
+                // Update the product_order table
+                $sqlProductOrder = "UPDATE product_order 
+                                    SET status = 'Refunded' 
+                                    WHERE order_id = (
+                                        SELECT order_id 
+                                        FROM refund 
+                                        WHERE refund_id = ?
+                                    ) 
+                                    AND product_id = (
+                                        SELECT product_id 
+                                        FROM refund 
+                                        WHERE refund_id = ?
+                                    )";
+                $stmtProductOrder = $this->conn->prepare($sqlProductOrder);
+                $stmtProductOrder->bind_param("ii", $request_id, $request_id);
+
+                if (!$stmtProductOrder->execute()) {
+                    throw new Exception("Failed to update product_order table.");
+                }
+
+                // Update the shipment table
+                $sqlShipment = "UPDATE shipment 
+                                SET status = 'Cancelled' 
+                                WHERE order_id = (
+                                    SELECT order_id 
+                                    FROM refund 
+                                    WHERE refund_id = ?
+                                )";
+                $stmtShipment = $this->conn->prepare($sqlShipment);
+                $stmtShipment->bind_param("i", $request_id);
+
+                if (!$stmtShipment->execute()) {
+                    throw new Exception("Failed to update shipment table.");
+                }
+            }
+
+            // Commit the transaction
+            $this->conn->commit();
             return true;
-        } else {
+        } catch (Exception $e) {
+            // Rollback the transaction in case of an error
+            $this->conn->rollback();
+            error_log($e->getMessage());
             return false;
         }
     }
@@ -1451,5 +1511,26 @@ class Payment
         }
 
         return array_values($data);
+    }
+    function getPaymentDetails($order_id)
+    {
+        $sql = "SELECT payment_id, payment_method, payment_status 
+                FROM payment 
+                WHERE order_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $order_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+    }
+
+    function updatePaymentStatus($payment_id, $status)
+    {
+        $sql = "UPDATE payment 
+                SET payment_status = ? 
+                WHERE payment_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("si", $status, $payment_id);
+        return $stmt->execute();
     }
 }
