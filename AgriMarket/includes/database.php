@@ -847,9 +847,8 @@ class Product
         }
     }
 
-    function getApprovedProducts($category_id = null, $search_query = '', $filter = '')
+    function getApprovedProducts($category_id = null, $search_query = '', $filter = '', $preferred_terms = [])
     {
-
         $sql = "SELECT * FROM product WHERE product_status='Approved'";
         $params = [];
         $types = "";
@@ -868,36 +867,56 @@ class Product
             $types .= "ss";
         }
 
+        $order_by = [];
+        $preferred_terms = array_slice($preferred_terms, 0, 5);
+
+        if (!empty($preferred_terms)) {
+            foreach ($preferred_terms as $term) {
+                $clean_term = $this->conn->real_escape_string($term);
+                $order_by[] = "(product_name LIKE '%$clean_term%' OR description LIKE '%$clean_term%') DESC";
+            }
+        }
+
         switch ($filter) {
             case 'price_asc':
-                $sql .= " ORDER BY unit_price ASC";
+                $order_by[] = "unit_price ASC";
                 break;
             case 'price_desc':
-                $sql .= " ORDER BY unit_price DESC";
+                $order_by[] = "unit_price DESC";
                 break;
             case 'stock_asc':
-                $sql .= " ORDER BY stock_quantity ASC";
+                $order_by[] = "stock_quantity ASC";
                 break;
             case 'stock_desc':
-                $sql .= " ORDER BY stock_quantity DESC";
+                $order_by[] = "stock_quantity DESC";
                 break;
             case 'sold_asc':
-                $sql .= " ORDER BY sold_quantity ASC";
+                $order_by[] = "sold_quantity ASC";
                 break;
             case 'sold_desc':
-                $sql .= " ORDER BY sold_quantity DESC";
+                $order_by[] = "sold_quantity DESC";
                 break;
             case 'weight_asc':
-                $sql .= " ORDER BY weight ASC";
+                $order_by[] = "weight ASC";
                 break;
             case 'weight_desc':
-                $sql .= " ORDER BY weight DESC";
+                $order_by[] = "weight DESC";
                 break;
             case 'recent':
-                $sql .= " ORDER BY product_id DESC";
+                $order_by[] = "product_id DESC";
                 break;
-            default:
-                $sql .= " ORDER BY RAND()";
+        }
+
+        if (empty($filter)) {
+            if (!empty($preferred_terms)) {
+                $order_by[] = "RAND()";
+            } else {
+                $order_by[] = "RAND()";
+            }
+        }
+
+        if (!empty($order_by)) {
+            $sql .= " ORDER BY " . implode(", ", $order_by);
         }
 
         $stmt = $this->conn->prepare($sql);
@@ -907,14 +926,8 @@ class Product
         $stmt->execute();
         $result = $stmt->get_result();
 
-        $products = [];
-        while ($row = $result->fetch_assoc()) {
-            $products[] = $row;
-        }
-
-        return $products;
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
-
     function getVendorProducts($vendor_id, $search_query = '', $filter = '')
     {
         $sql = "SELECT * FROM product WHERE vendor_id = ? AND product_status = 'Approved'";

@@ -1,41 +1,42 @@
 body.main_page {
-    background-color: #f5f1eb; 
+    background-color: #f5f1eb;
 }
 
 .clickable-card {
     cursor: pointer;
     transition: transform 0.2s;
 }
+
 .clickable-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.03);
 }
 
 .card {
-    height: 100%; 
+    height: 100%;
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
 }
 
 .card-body {
-    flex-grow: 1; 
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; 
+    justify-content: space-between;
 }
 
 .card-text {
-    height: 60px; 
+    height: 60px;
     overflow: hidden;
-    text-overflow: ellipsis; 
-    white-space: nowrap; 
+    text-overflow: ellipsis;
+    white-space: nowrap;
     margin-bottom: 1rem;
 }
 
 .card-img-top {
-    height: 250px; 
-    object-fit: cover; 
-    flex-shrink: 0; 
+    height: 250px;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
 .card-title {
@@ -45,24 +46,24 @@ body.main_page {
 }
 
 .d-flex.justify-content-between {
-    margin-top: auto; 
+    margin-top: auto;
 }
 
-.product-title{
+.product-title {
     margin-top: 30px;
-    font-size: 1.7rem; 
+    font-size: 1.7rem;
 }
 
 .category-btn {
-    flex: 1; 
-    text-align: center; 
-    white-space: nowrap; 
-    overflow: hidden; 
+    flex: 1;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
     min-width: 250px;
 }
 
 .d-flex.align-items-center.justify-content-between {
-    gap: 20px; 
+    gap: 20px;
 }
 
 #prevCategory,
@@ -71,7 +72,7 @@ body.main_page {
 }
 
 .category-container {
-    flex-grow: 1; 
+    flex-grow: 1;
     display: flex;
     justify-content: center;
 }
@@ -86,27 +87,55 @@ body.main_page {
     border: 1px solid #ddd;
     border-radius: 5px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
-    color: #000; 
+    color: #000;
 }
 
 #filterCollapse h5 {
-    font-size: 1.3rem; 
-    color: #000000; 
+    font-size: 1.3rem;
+    color: #000000;
     border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-    padding-bottom: 10px; 
+    padding-bottom: 10px;
     margin-left: 10px;
 }
 
 #filterCollapse .btn-link {
-    color: #000; 
+    color: #000;
 }
 
 #filterCollapse .btn-link:hover {
     text-decoration: underline;
-    color: #4CAF50; 
+    color: #4CAF50;
 }
 
 #filterCollapse .btn-danger {
     margin-top: 0px;
-    color: #fff; 
+    color: #fff;
+}
+
+.mb-3 h5 {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #000000;
+}
+
+.mb-3 .d-flex.flex-wrap.gap-2 a {
+    padding: 8px 15px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.mb-3 .d-flex.flex-wrap.gap-2 a.btn-outline-success {
+    border-color: #198754; 
+    color: #198754;
+    background-color: #f5f1eb;
+}
+
+.mb-3 .d-flex.flex-wrap.gap-2 a.btn-outline-success:hover {
+    background-color: #198754; 
+    color: #ffffff; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
