@@ -32,6 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['vendor_id'], $_POST['
     echo json_encode(["status" => $result ? "success" : "error"]);
     exit();
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -103,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['vendor_id'], $_POST['
                                         </div>
 
                                         <!-- Button for Assign Assistance (Tier 3) -->
-                                        <?php if ($vendor['plan_name'] == 'Tier_III'): ?>
+                                        <?php if ($vendor['plan_name'] == 'Tier_III' ): ?>
                                             <div class="Vendor-Listing-Container-Button">
                                                 <img src="../../Assets/img/edit.png" alt="Add Assistance Button"
                                                     data-vendor-id="<?= htmlspecialchars($vendor['vendor_id']); ?>"

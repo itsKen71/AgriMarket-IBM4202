@@ -702,7 +702,7 @@ class Staff
                 u.phone_number,
                 u.home_address
                 FROM user u
-                LEFT JOIN vendor v ON u.user_id = v.user_id
+                LEFT JOIN vendor v ON u.user_id = v.assist_by
                 LEFT JOIN request r ON v.vendor_id = r.vendor_id
                 WHERE u.role = 'Staff'
                 GROUP BY u.user_id
@@ -782,12 +782,12 @@ class Admin
 
     function getTopVendor()
     {
-        $sql = "SELECT v.store_name AS label, SUM(po.sub_price) AS amountPurchase
+        $sql = "SELECT v.store_name AS label, SUM(po.quantity) AS amount
             FROM product_order po
             JOIN product p ON po.product_id = p.product_id
             JOIN vendor v ON p.vendor_id = v.vendor_id
             GROUP BY v.vendor_id
-            ORDER BY amountPurchase DESC
+            ORDER BY amount DESC
             LIMIT 5";
 
         $result = mysqli_query($this->conn, $sql);
@@ -796,7 +796,7 @@ class Admin
         while ($row = mysqli_fetch_assoc($result)) {
             $data[] = [
                 "label" => $row['label'],
-                "y" => (float) $row['amountPurchase']
+                "y" => (float) $row['amount']
             ];
         }
         return $data;
@@ -1134,7 +1134,7 @@ class Product
     {
         $sql = "SELECT COUNT(product.product_id) AS totalProducts
                 FROM product
-                WHERE product.vendor_id = '$user_id'";
+                WHERE product.vendor_id = '$user_id' AND product.product_status='Approved'";
 
         $result = mysqli_query($this->conn, $sql);
         $row = mysqli_fetch_assoc($result);
@@ -1251,7 +1251,7 @@ class Payment
             $sqlRefunds = "
                 SELECT COUNT(*) AS totalRefunds
                 FROM refund
-                WHERE YEAR(refund_date) = '$currentYear'
+                WHERE YEAR(refund_date) = '$currentYear' AND refund_status= 'Approved'
             ";
 
             $sqlOrders = "
@@ -1265,7 +1265,7 @@ class Payment
                 FROM refund
                 JOIN product ON refund.product_id = product.product_id
                 WHERE YEAR(refund.refund_date) = '$currentYear'
-                AND product.vendor_id = '$vendor_id'
+                AND product.vendor_id = '$vendor_id' AND refund_status= 'Approved'
             ";
 
             $sqlOrders = "
