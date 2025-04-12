@@ -3,6 +3,9 @@ include 'database.php';
 
 header('Content-Type: application/json');
 
+$db = new Database();
+$conn = $db->conn;
+
 try {
     if ($_SERVER["REQUEST_METHOD"] != "POST") {
         throw new Exception("Invalid request method");
