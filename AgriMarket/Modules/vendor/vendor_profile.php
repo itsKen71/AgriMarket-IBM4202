@@ -3,12 +3,8 @@ session_start();
 include '../../includes/database.php';
 
 $db = new Database();
-$userClass = new User($db);
 $customerClass = new Customer($db);
 $vendorClass = new Vendor($db);
-$adminClass = new Admin($db);
-$productClass = new Product($db);
-$paymentClass = new Payment($db);
 
 $user_id = $_SESSION['user_id'] ?? null;
 

@@ -1,24 +1,28 @@
 <?php
 session_start();
-include '../../includes/database.php';
+include '../../includes/database.php'; // Include the database connection file
 
+// Initialize database and class objects
 $db = new Database();
 $userClass = new User($db);
 $customerClass = new Customer($db);
 $productClass = new Product($db);
 $paymentClass = new Payment($db);
 
+// Retrieve the user ID from the session
 $user_id = $_SESSION['user_id'] ?? null;
 
+// Redirect to the login page if the user is not logged in
 if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php");
     exit();
 }
 
+// Fetch customer details using the user ID
 $customer = $customerClass->getCustomerDetails($user_id);
+
+// Fetch the user's profile image using the user ID
 $user_image = $userClass->getUserImageFromUserID(user_id: $user_id);
-
-
 ?>
 
 <!DOCTYPE html>

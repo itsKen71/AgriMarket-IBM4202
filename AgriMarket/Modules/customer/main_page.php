@@ -1,16 +1,21 @@
 <?php
 session_start();
+
+// Redirect to the login page if the user is not logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../authentication/login.php");
     exit();
 }
-include '../../includes/database.php';
+
+include '../../includes/database.php'; // Include the database connection file
 
 $db = new Database();
 $productClass = new Product($db);
 
+// Fetch all product categories
 $categories = $productClass->getCategories();
 
+// Retrieve selected category, search query, and filter from the request
 $selected_category_id = $_GET['category_id'] ?? 'all';
 $search_query = trim($_GET['search'] ?? '');
 $filter = $_GET['filter'] ?? '';
@@ -26,13 +31,17 @@ if (!empty($search_query) && isset($_SESSION['user_id'])) {
     ];
     $log_entry = json_encode($log_data);
     $log_file = '../../data/search_logs.txt';
-    // Ensure directory exists
+
+    // Ensure the directory for the log file exists
     if (!file_exists(dirname($log_file))) {
         mkdir(dirname($log_file), 0777, true);
     }
+
+    // Append the search log entry to the log file
     file_put_contents($log_file, $log_entry . PHP_EOL, FILE_APPEND);
 }
 
+// Retrieve recent search terms for the logged-in user
 $user_id = $_SESSION['user_id'];
 $recent_searches = [];
 $log_file = '../../data/search_logs.txt';
@@ -43,17 +52,19 @@ if (file_exists($log_file)) {
         $data = json_decode($line, true);
         if ($data && $data['user_id'] == $user_id) {
             $recent_searches[] = [
-                'term' => mb_strtolower(trim($data['term'])), 
+                'term' => mb_strtolower(trim($data['term'])), // Normalize search terms
                 'timestamp' => $data['timestamp']
             ];
         }
     }
 }
 
+// Sort recent searches by timestamp in descending order
 usort($recent_searches, function ($a, $b) {
     return $b['timestamp'] <=> $a['timestamp'];
 });
 
+// Extract unique search terms, limiting to the top 10
 $unique_terms = [];
 foreach ($recent_searches as $search) {
     if (!in_array($search['term'], $unique_terms)) {
@@ -64,14 +75,15 @@ foreach ($recent_searches as $search) {
     }
 }
 
-$top_searches = $unique_terms; 
+$top_searches = $unique_terms; // Store the top search terms
 
+// Fetch approved products based on the selected category, search query, filter, and top searches
 $products = $productClass->getApprovedProducts(
     $selected_category_id,
     $search_query,
     $filter,
-    $top_searches 
-); 
+    $top_searches
+);
 ?>
 
 <!DOCTYPE html>

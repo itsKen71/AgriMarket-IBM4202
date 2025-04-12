@@ -2,21 +2,27 @@
 session_start();
 include '../../includes/database.php';
 
+// Retrieve the user ID from the session, or set it to null if not available
 $user_id = $_SESSION['user_id'] ?? null;
 
+// Redirect to the login page if the user is not logged in
 if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php");
     exit();
 }
 
+// Initialize the database connection
 $db = new Database();
+
+// Create instances of the User and Customer classes
 $userClass = new User($db);
 $customerClass = new Customer($db);
 
+// Fetch customer details using the user ID
 $customer = $customerClass->getCustomerDetails($user_id);
+
+// Fetch the user's profile image using the user ID
 $user_image = $userClass->getUserImageFromUserID(user_id: $user_id);
-
-
 ?>
 
 <!DOCTYPE html>

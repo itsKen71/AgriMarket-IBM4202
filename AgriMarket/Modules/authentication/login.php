@@ -1,24 +1,29 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    session_start(); // Start a new session if none exists
 }
-require_once '../../includes/database.php';
+require_once '../../includes/database.php'; // Include the database connection file
 
+// Initialize database and user class
 $db = new Database();
 $userClass = new User($db);
 
-$error = "";
+$error = ""; // Variable to store error messages
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Retrieve and sanitize user input
     $username_email = trim($_POST['username']);
     $password = trim($_POST['password']);
 
+    // Authenticate the user using the provided credentials
     $user = $userClass->authenticateUser($username_email, $password);
 
     if ($user) {
+        // Store user ID and role in the session
         $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['role'] = $user['role'];
 
+        // Redirect the user based on their role
         switch ($user['role']) {
             case 'Customer':
                 header("Location: ../customer/main_page.php");
@@ -33,10 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: ../admin/admin_dashboard.php");
                 exit();
             default:
-                $error = "Invalid user role.";
+                $error = "Invalid user role."; // Handle unexpected roles
         }
     } else {
-        $error = "Invalid username/email or password.";
+        $error = "Invalid username/email or password."; // Set error message for invalid credentials
     }
 }
 ?>

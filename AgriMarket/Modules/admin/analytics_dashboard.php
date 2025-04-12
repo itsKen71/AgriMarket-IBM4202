@@ -1,15 +1,19 @@
 <?php
 session_start();
+// Retrieve user ID and role from the session, or set them to null if not available
 $user_id = $_SESSION['user_id'] ?? null;
 $role = $_SESSION['role'] ?? null;
 
+// Redirect to the login page if the user is not logged in or role is not set
 if (!$user_id && !$role) {
     header("Location: ../../Modules/authentication/login.php");
     exit();
 }
 
+// Include the database connection file
 include '../../includes/database.php';
 
+// Initialize the database connection and required class objects
 $db = new Database();
 $userClass = new User($db);
 $customerClass = new Customer($db);
@@ -18,29 +22,29 @@ $adminClass = new Admin($db);
 $productClass = new Product($db);
 $paymentClass = new Payment($db);
 
-//Check role is admin or vendor
+// Check if the user role is Admin; otherwise, set the vendor ID for queries
 $checkRole = ($role == "Admin");
 $query_vendor_id = -1;
 
 if (!$checkRole) {
+    // Get the vendor ID associated with the logged-in user
     $query_vendor_id = $userClass->getVendorIdByUserId($user_id);
-
 }
 
+// Retrieve the selected time filter option (default is 'monthly')
 $option = $_GET['option'] ?? 'monthly';
 
-// Fetch data based on specific role
-$activeUsers = $userClass->getActiveUser();
-$numberProduct = $productClass->getNumberProducts($query_vendor_id);
-$refundPercentage = $paymentClass->getRefundPercentage($query_vendor_id);
-$subscriptionData = $vendorClass->getSubscription();
-$topPaymentMethod = $paymentClass->topPaymentmethod($query_vendor_id);
-$topVendor = $adminClass->getTopVendor();
-$topProduct = $productClass->getTopProduct($query_vendor_id);
-$shipmentStatus = $customerClass->getShipmentStatus($query_vendor_id);
-$monthlyOrders = $paymentClass->getOrders($query_vendor_id, $option);
-$monthlyRevenue = $paymentClass->getRevenue($query_vendor_id, $option);
-
+// Fetch analytics data based on the user's role and vendor ID
+$activeUsers = $userClass->getActiveUser(); // Get the count of active users
+$numberProduct = $productClass->getNumberProducts($query_vendor_id); // Get the number of products
+$refundPercentage = $paymentClass->getRefundPercentage($query_vendor_id); // Get refund percentage
+$subscriptionData = $vendorClass->getSubscription(); // Get subscription data
+$topPaymentMethod = $paymentClass->topPaymentmethod($query_vendor_id); // Get the top payment method
+$topVendor = $adminClass->getTopVendor(); // Get the top-performing vendors
+$topProduct = $productClass->getTopProduct($query_vendor_id); // Get the top-selling products
+$shipmentStatus = $customerClass->getShipmentStatus($query_vendor_id); // Get shipment status
+$monthlyOrders = $paymentClass->getOrders($query_vendor_id, $option); // Get monthly orders
+$monthlyRevenue = $paymentClass->getRevenue($query_vendor_id, $option); // Get monthly revenue
 ?>
 
 <!DOCTYPE html>

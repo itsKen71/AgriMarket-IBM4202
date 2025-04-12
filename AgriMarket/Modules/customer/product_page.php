@@ -1,17 +1,19 @@
 <?php
 session_start();
-include '..\..\includes\database.php';
-include '..\..\includes\product_page_functions.php';
+include '..\..\includes\database.php'; // Include the database connection file
+include '..\..\includes\product_page_functions.php'; // Include product page-related functions
 
 $db = new Database();
 $userClass = new User($db);
 
+// Handle product selection and redirect to the product page
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
     $_SESSION['selected_product_id'] = $_POST['product_id'];
     header("Location: product_page.php");
     exit();
 }
 
+// Redirect to the main page if no product is selected
 if (!isset($_SESSION['selected_product_id'])) {
     header("Location: main_page.php");
     exit();
@@ -19,29 +21,35 @@ if (!isset($_SESSION['selected_product_id'])) {
 
 $product_id = $_SESSION['selected_product_id'];
 $user_id = $_SESSION['user_id'] ?? null;
+
+// Redirect to the login page if the user is not logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../authentication/login.php");
     exit();
 }
 
+// Retrieve the selected rating filter from the request
 $selected_rating = isset($_GET['rating']) ? intval($_GET['rating']) : 0;
 
+// Fetch complete product data from the database
 $product = getCompleteProductData($conn, $product_id);
 
+// Handle case where the product is not found
 if (!$product) {
     die("Product not found");
 }
 
+// Extract product details
 $avg_rating = $product['avg_rating'];
 $rounded_rating = $product['rounded_rating'];
 $total_reviews = $product['total_reviews'];
 
-//display star
+// Function to display star ratings
 function displayStars($rating)
 {
-    $fullStars = floor($rating);
-    $hasHalfStar = ($rating - $fullStars) >= 0.5;
-    $emptyStars = 5 - $fullStars - ($hasHalfStar ? 1 : 0);
+    $fullStars = floor($rating); // Calculate the number of full stars
+    $hasHalfStar = ($rating - $fullStars) >= 0.5; // Check if there is a half star
+    $emptyStars = 5 - $fullStars - ($hasHalfStar ? 1 : 0); // Calculate the number of empty stars
     $output = '';
     // Full stars
     for ($i = 0; $i < $fullStars; $i++) {
@@ -58,6 +66,7 @@ function displayStars($rating)
     return $output;
 }
 
+// Handle adding a product to the cart
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart']) && isset($_POST['quantity'])) {
     $product_id = $_SESSION['selected_product_id'];
     $quantity = $_POST['quantity'];
@@ -65,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart']) && iss
 
     $result = addToCart($conn, $product_id, $quantity, $user_id);
 
+    // Redirect based on the result of adding to the cart
     if ($result['success']) {
         header("Location: product_page.php?added=1");
     } else {
@@ -73,22 +83,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart']) && iss
     exit();
 }
 
+// Fetch vendor details for the product
 $vendor = VendorDetail($conn, $product_id);
 if ($vendor) {
     $store_name = $vendor['store_name'];
     $vendor_id = $vendor['vendor_id'];
     $_SESSION['vendorID'] = $vendor['vendor_id'];
-    $vendor_image = $userClass->getUserImageFromUserID($vendor['user_id']); // Now user_id is available
-    $vendor_rating = VendorRating($conn, $vendor_id);
+    $vendor_image = $userClass->getUserImageFromUserID($vendor['user_id']); // Fetch vendor's profile image
+    $vendor_rating = VendorRating($conn, $vendor_id); // Fetch vendor's rating
 } else {
     $store_name = "Unknown Store";
     $vendor_id = null;
-    $user_image = "../../Assets/svg/person-circle.svg"; // Default image
+    $user_image = "../../Assets/svg/person-circle.svg"; // Default image for vendor
     $vendor_rating = 0;
 }
 
-
-//get each rating
+// Fetch the count of reviews for each rating (1 to 5 stars)
 $rating_counts = [];
 for ($i = 1; $i <= 5; $i++) {
     $query = "SELECT COUNT(*) FROM review WHERE product_id = ? AND rating = ?";
@@ -99,7 +109,7 @@ for ($i = 1; $i <= 5; $i++) {
     $stmt->close();
 }
 
-//get comment with filtering and sorting
+// Fetch comments with optional filtering by rating
 $query = "SELECT r.rating, r.review_description, r.review_date, u.first_name, u.last_name, u.user_image, r.review_id 
           FROM review r 
           JOIN `user` u ON r.user_id = u.user_id 
