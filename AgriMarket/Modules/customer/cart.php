@@ -1,86 +1,90 @@
 <?php
-    session_start();
-    include '..\..\includes\database.php';
-    include '..\..\includes\cart_functions.php';
+session_start();
+include '..\..\includes\database.php'; // Include the database connection file
+include '..\..\includes\cart_functions.php'; // Include cart-related functions
 
-    $user_id = $_SESSION['user_id'] ?? null;
-    if (!isset($_SESSION['user_id'])) {
-        header("Location: ../authentication/login.php");
-        exit();
-    }
+// Retrieve the user ID from the session
+$user_id = $_SESSION['user_id'] ?? null;
 
-    $products = getUserCart($conn, $user_id);
+// Redirect to the login page if the user is not logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../authentication/login.php");
+    exit();
+}
 
-    // delete cart item
-    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_item'])) {
-        if (!isset($_POST['product_id']) || empty($_POST['product_id'])) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Missing product_id']);
-            exit();
-        }
+// Fetch the user's cart items
+$products = getUserCart($conn, $user_id);
 
-        $product_id = (int) $_POST['product_id']; 
-        $response = deleteCartItem($conn, $user_id, $product_id);
-
+// Handle deletion of a cart item
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_item'])) {
+    if (!isset($_POST['product_id']) || empty($_POST['product_id'])) {
         header('Content-Type: application/json');
-        echo json_encode($response);
+        echo json_encode(['success' => false, 'error' => 'Missing product_id']);
         exit();
     }
 
-    // update cart quantity
-    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
-        $product_id = $_POST['product_id'];
-        $new_quantity = $_POST['new_quantity'];
-        $unit_price = $_POST['unit_price'];
+    $product_id = (int) $_POST['product_id']; // Get the product ID to delete
+    $response = deleteCartItem($conn, $user_id, $product_id); // Call the function to delete the item
 
-        $response = updateCartQuantity($conn, $user_id, $product_id, $new_quantity, $unit_price);
+    header('Content-Type: application/json');
+    echo json_encode($response); // Return the response as JSON
+    exit();
+}
 
-        header('Content-Type: application/json');
-        echo json_encode($response);
-        exit();
+// Handle updating the quantity of a cart item
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_quantity'])) {
+    $product_id = $_POST['product_id']; // Get the product ID
+    $new_quantity = $_POST['new_quantity']; // Get the new quantity
+    $unit_price = $_POST['unit_price']; // Get the unit price
+
+    $response = updateCartQuantity($conn, $user_id, $product_id, $new_quantity, $unit_price); // Update the quantity
+
+    header('Content-Type: application/json');
+    echo json_encode($response); // Return the response as JSON
+    exit();
+}
+
+// Fetch all products for comparison or other operations
+$allProducts = [];
+$allProductsQuery = "SELECT p.* FROM product p"; // Query to fetch all products
+$allProductsResult = $conn->query($allProductsQuery);
+while ($row = $allProductsResult->fetch_assoc()) {
+    $row['average_rating'] = getAverageRating($conn, $row['product_id']); // Calculate the average rating for each product
+    $allProducts[$row['product_id']] = $row; // Store the product data
+}
+
+// Function to display star ratings
+function displayStars($rating) {
+    $fullStars = floor($rating); // Calculate the number of full stars
+    $hasHalfStar = ($rating - $fullStars) >= 0.5; // Check if there is a half star
+    $emptyStars = 5 - $fullStars - ($hasHalfStar ? 1 : 0); // Calculate the number of empty stars
+    $output = '';
+    // Full stars
+    for ($i = 0; $i < $fullStars; $i++) {
+        $output .= '<i class="fas fa-star"></i>';
     }
-
-    // get all product query
-    $allProducts = [];
-    $allProductsQuery = "SELECT p.* FROM product p";
-    $allProductsResult = $conn->query($allProductsQuery);
-    while ($row = $allProductsResult->fetch_assoc()) {
-        $row['average_rating'] = getAverageRating($conn, $row['product_id']);
-        $allProducts[$row['product_id']] = $row;
+    // Half star
+    if ($hasHalfStar) {
+        $output .= '<i class="fas fa-star-half-alt"></i>';
     }
-
-    function displayStars($rating) {
-        $fullStars = floor($rating);
-        $hasHalfStar = ($rating - $fullStars) >= 0.5;
-        $emptyStars = 5 - $fullStars - ($hasHalfStar ? 1 : 0);
-        $output = '';
-        // Full stars
-        for ($i = 0; $i < $fullStars; $i++) {
-            $output .= '<i class="fas fa-star"></i>';
-        }
-        // Half star
-        if ($hasHalfStar) {
-            $output .= '<i class="fas fa-star-half-alt"></i>';
-        }
-        // Empty stars
-        for ($i = 0; $i < $emptyStars; $i++) {
-            $output .= '<i class="far fa-star"></i>';
-        }
-        return $output;
+    // Empty stars
+    for ($i = 0; $i < $emptyStars; $i++) {
+        $output .= '<i class="far fa-star"></i>';
     }
-    
-    // Handle product switching
-    // switch product
-    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['switch_product'])) {
-        $current_product_id = $_POST['current_product_id'];
-        $compare_product_id = $_POST['compare_product_id'];
+    return $output;
+}
 
-        $response = switchCartProduct($conn, $user_id, $current_product_id, $compare_product_id);
+// Handle switching products in the cart
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['switch_product'])) {
+    $current_product_id = $_POST['current_product_id']; // Get the current product ID
+    $compare_product_id = $_POST['compare_product_id']; // Get the product ID to switch with
 
-        header('Content-Type: application/json');
-        echo json_encode($response);
-        exit();
-    }
+    $response = switchCartProduct($conn, $user_id, $current_product_id, $compare_product_id); // Perform the switch
+
+    header('Content-Type: application/json');
+    echo json_encode($response); // Return the response as JSON
+    exit();
+}
 ?>
 
 <!DOCTYPE html>

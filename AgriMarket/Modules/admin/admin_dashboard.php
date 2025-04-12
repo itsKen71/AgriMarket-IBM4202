@@ -1,41 +1,37 @@
 <?php
 session_start();
+// Check if the user is logged in; if not, redirect to the login page
 $user_id = $_SESSION['user_id'] ?? null;
-
 if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php");
     exit();
 }
 
+// Include the database connection and required classes
 include '../../includes/database.php';
 
-
+// Initialize database and class objects
 $db = new Database();
 $vendorClass = new Vendor($db);
 $staffClass = new Staff($db);
-$vendorClass = new Vendor($db);
 $adminClass = new Admin($db);
 
-
-//Fetch Vendor List
+// Fetch data for vendor, staff, and admin listings
 $vendorList = $vendorClass->getVendorList();
-//Fetch Staff List
 $staffList = $staffClass->getStaffList();
-//Fetch admin list
 $adminList = $adminClass->getAdminList();
 
-//Handle Form Submission
+// Handle form submission for updating vendor assistance
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['vendor_id'], $_POST['staff_id'])) {
     $vendorId = $_POST['vendor_id'];
     $staffId = $_POST['staff_id'];
 
+    // Update vendor assistance and return a JSON response
     $result = $vendorClass->updateVendorAssistance($vendorId, $staffId);
-
     header('Content-Type: application/json');
     echo json_encode(["status" => $result ? "success" : "error"]);
     exit();
 }
-
 ?>
 
 <!DOCTYPE html>

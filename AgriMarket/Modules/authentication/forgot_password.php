@@ -9,31 +9,37 @@ use PHPMailer\PHPMailer\Exception;
 
 session_start();
 
+// Initialize database connection and user class
 $db = new Database();
 $userClass = new User($db);
 
+// Initialize variables for error, success messages, and step tracking
 $error = "";
 $success = "";
 $step = isset($_SESSION['step']) ? $_SESSION['step'] : 1;
 
+// Handle form submissions based on the current step
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Step 1: Handle username submission and send OTP
     if (isset($_POST['username']) && $step === 1) {
         $username = trim($_POST['username']);
         $email = $userClass->getEmailByUsername($username);
 
         if ($email) {
+            // Generate OTP and store it in the session
             $otp = rand(100000, 999999);
             $_SESSION['otp'] = $otp;
             $_SESSION['username'] = $username;
             $_SESSION['email'] = $email;
 
+            // Configure and send the OTP email using PHPMailer
             $mail = new PHPMailer(true);
             try {
                 $mail->isSMTP();
                 $mail->Host = 'smtp.gmail.com';
                 $mail->SMTPAuth = true;
-                $mail->Username = 'kenjichong88@gmail.com';
-                $mail->Password = 'zqrg tdtj lxrv lgpk';
+                $mail->Username = 'kenjichong88@gmail.com'; // Replace with your email
+                $mail->Password = 'zqrg tdtj lxrv lgpk'; // Replace with your email password
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port = 587;
 
@@ -65,8 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ";
 
                 $mail->send();
-                $success = "OTP sent to your assiociated account.";
-                $_SESSION['step'] = 2;
+                $success = "OTP sent to your associated account.";
+                $_SESSION['step'] = 2; // Move to step 2
                 $step = 2;
             } catch (Exception $e) {
                 $error = "Failed to send OTP. Mailer Error: {$mail->ErrorInfo}";
@@ -74,28 +80,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $error = "Username not found.";
         }
-    } elseif (isset($_POST['otp']) && $step === 2) {
+    }
+    // Step 2: Handle OTP verification
+    elseif (isset($_POST['otp']) && $step === 2) {
         $otp = trim($_POST['otp']);
         if ($otp == $_SESSION['otp']) {
             $success = "OTP verified. You can now reset your password.";
-            $_SESSION['step'] = 3;
+            $_SESSION['step'] = 3; // Move to step 3
             $step = 3;
         } else {
             $error = "Invalid OTP. Please try again.";
             $step = 2;
         }
-    } elseif (isset($_POST['password']) && isset($_POST['confirm_password']) && $step === 3) {
+    }
+    // Step 3: Handle password reset
+    elseif (isset($_POST['password']) && isset($_POST['confirm_password']) && $step === 3) {
         $password = trim($_POST['password']);
         $confirm_password = trim($_POST['confirm_password']);
 
         if ($password === $confirm_password) {
+            // Hash the new password and update it in the database
             $hashed_password = hash('sha256', $password);
             $username = $_SESSION['username'];
 
             if ($userClass->updatePasswordByUsername($username, $hashed_password)) {
                 $success = "Password reset successfully. You can now <a href='login.php'>log in</a>.";
+                // Clear session data related to the password reset process
                 unset($_SESSION['otp'], $_SESSION['username'], $_SESSION['email'], $_SESSION['step']);
-                $step = 1;
+                $step = 1; // Reset to step 1
             } else {
                 $error = "Failed to reset password. Please try again.";
                 $step = 3;

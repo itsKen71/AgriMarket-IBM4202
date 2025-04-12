@@ -1,13 +1,15 @@
 <?php
-require_once '../../includes/database.php';
+require_once '../../includes/database.php'; // Include the database connection file
 
+// Initialize database and user class
 $db = new Database();
 $userClass = new User($db);
 
-$error = "";
-$success = "";
+$error = ""; // Variable to store error messages
+$success = ""; // Variable to store success messages
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Retrieve and sanitize user input
     $first_name = trim($_POST['first_name']);
     $last_name = trim($_POST['last_name']);
     $username = trim($_POST['username']);
@@ -18,32 +20,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $home_address = trim($_POST['home_address']);
     $profile_image = $_FILES['profile_image'];
 
+    // Check if passwords match
     if ($password !== $confirm_password) {
         $error = "Passwords do not match.";
     } else {
-        // Hash the password
+        // Hash the password for secure storage
         $hashed_password = hash('sha256', $password);
 
+        // Define the directory to store profile images
         $upload_dir = __DIR__ . "/../../Assets/img/profile_img/";
         if (!is_dir($upload_dir)) {
-            mkdir($upload_dir, 0777, true); 
+            mkdir($upload_dir, 0777, true); // Create the directory if it doesn't exist
         }
 
+        // Prepare the file path for the uploaded profile image
         $image_name = basename($profile_image['name']);
         $target_file = $upload_dir . $image_name;
         $image_path = "Assets/img/profile_img/" . $image_name;
 
+        // Move the uploaded file to the target directory
         if (move_uploaded_file($profile_image['tmp_name'], $target_file)) {
-            // Insert user into the database
+            // Insert the new user into the database
             $result = $userClass->insertUser($first_name, $last_name, $username, $email, $hashed_password, 'Customer', $phone_number, $home_address, $image_path);
 
             if ($result) {
                 $success = "Account created successfully. You can now <a href='login.php'>log in</a>.";
             } else {
-                $error = "The username, email, or phone number is already registered.";
+                $error = "The username, email, or phone number is already registered."; // Handle duplicate entries
             }
         } else {
-            $error = "Failed to upload profile image.";
+            $error = "Failed to upload profile image."; // Handle file upload errors
         }
     }
 }

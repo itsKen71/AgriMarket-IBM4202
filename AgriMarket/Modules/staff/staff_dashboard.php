@@ -2,6 +2,7 @@
 session_start();
 $user_id = $_SESSION['user_id'] ?? null;
 
+// Redirect to the login page if the user is not logged in
 if (!$user_id) {
     header("Location: ../../Modules/authentication/login.php");
     exit();
@@ -15,33 +16,33 @@ require '../../includes/PHPMailer/src/Exception.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-
 $db = new Database();
 $customerClass = new Customer($db);
 $vendorClass = new Vendor($db);
 $staffClass = new Staff($db);
 $paymentClass = new Payment($db);
 
-// Fetch Lists
+// Fetch lists for pending requests, vendor assistance, and refunds
 $pendingList = $staffClass->getPendingRequestList();
 $assisstanceList = $vendorClass->getVendorAssisstanceList($user_id);
 $refundList = $paymentClass->getRefundList();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['ajax'])) {
-    // Approve or reject pending product
+    // Handle approval of pending product requests
     if ($_POST['action'] === 'approve_pending') {
         $staffClass->updatePendingRequestStatus($_POST['product_id'], "Approved");
         echo json_encode(['status' => 'success']);
         exit();
     }
 
+    // Handle rejection of pending product requests
     if ($_POST['action'] === 'reject_pending') {
         $staffClass->updatePendingRequestStatus($_POST['product_id'], "Rejected");
         echo json_encode(['status' => 'success']);
         exit();
     }
 
-    // Approve or reject refund
+    // Handle approval or rejection of refund requests
     if ($_POST['action'] === 'refund' && isset($_POST['refund_id'], $_POST['status'])) {
         $current_date = date("Y-m-d");
         $status = $_POST['status'];
@@ -51,28 +52,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['ajax'])) {
         exit();
     }
 
-    // Mark assistance request as completed
+    // Mark assistance requests as completed
     if ($_POST['action'] === 'assistance' && isset($_POST['request_id'])) {
         $staffClass->updateAssisstanceRequestStatus($_POST['request_id'], TRUE);
         echo json_encode(['status' => 'success']);
         exit();
     }
 
+    // Handle invalid actions
     echo json_encode(['status' => 'error', 'message' => 'Invalid action.']);
     exit();
 }
 
-// Promotion update and email sending
+// Handle promotion updates and email notifications
 if (
     isset(
-    $_POST['discountCode'],
-    $_POST['promotionTitle'],
-    $_POST['promotionMessage'],
-    $_POST['startDate'],
-    $_POST['endDate'],
-    $_POST['discountPercentage'],
-    $_POST['minPurchaseAmount']
-)
+        $_POST['discountCode'],
+        $_POST['promotionTitle'],
+        $_POST['promotionMessage'],
+        $_POST['startDate'],
+        $_POST['endDate'],
+        $_POST['discountPercentage'],
+        $_POST['minPurchaseAmount']
+    )
 ) {
     $currentDate = date("Y-m-d");
 
@@ -87,10 +89,10 @@ if (
     $isActive = 1;
     $created_by = $user_id;
 
-    // Update DB
+    // Update promotion details in the database
     $staffClass->update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by);
 
-    // Get customers
+    // Fetch customer emails for sending promotion notifications
     $customers = $customerClass->getCustomerEmails();
 
     if ($customers) {

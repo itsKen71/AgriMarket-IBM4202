@@ -1,33 +1,38 @@
 <?php
 session_start();
-include '../../includes/database.php';
-include '..\..\includes\product_page_functions.php';
-
+include '../../includes/database.php'; // Include the database connection file
+include '..\..\includes\product_page_functions.php'; // Include product page-related functions
 
 $db = new Database();
 $userClass = new User($db);
-$customerClass = new Customer($db);
 $vendorClass = new Vendor($db);
-$adminClass = new Admin($db);
 $productClass = new Product($db);
-$paymentClass = new Payment($db);
 
+// Redirect to the login page if the user is not logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../authentication/login.php");
     exit();
 }
 
+// Retrieve the vendor ID from the session
 $vendor_id = $_SESSION['vendorID'];
+
+// Fetch the user ID associated with the vendor
 $userID = $vendorClass->getUserIdByVendorId($vendor_id);
+
+// Fetch vendor details using the vendor ID
 $vendor = $vendorClass->getVendorDetailsById($vendor_id);
 
+// Fetch the vendor's profile image
 $vendor_image = $userClass->getUserImageFromUserID($userID);
+
+// Fetch the vendor's rating
 $vendor_rating = VendorRating($db->conn, $vendor_id);
 
-// Fetch vendor products
-$search_query = $_GET['search'] ?? '';
-$filter = $_GET['filter'] ?? '';
-$products = $productClass->getVendorProducts($vendor_id, $search_query, $filter);
+// Fetch vendor products based on search query and filter
+$search_query = $_GET['search'] ?? ''; // Retrieve the search query from the request
+$filter = $_GET['filter'] ?? ''; // Retrieve the filter option from the request
+$products = $productClass->getVendorProducts($vendor_id, $search_query, $filter); // Fetch the vendor's products
 ?>
 
 <!DOCTYPE html>
