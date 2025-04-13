@@ -1349,7 +1349,7 @@ class Payment
         // Check whether it is admin or vendor
         if ($user_id == -1) {
             // Admin
-            $sql = "SELECT $select, SUM(price) AS revenue
+            $sql = "SELECT $select, SUM(sub_price) AS revenue
                     FROM orders
                     WHERE YEAR(order_date) = ?
                     GROUP BY $groupBy
@@ -1358,7 +1358,7 @@ class Payment
             mysqli_stmt_bind_param($stmt, "i", $currentYear);
         } else {
             // Vendor
-            $sql = "SELECT $select, SUM(price) AS revenue
+            $sql = "SELECT $select, SUM(sub_price) AS revenue
                     FROM orders
                     JOIN product_order po ON orders.order_id = po.order_id
                     JOIN product p ON po.product_id = p.product_id
