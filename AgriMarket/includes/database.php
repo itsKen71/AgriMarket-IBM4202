@@ -1349,7 +1349,7 @@ class Payment
         // Check whether it is admin or vendor
         if ($user_id == -1) {
             // Admin
-            $sql = "SELECT $select, SUM(sub_price) AS revenue
+            $sql = "SELECT $select, SUM(price) AS revenue
                     FROM orders
                     WHERE YEAR(order_date) = ?
                     GROUP BY $groupBy
