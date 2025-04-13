@@ -89,9 +89,8 @@ $customer = $customerClass->getCustomerDetails($user_id);
             <button class="btn edit-btn" data-bs-toggle="modal" data-bs-target="#editVendorModal">Edit Store
                 Info</button>
 
-            <?php if (!empty($vendor['assist_by'])): ?>
-                <button class="btn edit-btn" data-bs-toggle="modal" data-bs-target="#requestAssistanceModal">Request
-                    Assistance</button>
+            <?php if (!empty($vendor['assist_by']) && $vendor['plan_name'] === 'Tier_III'): ?>
+                <button class="btn edit-btn" data-bs-toggle="modal" data-bs-target="#requestAssistanceModal">Request Assistance</button>
             <?php endif; ?>
         </div>
 

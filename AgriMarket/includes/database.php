@@ -33,6 +33,7 @@ class User
         $this->conn = $db->conn;
     }
 
+    // Authenticate user by username/email and password
     function authenticateUser($username_email, $password)
     {
 
@@ -62,6 +63,7 @@ class User
         return null;
     }
 
+    // Insert a new user into the database
     function insertUser($first_name, $last_name, $username, $email, $password, $role, $phone_number, $home_address, $user_image)
     {
 
@@ -71,6 +73,7 @@ class User
         return $stmt->execute();
     }
 
+    // Get username by user ID
     function getUsernameFromUserID($user_id)
     {
 
@@ -87,6 +90,7 @@ class User
         return null;
     }
 
+    // Get email by username
     function getEmailByUsername($username)
     {
 
@@ -103,6 +107,7 @@ class User
         return null;
     }
 
+    // Update password for a user by username
     function updatePasswordByUsername($username, $hashed_password)
     {
 
@@ -112,6 +117,7 @@ class User
         return $stmt->execute();
     }
 
+    // Get user profile image by user ID
     function getUserImageFromUserID($user_id)
     {
 
@@ -128,6 +134,7 @@ class User
         return "../../Assets/svg/person-circle.svg"; // Default image if not found
     }
 
+    // Update user details (email and phone number) by user ID
     function updateUserDetails($email, $phone_number, $user_id)
     {
         $query = "UPDATE user SET email = ?, phone_number = ? WHERE user_id = ?";
@@ -139,6 +146,7 @@ class User
         return false;
     }
 
+    // Get vendor ID by user ID
     function getVendorIdByUserId($user_id)
     {
         $vendor_id = null;
@@ -155,6 +163,7 @@ class User
         return $vendor_id;
     }
 
+    // Get the count of active users (customers and vendors) in the last month
     function getActiveUser()
     {
         $oneMonthAgo = date("Y-m-d H:i:s", strtotime("-1 month"));
@@ -174,6 +183,7 @@ class User
         ];
     }
 
+    // Get the role of a user by user ID
     function getRole($user_id)
     {
         $stmt = $this->conn->prepare("SELECT role FROM user WHERE user_id = ?");
@@ -194,8 +204,7 @@ class Customer
         $this->conn = $db->conn;
     }
 
-
-
+    // Update customer profile information
     function updateCustomerInfo($user_id, $username, $first_name, $last_name, $email, $phone_number, $home_address, $image_path = null)
     {
         $query = "UPDATE user 
@@ -212,6 +221,7 @@ class Customer
         return $stmt->execute();
     }
 
+    // Get order history for a user
     function getOrderHistoryByUser($userId)
     {
         $sql = "
@@ -251,7 +261,7 @@ class Customer
                 $orders[$orderId] = [
                     'payment_id' => $row['payment_id'],
                     'order_date' => $row['order_date'],
-                    'estimated_delivery_date' => $row['estimated_delivery_date'], // Include estimated_delivery_date
+                    'estimated_delivery_date' => $row['estimated_delivery_date'], 
                     'total_order_price' => $row['total_order_price'],
                     'order_status' => $row['order_status'],
                     'products' => [],
@@ -278,6 +288,7 @@ class Customer
         return $orders;
     }
 
+    // Get customer details by user ID
     function getCustomerDetails($user_id)
     {
         $stmt = $this->conn->prepare("SELECT username, first_name, last_name, email, phone_number, home_address FROM user WHERE user_id = ?");
@@ -286,6 +297,7 @@ class Customer
         return $stmt->get_result()->fetch_assoc();
     }
 
+    // Update customer profile details
     function updateCustomerProfile($user_id, $username, $first_name, $last_name, $email, $phone_number, $home_address)
     {
         $stmt = $this->conn->prepare("UPDATE user SET username = ?, first_name = ?, last_name = ?, email = ?, phone_number = ?, home_address = ? WHERE user_id = ?");
@@ -293,6 +305,7 @@ class Customer
         return $stmt->execute();
     }
 
+    // Upgrade a customer to a vendor
     function upgradeToVendor($user_id, $plan_id, $end_date)
     { // Upgrade user to vendor and insert into vendor table
         // Upgrade user role
@@ -310,6 +323,7 @@ class Customer
         return $stmt->execute();
     }
 
+    // Get a list of customer emails
     function getCustomerEmails()
     {
 
@@ -331,6 +345,7 @@ class Customer
         return $customers;
     }
 
+    // Get shipment status for a user or vendor
     function getShipmentStatus($user_id)
     {
         $data = [];
@@ -386,6 +401,7 @@ class Vendor
         $this->conn = $db->conn;
     }
 
+    // Check if a vendor has a Tier 3 subscription
     function isVendorTierThree($user_id)
     {
         $stmt = $this->conn->prepare("
@@ -406,6 +422,7 @@ class Vendor
         return false;
     }
 
+    // Get vendor details by vendor ID
     function getVendorDetailsById($vendor_id)
     {
         $query = "SELECT v.store_name, u.first_name, u.last_name, u.email, u.phone_number 
@@ -424,6 +441,7 @@ class Vendor
         return $result->fetch_assoc();
     }
 
+    // Get subscription plan name by plan ID
     function getPlanName($plan_id)
     { // Get subscription plan name
         $query = "SELECT plan_name FROM subscription WHERE subscription_id = ?";
@@ -435,6 +453,7 @@ class Vendor
         return $plan ? $plan['plan_name'] : null;
     }
 
+    // Update vendor subscription details
     function updateVendorSubscription($user_id, $plan_id, $end_date)
     { // Update vendor's subscription
         $update_vendor = "UPDATE vendor SET subscription_id = ?, subscription_start_date = CURDATE(), subscription_end_date = ? WHERE user_id = ?";
@@ -443,6 +462,7 @@ class Vendor
         return $stmt->execute();
     }
 
+    // Check if a user is already a vendor
     function checkIfVendor($user_id)
     { // Check if user is already a vendor
         $query = "SELECT vendor_id FROM vendor WHERE user_id = ?";
@@ -452,6 +472,8 @@ class Vendor
         $result = $stmt->get_result();
         return $result->num_rows > 0;
     }
+
+    // Get a list of all vendors
     function getVendorList()
     {
 
@@ -467,6 +489,7 @@ class Vendor
         return ($result->num_rows > 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
     }
 
+    // Update vendor assistance assignment
     function updateVendorAssistance($vendorId, $staffId)
     {
 
@@ -482,6 +505,7 @@ class Vendor
         }
     }
 
+    // Get a list of vendor assistance requests
     function getVendorAssisstanceList($user_id)
     {
 
@@ -499,6 +523,7 @@ class Vendor
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
+    // Update vendor profile details
     function updateVendorProfile($store_name, $vendor_id)
     {
         $query = "UPDATE vendor SET store_name = ? WHERE vendor_id = ?";
@@ -510,6 +535,7 @@ class Vendor
         return false;
     }
 
+    // Check if a user is a vendor
     function isVendor($user_id)
     {
         $stmt = $this->conn->prepare("SELECT role FROM user WHERE user_id = ?");
@@ -521,6 +547,7 @@ class Vendor
         return $user['role'] === 'Vendor';
     }
 
+    // Insert a new assistance request for a vendor
     function insertRequest($vendor_id, $request_type, $request_description)
     {
         $query = "INSERT INTO request (vendor_id, request_type, request_description, request_date) 
@@ -539,6 +566,7 @@ class Vendor
         }
     }
 
+    // Get vendor details by user ID
     function getVendorDetails($user_id)
     {
         $query = "
@@ -557,6 +585,7 @@ class Vendor
         return $result->fetch_assoc();
     }
 
+    // Get subscription data for analytics
     function getSubscription()
     {
         $sql = "SELECT s.plan_name, COUNT(v.vendor_id) AS totalUsers 
@@ -582,6 +611,7 @@ class Vendor
         return $data;
     }
 
+    // Get user ID associated with a vendor ID
     function getUserIdByVendorId($vendor_id)
     {
         $query = "SELECT user_id FROM vendor WHERE vendor_id = ?";
@@ -598,6 +628,7 @@ class Vendor
         return null; // Return null if no user_id is found
     }
 
+    // Display star ratings for a vendor
     function displayStarsHere($rating)
     {
         $fullStars = floor($rating);
@@ -630,6 +661,7 @@ class Staff
         $this->conn = $db->conn;
     }
 
+    // Delete a review by review ID
     function deleteComment($review_id)
     {
 
@@ -643,6 +675,7 @@ class Staff
         }
     }
 
+    // Update promotion and discount details
     function update_Promotion_Discount($discountCode, $promotionTitle, $promotionMessage, $startDate, $endDate, $discountPercentage, $minPurchaseAmount, $isActive, $created_by)
     {
         //Insert into Discount Table
@@ -672,6 +705,7 @@ class Staff
         }
     }
 
+    // Update the status of an assistance request
     function updateAssisstanceRequestStatus($request_id, $status)
     {
         $sql = "UPDATE request SET is_completed=? WHERE request_id= ?";
@@ -689,7 +723,7 @@ class Staff
         }
     }
 
-
+    // Get a list of all staff members
     function getStaffList()
     {
         $sql = "SELECT 
@@ -717,6 +751,7 @@ class Staff
         }
     }
 
+    // Get a list of pending product requests
     function getPendingRequestList()
     {
         $sql = "SELECT 
@@ -743,6 +778,7 @@ class Staff
         }
     }
 
+    // Update the status of a pending product request
     function updatePendingRequestStatus($product_id, $status)
     {
 
@@ -765,6 +801,7 @@ class Admin
         $this->conn = $db->conn;
     }
 
+    // Get a list of all admins
     function getAdminList()
     {
 
@@ -780,6 +817,7 @@ class Admin
         }
     }
 
+    // Get the top-performing vendors
     function getTopVendor()
     {
         $sql = "SELECT v.store_name AS label, SUM(po.quantity) AS amount
@@ -814,6 +852,7 @@ class Product
         $this->conn = $db->conn;
     }
 
+    // Get shipment details by tracking number and user ID
     function getShipmentDetails($tracking_number, $user_id)
     {
         $stmt = $this->conn->prepare("
@@ -827,6 +866,7 @@ class Product
         return $stmt->get_result()->fetch_assoc();
     }
 
+    // Update the status of a shipment
     function updateShipmentStatus($shipping_id, $new_status)
     {
         $stmt = $this->conn->prepare("UPDATE shipment SET status = ? WHERE shipping_id = ?");
@@ -834,6 +874,7 @@ class Product
         return $stmt->execute();
     }
 
+    // Get a list of all product categories
     function getCategories()
     {
 
@@ -847,6 +888,7 @@ class Product
         }
     }
 
+    // Get approved products to be displayed with optional filters
     function getApprovedProducts($category_id = null, $search_query = '', $filter = '', $preferred_terms = [])
     {
         $sql = "SELECT * FROM product WHERE product_status='Approved'";
@@ -928,6 +970,8 @@ class Product
 
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+
+    // Get products for a vendor with optional filters
     function getVendorProducts($vendor_id, $search_query = '', $filter = '')
     {
         $sql = "SELECT * FROM product WHERE vendor_id = ? AND product_status = 'Approved'";
@@ -981,6 +1025,7 @@ class Product
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
+    // Insert a new product into the database
     function insertProduct($vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status)
     {
         $query = "INSERT INTO product (vendor_id, category_id, product_name, product_image, description, stock_quantity, weight, unit_price, product_status) 
@@ -993,6 +1038,7 @@ class Product
         return false;
     }
 
+    // Upload a product image
     function uploadProductImage($file, $upload_dir = "../Assets/img/product_img/")
     {
         if (!is_dir($upload_dir)) {
@@ -1009,6 +1055,7 @@ class Product
         throw new Exception("Error uploading image.");
     }
 
+    // Update product details
     function updateProduct($product_id, $category_id, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status)
     {
         $query = "UPDATE product 
@@ -1022,6 +1069,7 @@ class Product
         return false;
     }
 
+    // Update the product image
     function updateProductImage($file, $current_image, $upload_dir = "../Assets/img/product_img/")
     {
         if (!is_dir($upload_dir)) {
@@ -1046,6 +1094,7 @@ class Product
         return $image_path;
     }
 
+    // Get the count of pending products for a vendor
     function getPendingProductCount($vendor_id)
     { // Used to determine whether it exceed upload_limit
         $query = "SELECT COUNT(*) AS pending_count FROM product WHERE vendor_id = ? AND product_status = 'Pending'";
@@ -1057,6 +1106,7 @@ class Product
         return $row['pending_count'] ?? 0; // Return 0 if no result
     }
 
+    // Get low stock products for a vendor
     function getLowStockProducts($vendor_id, $threshold = 10)
     {
         $query = "
@@ -1071,6 +1121,7 @@ class Product
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
+    // Get products by status for a vendor
     function getProductsByStatus($vendor_id, $status)
     {
         $sql = "
@@ -1088,6 +1139,7 @@ class Product
         return $stmt->get_result();
     }
 
+    // Get the top-selling products
     function getTopProduct($user_id)
     {
         $topProducts = [];
@@ -1130,6 +1182,7 @@ class Product
         return $topProducts;
     }
 
+    // Get the total number of approved products for a vendor
     function getNumberProducts($user_id)
     {
         $sql = "SELECT COUNT(product.product_id) AS totalProducts
@@ -1155,6 +1208,7 @@ class Payment
         $this->conn = $db->conn;
     }
 
+    // Get a list of pending refund requests
     function getRefundList()
     {
         $sql = "SELECT  r.refund_id,r.order_id, p.product_name, r.refund_amount, r.refund_date ,r.reason
@@ -1169,6 +1223,7 @@ class Payment
         return ($result->num_rows > 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
     }
 
+    // Update refund details and related tables
     function updateRefund($request_id, $status, $current_date, $user_id)
     {
         // Start a transaction
@@ -1243,6 +1298,7 @@ class Payment
         }
     }
 
+    // Get the refund percentage for a vendor or admin
     function getRefundPercentage($vendor_id)
     {
         $currentYear = date("Y");
@@ -1289,6 +1345,7 @@ class Payment
         return ["totalRefundPercentage" => round($refundPercentage, 2)];
     }
 
+    // Get revenue data for analytics
     function getRevenue($user_id, $option)
     {
         $currentYear = date("Y");
@@ -1381,6 +1438,7 @@ class Payment
         return array_values($data);
     }
 
+    // Get the top payment methods
     function topPaymentMethod($user_id)
     {
         $currentYear = date("Y");
@@ -1432,6 +1490,7 @@ class Payment
         return $data;
     }
 
+    // Get order data for analytics
     function getOrders($user_id, $option)
     {
         $currentYear = date("Y");
@@ -1525,6 +1584,8 @@ class Payment
 
         return array_values($data);
     }
+
+    // Get payment details by order ID
     function getPaymentDetails($order_id)
     {
         $sql = "SELECT payment_id, payment_method, payment_status 
@@ -1537,6 +1598,7 @@ class Payment
         return $result->fetch_assoc();
     }
 
+    // Update the payment status
     function updatePaymentStatus($payment_id, $status)
     {
         $sql = "UPDATE payment 
