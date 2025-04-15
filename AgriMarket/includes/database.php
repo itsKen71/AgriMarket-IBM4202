@@ -261,7 +261,7 @@ class Customer
                 $orders[$orderId] = [
                     'payment_id' => $row['payment_id'],
                     'order_date' => $row['order_date'],
-                    'estimated_delivery_date' => $row['estimated_delivery_date'], 
+                    'estimated_delivery_date' => $row['estimated_delivery_date'],
                     'total_order_price' => $row['total_order_price'],
                     'order_status' => $row['order_status'],
                     'products' => [],
@@ -357,7 +357,6 @@ class Customer
                 GROUP BY s.status
                 ORDER BY totalShipments DESC";
             $stmt = mysqli_prepare($this->conn, $sql);
-
         } else {
 
             $sql = "SELECT s.status, COUNT(DISTINCT s.shipping_id) AS totalShipments
@@ -649,7 +648,6 @@ class Vendor
         }
         return $output;
     }
-
 }
 
 class Staff
@@ -789,7 +787,6 @@ class Staff
 
         return $stmt->execute();
     }
-
 }
 
 class Admin
@@ -824,6 +821,8 @@ class Admin
             FROM product_order po
             JOIN product p ON po.product_id = p.product_id
             JOIN vendor v ON p.vendor_id = v.vendor_id
+            LEFT JOIN refund r ON r.product_id = po.product_id AND r.order_id = po.order_id
+            WHERE (r.refund_status IS NULL OR r.refund_status != 'Approved')
             GROUP BY v.vendor_id
             ORDER BY amount DESC
             LIMIT 5";
@@ -839,8 +838,6 @@ class Admin
         }
         return $data;
     }
-
-
 }
 
 class Product
@@ -1151,7 +1148,12 @@ class Product
                 FROM product_order po
                 JOIN orders o ON po.order_id = o.order_id
                 JOIN product p ON po.product_id = p.product_id
+                LEFT JOIN refund r
+                    ON r.product_id= po.product_id
+                    AND r.order_id = po.order_id
+                    AND r.refund_status='Approved'
                 WHERE YEAR(o.order_date) = ?
+                   AND r.refund_id IS NULL
                 GROUP BY p.product_id
                 ORDER BY total_quantity DESC
                 LIMIT 5";
@@ -1164,7 +1166,11 @@ class Product
                 JOIN orders o ON po.order_id = o.order_id
                 JOIN product p ON po.product_id = p.product_id
                 JOIN vendor v ON p.vendor_id = v.vendor_id
-                WHERE YEAR(o.order_date) = ? AND v.vendor_id = ?
+                LEFT JOIN refund r
+                        ON r.product_id = po.product_id
+                        AND r.order_id = po.order_id
+                        AND r.refund_status = 'Approved'
+                WHERE YEAR(o.order_date) = ? AND v.vendor_id = ? AND r.refund_id IS NULL
                 GROUP BY p.product_id
                 ORDER BY total_quantity DESC
                 LIMIT 5";
@@ -1196,7 +1202,6 @@ class Product
             "total_product" => $row['totalProducts']
         ];
     }
-
 }
 
 class Payment
@@ -1406,22 +1411,31 @@ class Payment
         // Check whether it is admin or vendor
         if ($user_id == -1) {
             // Admin
-            $sql = "SELECT $select, SUM(price) AS revenue
-                    FROM orders
-                    WHERE YEAR(order_date) = ?
-                    GROUP BY $groupBy
-                    ORDER BY $orderBy";
+            $sql = "SELECT $select, 
+                    SUM(IF(r.refund_id IS NULL, po.sub_price, 0)) AS revenue
+            FROM orders o
+            JOIN product_order po ON o.order_id = po.order_id
+            LEFT JOIN refund r ON r.order_id = po.order_id 
+                                AND r.product_id = po.product_id 
+                                AND r.refund_status = 'Approved'
+            WHERE YEAR(order_date) = ?
+            GROUP BY $groupBy
+            ORDER BY $orderBy";
             $stmt = mysqli_prepare($this->conn, $sql);
             mysqli_stmt_bind_param($stmt, "i", $currentYear);
         } else {
             // Vendor
-            $sql = "SELECT $select, SUM(sub_price) AS revenue
-                    FROM orders
-                    JOIN product_order po ON orders.order_id = po.order_id
-                    JOIN product p ON po.product_id = p.product_id
-                    WHERE YEAR(order_date) = ? AND p.vendor_id = ?
-                    GROUP BY $groupBy
-                    ORDER BY $orderBy";
+            $sql = "SELECT $select, 
+                   SUM(IF(r.refund_id IS NULL, po.sub_price, 0)) AS revenue
+            FROM orders o
+            JOIN product_order po ON o.order_id = po.order_id
+            JOIN product p ON po.product_id = p.product_id
+            LEFT JOIN refund r ON r.order_id = po.order_id 
+                               AND r.product_id = po.product_id 
+                               AND r.refund_status = 'Approved'
+            WHERE YEAR(order_date) = ? AND p.vendor_id = ?
+            GROUP BY $groupBy
+            ORDER BY $orderBy";
             $stmt = mysqli_prepare($this->conn, $sql);
             mysqli_stmt_bind_param($stmt, "ii", $currentYear, $user_id);
         }
@@ -1550,22 +1564,46 @@ class Payment
 
         if ($user_id == -1) {
             // Admin
-            $sql = "SELECT $select, COUNT(DISTINCT o.order_id) AS total_orders
-                    FROM orders o
-                    WHERE YEAR(o.order_date) = ?
-                    GROUP BY $groupBy
-                    ORDER BY $orderBy";
+            $sql = "
+            SELECT duration, COUNT(*) AS total_orders
+            FROM (
+                SELECT o.order_id, $select
+                FROM orders o
+                JOIN product_order po ON o.order_id = po.order_id
+                LEFT JOIN refund r 
+                    ON r.order_id = o.order_id 
+                    AND r.product_id = po.product_id 
+                    AND r.refund_status = 'Approved'
+                WHERE YEAR(o.order_date) = ?
+                GROUP BY o.order_id
+                HAVING COUNT(DISTINCT po.product_id) > COUNT(DISTINCT r.refund_id)
+            ) AS valid_orders
+            GROUP BY duration
+            ORDER BY duration
+        ";
             $stmt = mysqli_prepare($this->conn, $sql);
             mysqli_stmt_bind_param($stmt, "i", $currentYear);
         } else {
             // Vendor
-            $sql = "SELECT $select, COUNT(DISTINCT o.order_id) AS total_orders
-                    FROM orders o
-                    JOIN product_order po ON o.order_id = po.order_id
-                    JOIN product p ON po.product_id = p.product_id
-                    WHERE YEAR(o.order_date) = ? AND p.vendor_id = ?
-                    GROUP BY $groupBy
-                    ORDER BY $orderBy";
+            $sql = "
+            SELECT duration, COUNT(*) AS total_orders
+            FROM (
+                SELECT o.order_id, $select
+                FROM orders o
+                JOIN product_order po ON o.order_id = po.order_id
+                JOIN product p ON po.product_id = p.product_id
+                LEFT JOIN refund r 
+                    ON r.order_id = o.order_id 
+                    AND r.product_id = po.product_id 
+                    AND r.refund_status = 'Approved'
+                WHERE YEAR(o.order_date) = ? AND p.vendor_id = ?
+                GROUP BY o.order_id
+                HAVING COUNT(DISTINCT po.product_id) > COUNT(DISTINCT r.refund_id)
+            ) AS valid_orders
+            GROUP BY duration
+            ORDER BY duration
+        ";
+
             $stmt = mysqli_prepare($this->conn, $sql);
             mysqli_stmt_bind_param($stmt, "ii", $currentYear, $user_id);
         }

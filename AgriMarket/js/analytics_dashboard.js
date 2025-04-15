@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Top Vendor Chart 
     let topVendorChartContainer = document.getElementById("vendorChart");
     if (topVendorChartContainer) {
-        if (topVendorsData.length <5) {
+        if (topVendorsData.length ==0) {
             topVendorChartContainer.innerHTML = `
                 <div style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 300px;">
                     <div style="text-align: center; font-size: 20px; font-weight: bold; color: #555;">
