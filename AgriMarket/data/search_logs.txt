@@ -13,3 +13,8 @@
 {"user_id":1,"term":"oats","timestamp":1744473618}
 {"user_id":1,"term":"Boer Goat","timestamp":1744476820}
 {"user_id":1,"term":"Fresh Cow Milk","timestamp":1744477416}
+{"user_id":1,"term":"Hay","timestamp":1744717974}
+{"user_id":1,"term":"junhao","timestamp":1744718896}
+{"user_id":1,"term":"junhao","timestamp":1744718900}
+{"user_id":1,"term":"hay","timestamp":1744718900}
+{"user_id":1,"term":"hay","timestamp":1744721258}
