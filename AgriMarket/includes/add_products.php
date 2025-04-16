@@ -18,8 +18,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Upload the product image
         $image_path = $productClass->uploadProductImage($_FILES["product_image"]);
 
+        // Set product properties using setter methods
+        $productClass->setVendorId($vendor_id);
+        $productClass->setCategoryId($category_id);
+        $productClass->setProductName($product_name);
+        $productClass->setProductImage($image_path);
+        $productClass->setDescription($description);
+        $productClass->setStockQuantity($stock_quantity);
+        $productClass->setWeight($weight);
+        $productClass->setUnitPrice($unit_price);
+        $productClass->setProductStatus($product_status);
+
         // Insert the product into the database
-        $insertSuccess = $productClass->insertProduct($vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status);
+        $insertSuccess = $productClass->insertProduct();
 
         if ($insertSuccess) {
             // Redirect on success

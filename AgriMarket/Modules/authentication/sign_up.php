@@ -40,8 +40,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Move the uploaded file to the target directory
         if (move_uploaded_file($profile_image['tmp_name'], $target_file)) {
+            $userClass->setFirstName($first_name);
+            $userClass->setLastName($last_name);
+            $userClass->setUsername($username);
+            $userClass->setEmail($email);
+            $userClass->setPassword($hashed_password);
+            $userClass->setRole('Customer'); // Default role for new users
+            $userClass->setPhoneNumber($phone_number);
+            $userClass->setHomeAddress($home_address);
+            $userClass->setUserImage($image_path);
+
             // Insert the new user into the database
-            $result = $userClass->insertUser($first_name, $last_name, $username, $email, $hashed_password, 'Customer', $phone_number, $home_address, $image_path);
+            $result = $userClass->insertUser();
 
             if ($result) {
                 $success = "Account created successfully. You can now <a href='login.php'>log in</a>.";
@@ -108,7 +118,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="mb-3">
                     <label for="profile_image" class="form-label">Profile Image</label>
-                    <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*" required>
+                    <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*"
+                        required>
                 </div>
                 <hr>
                 <div class="mb-3">

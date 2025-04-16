@@ -27,10 +27,144 @@ class Database
 class User
 {
     private $conn;
+    private $user_id;
+    private $username;
+    private $first_name;
+    private $last_name;
+    private $email;
+    private $password;
+    private $role;
+    private $phone_number;
+    private $home_address;
+    private $user_image;
+    private $last_online;
 
-    public function __construct($db)
+    public function __construct($db, $user_id = null, $username = null, $first_name = null, $last_name = null, $email = null, $password = null, $role = null, $phone_number = null, $home_address = null, $user_image = null, $last_online = null)
     {
         $this->conn = $db->conn;
+        $this->user_id = $user_id;
+        $this->username = $username;
+        $this->first_name = $first_name;
+        $this->last_name = $last_name;
+        $this->email = $email;
+        $this->password = $password;
+        $this->role = $role;
+        $this->phone_number = $phone_number;
+        $this->home_address = $home_address;
+        $this->user_image = $user_image;
+        $this->last_online = $last_online;
+    }
+
+    // Getter methods
+    public function getUserId()
+    {
+        return $this->user_id;
+    }
+
+    public function getUsername()
+    {
+        return $this->username;
+    }                                   
+
+    public function getFirstName()
+    {
+        return $this->first_name;
+    }                   
+
+    public function getLastName()
+    {
+        return $this->last_name;
+    }       
+
+    public function getEmail()
+    {
+        return $this->email;
+    }   
+
+    public function getPassword()
+    {
+        return $this->password;
+    }       
+
+    public function getRoles()
+    {
+        return $this->role;
+    }
+
+    public function getPhoneNumber()
+    {
+        return $this->phone_number;
+    }       
+
+    public function getHomeAddress()
+    {
+        return $this->home_address;
+    }
+
+    public function getUserImage()
+    {
+        return $this->user_image;
+    }
+
+    public function getLastOnline()
+    {
+        return $this->last_online;
+    }
+
+    // Setter methods
+    public function setUserId($user_id)
+    {
+        $this->user_id = $user_id;
+    }
+
+    public function setUsername($username)
+    {
+        $this->username = $username;
+    }
+
+    public function setFirstName($first_name)
+    {
+        $this->first_name = $first_name;
+    }
+
+    public function setLastName($last_name)
+    {
+        $this->last_name = $last_name;
+    }
+
+    public function setEmail($email)
+    {
+        $this->email = $email;
+    }
+
+    public function setPassword($password)
+    {
+        $this->password = $password;
+    }
+
+    public function setRole($role)
+    {
+        $this->role = $role;
+    }
+
+    public function setPhoneNumber($phone_number)
+    {
+        $this->phone_number = $phone_number;
+    }
+
+    public function setHomeAddress($home_address)
+    {
+        $this->home_address = $home_address;
+    }
+
+    public function setUserImage($user_image)
+    {
+        $this->user_image = $user_image;
+    }
+
+    public function setLastOnline($last_online)
+    {
+        $this->last_online = $last_online;
     }
 
     // Authenticate user by username/email and password
@@ -64,11 +198,21 @@ class User
     }
 
     // Insert a new user into the database
-    function insertUser($first_name, $last_name, $username, $email, $password, $role, $phone_number, $home_address, $user_image)
+    function insertUser()
     {
-
         $stmt = $this->conn->prepare("INSERT INTO user (first_name, last_name, username, user_image, email, password, role, phone_number, home_address, last_online) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-        $stmt->bind_param("sssssssss", $first_name, $last_name, $username, $user_image, $email, $password, $role, $phone_number, $home_address);
+        $stmt->bind_param(
+            "sssssssss",
+            $this->first_name,
+            $this->last_name,
+            $this->username,
+            $this->user_image,
+            $this->email,
+            $this->password,
+            $this->role,
+            $this->phone_number,
+            $this->home_address
+        );
 
         return $stmt->execute();
     }
@@ -195,7 +339,7 @@ class User
     }
 }
 
-class Customer
+class Customer extends User
 {
     private $conn;
 
@@ -391,13 +535,88 @@ class Customer
     }
 }
 
-class Vendor
+class Vendor extends Customer
 {
     private $conn;
+    private $vendor_id; // Unique ID for the vendor
+    private $subscription_id; // Subscription plan ID
+    private $store_name; // Vendor's store name
+    private $subscription_start_date; // Start date of the subscription
+    private $subscription_end_date; // End date of the subscription
+    private $assist_by; // Staff assigned to assist the vendor
 
-    public function __construct($db)
+    public function __construct($db, $vendor_id = null, $subscription_id = null, $store_name = null, $subscription_start_date = null, $subscription_end_date = null, $assist_by = null)
     {
+        parent::__construct($db); // Call the parent constructor to initialize inherited properties
         $this->conn = $db->conn;
+        $this->vendor_id = $vendor_id;
+        $this->subscription_id = $subscription_id;
+        $this->store_name = $store_name;
+        $this->subscription_start_date = $subscription_start_date;
+        $this->subscription_end_date = $subscription_end_date;
+        $this->assist_by = $assist_by;
+    }
+
+    // Getter methods
+    public function getVendorId()
+    {
+        return $this->vendor_id;
+    }
+
+    public function getSubscriptionId()
+    {
+        return $this->subscription_id;
+    }
+
+    public function getStoreName()
+    {
+        return $this->store_name;
+    }
+
+    public function getSubscriptionStartDate()
+    {
+        return $this->subscription_start_date;
+    }
+
+    public function getSubscriptionEndDate()
+    {
+        return $this->subscription_end_date;
+    }
+
+    public function getAssistBy()
+    {
+        return $this->assist_by;
+    }
+
+    // Setter methods
+    public function setVendorId($vendor_id)
+    {
+        $this->vendor_id = $vendor_id;
+    }
+
+    public function setSubscriptionId($subscription_id)
+    {
+        $this->subscription_id = $subscription_id;
+    }
+
+    public function setStoreName($store_name)
+    {
+        $this->store_name = $store_name;
+    }
+
+    public function setSubscriptionStartDate($subscription_start_date)
+    {
+        $this->subscription_start_date = $subscription_start_date;
+    }
+
+    public function setSubscriptionEndDate($subscription_end_date)
+    {
+        $this->subscription_end_date = $subscription_end_date;
+    }
+
+    public function setAssistBy($assist_by)
+    {
+        $this->assist_by = $assist_by;
     }
 
     // Check if a vendor has a Tier 3 subscription
@@ -650,7 +869,7 @@ class Vendor
     }
 }
 
-class Staff
+class Staff extends User
 {
     private $conn;
 
@@ -789,7 +1008,7 @@ class Staff
     }
 }
 
-class Admin
+class Admin extends User
 {
     private $conn;
 
@@ -843,10 +1062,132 @@ class Admin
 class Product
 {
     private $conn;
+    private $product_id;
+    private $vendor_id;
+    private $category_id;
+    private $product_name;
+    private $product_image;
+    private $description;
+    private $stock_quantity;
+    private $weight;
+    private $unit_price;
+    private $product_status;
 
-    public function __construct($db)
+    public function __construct($db, $product_id = null, $vendor_id = null, $category_id = null, $product_name = null, $product_image = null, $description = null, $stock_quantity = null, $weight = null, $unit_price = null, $product_status = null)
     {
         $this->conn = $db->conn;
+        $this->product_id = $product_id;
+        $this->vendor_id = $vendor_id;
+        $this->category_id = $category_id;
+        $this->product_name = $product_name;
+        $this->product_image = $product_image;
+        $this->description = $description;
+        $this->stock_quantity = $stock_quantity;
+        $this->weight = $weight;
+        $this->unit_price = $unit_price;
+        $this->product_status = $product_status;
+    }
+
+    // Getter methods
+    public function getProductId()
+    {
+        return $this->product_id;
+    }
+
+    public function getVendorId()
+    {
+        return $this->vendor_id;
+    }
+
+    public function getCategoryId()
+    {
+        return $this->category_id;
+    }
+
+    public function getProductName()
+    {
+        return $this->product_name;
+    }
+
+    public function getProductImage()
+    {
+        return $this->product_image;
+    }
+
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    public function getStockQuantity()
+    {
+        return $this->stock_quantity;
+    }
+
+    public function getWeight()
+    {
+        return $this->weight;
+    }
+
+    public function getUnitPrice()
+    {
+        return $this->unit_price;
+    }
+
+    public function getProductStatus()
+    {
+        return $this->product_status;
+    }
+
+    // Setter methods
+    public function setProductId($product_id)
+    {
+        $this->product_id = $product_id;
+    }
+
+    public function setVendorId($vendor_id)
+    {
+        $this->vendor_id = $vendor_id;
+    }
+
+    public function setCategoryId($category_id)
+    {
+        $this->category_id = $category_id;
+    }
+
+    public function setProductName($product_name)
+    {
+        $this->product_name = $product_name;
+    }
+
+    public function setProductImage($product_image)
+    {
+        $this->product_image = $product_image;
+    }
+
+    public function setDescription($description)
+    {
+        $this->description = $description;
+    }
+
+    public function setStockQuantity($stock_quantity)
+    {
+        $this->stock_quantity = $stock_quantity;
+    }
+
+    public function setWeight($weight)
+    {
+        $this->weight = $weight;
+    }
+
+    public function setUnitPrice($unit_price)
+    {
+        $this->unit_price = $unit_price;
+    }
+
+    public function setProductStatus($product_status)
+    {
+        $this->product_status = $product_status;
     }
 
     // Get shipment details by tracking number and user ID
@@ -1023,16 +1364,24 @@ class Product
     }
 
     // Insert a new product into the database
-    function insertProduct($vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status)
+    public function insertProduct()
     {
         $query = "INSERT INTO product (vendor_id, category_id, product_name, product_image, description, stock_quantity, weight, unit_price, product_status) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        if ($stmt = $this->conn->prepare($query)) {
-            $stmt->bind_param("iisssidds", $vendor_id, $category_id, $product_name, $image_path, $description, $stock_quantity, $weight, $unit_price, $product_status);
-            return $stmt->execute(); // Return true if successful, false if failed
-        }
-        return false;
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param(
+            "iisssidds",
+            $this->vendor_id,
+            $this->category_id,
+            $this->product_name,
+            $this->product_image,
+            $this->description,
+            $this->stock_quantity,
+            $this->weight,
+            $this->unit_price,
+            $this->product_status
+        );
+        return $stmt->execute();
     }
 
     // Upload a product image
@@ -1204,13 +1553,99 @@ class Product
     }
 }
 
-class Payment
+class Payment extends Product
 {
     private $conn;
+    private $payment_id;
+    private $order_id;
+    private $user_id;
+    private $total_amount;
+    private $payment_method;
+    private $payment_status;
+    private $transaction_date;
 
-    public function __construct($db)
+    public function __construct($db, $payment_id = null, $order_id = null, $user_id = null, $total_amount = null, $payment_method = null, $payment_status = null, $transaction_date = null)
     {
         $this->conn = $db->conn;
+        $this->payment_id = $payment_id;
+        $this->order_id = $order_id;
+        $this->user_id = $user_id;
+        $this->total_amount = $total_amount;
+        $this->payment_method = $payment_method;
+        $this->payment_status = $payment_status;
+        $this->transaction_date = $transaction_date;
+    }
+
+    // Getter methods
+    public function getPaymentId()
+    {
+        return $this->payment_id;
+    }
+
+    public function getOrderId()
+    {
+        return $this->order_id;
+    }
+
+    public function getUserId()
+    {
+        return $this->user_id;
+    }
+
+    public function getTotalAmount()
+    {
+        return $this->total_amount;
+    }
+
+    public function getPaymentMethod()
+    {
+        return $this->payment_method;
+    }
+
+    public function getPaymentStatus()
+    {
+        return $this->payment_status;
+    }
+
+    public function getTransactionDate()
+    {
+        return $this->transaction_date;
+    }
+
+    // Setter methods
+    public function setPaymentId($payment_id)
+    {
+        $this->payment_id = $payment_id;
+    }
+
+    public function setOrderId($order_id)
+    {
+        $this->order_id = $order_id;
+    }
+
+    public function setUserId($user_id)
+    {
+        $this->user_id = $user_id;
+    }
+
+    public function setTotalAmount($total_amount)
+    {
+        $this->total_amount = $total_amount;
+    }
+
+    public function setPaymentMethod($payment_method)
+    {
+        $this->payment_method = $payment_method;
+    }
+
+    public function setPaymentStatus($payment_status)
+    {
+        $this->payment_status = $payment_status;
+    }
+
+    public function setTransactionDate($transaction_date)
+    {
+        $this->transaction_date = $transaction_date;
     }
 
     // Get a list of pending refund requests
