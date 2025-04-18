@@ -64,27 +64,27 @@ class User
     public function getUsername()
     {
         return $this->username;
-    }                                   
+    }
 
     public function getFirstName()
     {
         return $this->first_name;
-    }                   
+    }
 
     public function getLastName()
     {
         return $this->last_name;
-    }       
+    }
 
     public function getEmail()
     {
         return $this->email;
-    }   
+    }
 
     public function getPassword()
     {
         return $this->password;
-    }       
+    }
 
     public function getRoles()
     {
@@ -94,7 +94,7 @@ class User
     public function getPhoneNumber()
     {
         return $this->phone_number;
-    }       
+    }
 
     public function getHomeAddress()
     {
@@ -639,6 +639,28 @@ class Vendor extends Customer
 
         return false;
     }
+
+    // Check if a vendor has a Tier 2 & 3 subscription
+    function isVendorTierTwoOrThree($user_id)
+    {
+        $stmt = $this->conn->prepare("
+                SELECT s.plan_name 
+                FROM vendor v
+                JOIN subscription s ON v.subscription_id = s.subscription_id
+                WHERE v.user_id = ?
+            ");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows === 1) {
+            $row = $result->fetch_assoc();
+            return in_array($row['plan_name'], ['Tier_II', 'Tier_III']);
+        }
+
+        return false;
+    }
+
 
     // Get vendor details by vendor ID
     function getVendorDetailsById($vendor_id)
