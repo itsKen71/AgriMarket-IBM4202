@@ -230,7 +230,7 @@ $is_staff = $_SESSION['role'];
 
                     <!-- button -->
                     <div class="mt-4 d-flex gap-3">
-                        <?php if ($is_staff !== 'Staff'): ?>
+                        <?php if ($is_staff !== 'Staff' && $user_id !== $vendor['user_id']): ?>
                             <button type="button" class="btn btn-outline-danger px-4 py-2" style="width: 180px;"
                                 data-bs-toggle="modal" data-bs-target="#quantityModal"
                                 data-stock-quantity="<?php echo $product['stock_quantity']; ?>">
