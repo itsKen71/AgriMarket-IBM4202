@@ -471,7 +471,7 @@ class Customer extends User
     function getCustomerEmails()
     {
 
-        $sql = "SELECT first_name, last_name, email FROM user WHERE role = 'Customer' ";
+        $sql = "SELECT first_name, last_name, email FROM user WHERE role IN ('Customer', 'Vendor') ";
         $result = mysqli_query($this->conn, $sql);
 
         $customers = [];
