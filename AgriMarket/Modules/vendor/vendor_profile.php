@@ -5,6 +5,7 @@ include '../../includes/database.php';
 $db = new Database();
 $customerClass = new Customer($db);
 $vendorClass = new Vendor($db);
+$productClass = new Product($db);
 
 $user_id = $_SESSION['user_id'] ?? null;
 
