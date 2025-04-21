@@ -6,6 +6,7 @@ include '../../includes/database.php'; // Include the database connection file
 $db = new Database();
 $customerClass = new Customer($db);
 $paymentClass = new Payment($db);
+$productClass = new Product($db);
 
 $user_id = $_SESSION['user_id'] ?? null;
 
@@ -30,6 +31,19 @@ foreach ($orderHistory as $orderId => $order) {
     if ($payment && $payment['payment_method'] === 'Cash On Delivery' && $payment['payment_status'] !== 'Completed') {
       $paymentClass->updatePaymentStatus($payment['payment_id'], 'Completed'); // Update payment status to completed
     }
+  }
+}
+
+// Fetch shipment details and update refund eligibility
+foreach ($orderHistory as $orderId => $order) {
+  // Fetch shipment details for the order using tracking_number and user_id
+  $shipment = $productClass->getShipmentDetails($order['tracking_number'], $user_id);
+
+  // Check if the current date is greater than or equal to the estimated delivery date
+  $canRefund = strtotime($shipment['estimated_delivery_date']) <= time();
+
+  foreach ($order['products'] as &$product) {
+      // Remove the can_refund variable and handle the logic directly in the HTML
   }
 }
 
@@ -73,18 +87,22 @@ if (empty($orderHistory)) {
             </h5>
             <div class="d-flex align-items-center">
               <?php
+              $shipment = $productClass->getShipmentDetails($order['tracking_number'], $user_id);
+              $canRefundAll = strtotime($shipment['estimated_delivery_date']) <= time();
+
               $hasRefundedProduct = count(array_filter($order['products'], fn($p) => $p['status'] === 'Refunded')) > 0;
               $hasRefundRecord = count(array_filter($order['products'], fn($p) => !empty($p['refund_id']))) > 0;
-              $allRefunded = count(array_filter($order['products'], fn($p) => $p['status'] !== 'Refunded')) === 0;
-              $disableRefundAll = $order['payment_status'] === 'Pending' || $hasRefundedProduct || $hasRefundRecord;
+              $disableRefundAll = !$canRefundAll || $hasRefundedProduct || $hasRefundRecord;
+
               $refundTooltip = '';
-              if ($order['payment_status'] === 'Pending') {
-                $refundTooltip = 'Payment is pending';
+              if (!$canRefundAll) {
+                  $refundTooltip = 'Product not Delivered.';
               } elseif ($hasRefundedProduct) {
-                $refundTooltip = 'One or more products are already refunded';
+                  $refundTooltip = 'One or more products are already refunded.';
               } elseif ($hasRefundRecord) {
-                $refundTooltip = 'Some products already have refund requests';
+                  $refundTooltip = 'Some products already have refund requests.';
               }
+
               $productsForModal = array_filter($order['products'], fn($p) => $p['status'] !== 'Refunded' && empty($p['refund_id']));
               ?>
 
@@ -119,21 +137,18 @@ if (empty($orderHistory)) {
                   $paymentStatus = $order['payment_status'];
                   $productOrderStatus = $product['status'];
                   $refundRequested = !empty($product['refund_id']);
+                  $shipment = $productClass->getShipmentDetails($order['tracking_number'], $user_id);
+                  $canRefund = strtotime($shipment['estimated_delivery_date']) <= time();
 
-                  $disableRefund = $paymentStatus == 'Pending' || $productOrderStatus == 'Refunded' || $refundRequested;
+                  $disableRefund = !$canRefund || $productOrderStatus === 'Refunded' || $refundRequested;
+                  $tooltip = '';
 
-                  switch (true) {
-                    case $paymentStatus == 'Pending':
-                      $tooltip = 'Payment is pending.';
-                      break;
-                    case $productOrderStatus == 'Refunded':
-                      $tooltip = 'Product refunded.';
-                      break;
-                    case $refundRequested:
-                      $tooltip = 'Refund requested.';
-                      break;
-                    default:
-                      $tooltip = '';
+                  if (!$canRefund) {
+                      $tooltip = 'Product not Delivered.';
+                  } elseif ($productOrderStatus === 'Refunded') {
+                      $tooltip = 'Product already refunded.';
+                  } elseif ($refundRequested) {
+                      $tooltip = 'Refund already requested.';
                   }
                   ?>
 
