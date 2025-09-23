@@ -40,13 +40,6 @@ It provides farmers, vendors, staff, and admins with an integrated system for se
 - Secure order & payment workflow (Credit Card, Bank Transfer, COD)  
 - Analytics dashboards with charts & reports  
 
-## Screenshots  
-_Add screenshots here_  
-- Login & Registration  
-- Product Page & Shopping Cart  
-- Vendor Dashboard  
-- Admin Analytics  
-
 ## Installation  
 1. Clone the repository:  
    ```bash
